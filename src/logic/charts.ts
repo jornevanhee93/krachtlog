@@ -32,7 +32,7 @@ export function epley(last: number | undefined, reps: number | undefined): numbe
 
 export function punten(historiek: Gedaan[], lichaamsgewichtKg?: number): Punt[] {
   return historiek
-    .map((g) => {
+    .map((g): Punt | null => {
       const werk = werkSets(g.sets);
       if (werk.length === 0) return null;
       let topset: number | undefined;
@@ -48,7 +48,7 @@ export function punten(historiek: Gedaan[], lichaamsgewichtKg?: number): Punt[] 
         const e = epley(last, reps);
         if (e !== undefined && (e1rm === undefined || e > e1rm)) e1rm = e;
       }
-      return { datum: g.start.slice(0, 10), topset, volume: rond1(volume), e1rm } satisfies Punt;
+      return { datum: g.start.slice(0, 10), topset, volume: rond1(volume), e1rm };
     })
     .filter((p): p is Punt => p !== null);
 }

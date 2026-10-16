@@ -40,6 +40,7 @@ export const PROGRESSIE_STAPPEN = [
 export const progressieStap = z.enum(PROGRESSIE_STAPPEN, {
   error: `kies uit ${PROGRESSIE_STAPPEN.join(', ')}`,
 });
+export type ProgressieStap = z.infer<typeof progressieStap>;
 
 export const progressie = z
   .strictObject({
