@@ -53,7 +53,7 @@ export default function ExerciseList() {
         onChange={(e) => setFilter({ ...filter, zoek: e.target.value })}
       />
       {patronen.length > 0 && (
-        <div className="chips scroll-x">
+        <div className="chips">
           <button className={!filter.patroon ? 'chip active' : 'chip'} onClick={() => setFilter({ ...filter, patroon: '' })}>
             {t.alle}
           </button>
