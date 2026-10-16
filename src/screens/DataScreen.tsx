@@ -22,6 +22,7 @@ export default function DataScreen() {
       <ImportCard />
       <RestoreCard />
       <StorageCard />
+      <DiagnoseCard />
       <WipeCard />
     </section>
   );
@@ -362,6 +363,33 @@ function WipeCard() {
         {t.wisKnop}
       </button>
       {melding && <p className="ok">{melding}</p>}
+    </div>
+  );
+}
+
+function DiagnoseCard() {
+  const [regels, setRegels] = useState<string[]>([]);
+  useEffect(() => {
+    void Promise.all(
+      db.tables.map(async (tabel) => {
+        try {
+          return `${tabel.name}: ${await tabel.count()}`;
+        } catch (e) {
+          return `${tabel.name}: ${t.diagnoseTabelFout((e as Error).message)}`;
+        }
+      }),
+    ).then(setRegels);
+  }, []);
+  return (
+    <div className="card">
+      <h2>{t.diagnoseTitel}</h2>
+      <p className="small">{t.diagnoseVersie(__APP_VERSIE__)}</p>
+      <p className="small muted">{t.diagnoseTabellen}</p>
+      <ul className="small">
+        {regels.map((r) => (
+          <li key={r}>{r}</li>
+        ))}
+      </ul>
     </div>
   );
 }

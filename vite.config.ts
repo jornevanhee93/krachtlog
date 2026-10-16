@@ -1,11 +1,24 @@
 /// <reference types="vitest/config" />
 import react from '@vitejs/plugin-react';
+import { execSync } from 'node:child_process';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // De app draait op https://jornevanhee93.github.io/krachtlog/, vandaar de base.
+// Korte commit-id, zichtbaar op het Data-scherm (zo zie je welke versie draait).
+function versie(): string {
+  try {
+    return execSync('git rev-parse --short HEAD').toString().trim();
+  } catch {
+    return 'dev';
+  }
+}
+
 export default defineConfig({
   base: '/krachtlog/',
+  define: {
+    __APP_VERSIE__: JSON.stringify(versie()),
+  },
   plugins: [
     react(),
     VitePWA({
