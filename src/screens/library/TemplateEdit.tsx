@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import ExercisePicker from '../../components/ExercisePicker';
 import { Fouten, ListField, NumberField, RangeField, Select, TextArea, TextField } from '../../components/form';
 import { db } from '../../db/db';
+import { metTijdslimiet } from '../../db/tijdslimiet';
 import { useTerug } from '../../hooks/useTerug';
 import { nl } from '../../i18n/nl';
 import { nieuwId } from '../../logic/ids';
@@ -50,7 +51,7 @@ export default function TemplateEdit() {
     const res = valideer(sjabloonSchema, s);
     if (!res.ok) return setFouten(res.fouten);
     try {
-      await db.sjablonen.put(res.data);
+      await metTijdslimiet(db.sjablonen.put(res.data));
     } catch (e) {
       return setFouten([{ pad: '', bericht: nl.algemeen.bewarenMislukt((e as Error).message) }]);
     }

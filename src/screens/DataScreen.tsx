@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db } from '../db/db';
+import { metTijdslimiet } from '../db/tijdslimiet';
 import { leesSnapshot, pasImportToe, vervangAlles, wisAlles, zetLaatsteBackup } from '../db/repo';
 import { nl } from '../i18n/nl';
 import { backupBestandsnaam, backupNaarSnapshot, maakBackup } from '../logic/backup';
@@ -373,7 +374,7 @@ function DiagnoseCard() {
     void Promise.all(
       db.tables.map(async (tabel) => {
         try {
-          return `${tabel.name}: ${await tabel.count()}`;
+          return `${tabel.name}: ${await metTijdslimiet(tabel.count())}`;
         } catch (e) {
           return `${tabel.name}: ${t.diagnoseTabelFout((e as Error).message)}`;
         }

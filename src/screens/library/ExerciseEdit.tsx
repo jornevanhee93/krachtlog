@@ -16,6 +16,7 @@ import {
   TextField,
 } from '../../components/form';
 import { db } from '../../db/db';
+import { metTijdslimiet } from '../../db/tijdslimiet';
 import { useTerug } from '../../hooks/useTerug';
 import { nl } from '../../i18n/nl';
 import { nieuweOefeningConcept } from '../../logic/exerciseDraft';
@@ -53,7 +54,7 @@ export default function ExerciseEdit() {
     const res = valideer(oefeningSchema, o);
     if (!res.ok) return setFouten(res.fouten);
     try {
-      await db.oefeningen.put(res.data);
+      await metTijdslimiet(db.oefeningen.put(res.data));
     } catch (e) {
       return setFouten([{ pad: '', bericht: nl.algemeen.bewarenMislukt((e as Error).message) }]);
     }

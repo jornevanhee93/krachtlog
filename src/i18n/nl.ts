@@ -25,7 +25,7 @@ export const nl = {
   opslagFout: {
     titel: 'De opslag reageert niet',
     uitleg:
-      'De app kan je gegevens nu niet lezen of bewaren. Sluit de app volledig af (veeg ze weg bij de recente apps) en open ze opnieuw. Je gegevens worden daardoor niet gewist.',
+      'De app kan je gegevens nu niet lezen of bewaren. Sluit alle tabbladen met deze app in Chrome, sluit de app volledig af (veeg ze weg bij de recente apps) en open ze opnieuw. Helpt dat niet: Instellingen → Apps → Chrome → Gedwongen stoppen. Je gegevens worden daardoor niet gewist.',
     herladen: 'Herladen',
   },
   fout: {
