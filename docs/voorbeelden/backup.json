@@ -1,0 +1,331 @@
+{
+  "schemaVersie": 1,
+  "soort": "backup",
+  "gemaaktOp": "2026-10-16T20:00:00Z",
+  "bron": "Voorbeeldbestand (verzonnen data)",
+  "instellingen": {
+    "lichaamsgewichtKg": 75,
+    "laatsteBackup": "2026-10-16T20:00:00Z",
+    "filosofie": {
+      "rirVloeren": {
+        "onderlichaam": 2
+      },
+      "planning": {
+        "backupHerinneringDagen": 7
+      }
+    }
+  },
+  "materiaal": [
+    {
+      "id": "mat-stang",
+      "naam": "Olympische stang",
+      "soort": "stang",
+      "gewichten": {
+        "type": "schijven",
+        "stangKg": 20,
+        "schijven": [
+          {
+            "kg": 20,
+            "aantal": 2
+          },
+          {
+            "kg": 10,
+            "aantal": 2
+          },
+          {
+            "kg": 5,
+            "aantal": 2
+          },
+          {
+            "kg": 2.5,
+            "aantal": 2
+          },
+          {
+            "kg": 1.25,
+            "aantal": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "mat-kb",
+      "naam": "Kettlebells",
+      "soort": "kettlebell",
+      "gewichten": {
+        "type": "vast",
+        "kg": [
+          12,
+          16,
+          24
+        ]
+      }
+    },
+    {
+      "id": "mat-vest",
+      "naam": "Gewichtsvest",
+      "soort": "vest",
+      "gewichten": {
+        "type": "instelbaar",
+        "minKg": 0,
+        "maxKg": 20,
+        "stapKg": 2.5
+      },
+      "notitie": "Blokjes van 2,5 kg"
+    }
+  ],
+  "oefeningen": [
+    {
+      "id": "oef-pull-up",
+      "naam": "Pull-up",
+      "aliassen": [
+        "Optrekken",
+        "Pullup"
+      ],
+      "patronen": [
+        "pull-verticaal"
+      ],
+      "spieren": {
+        "primair": [
+          "latissimus"
+        ],
+        "secundair": [
+          "biceps",
+          "onderarmen"
+        ]
+      },
+      "materiaalIds": [
+        "mat-vest"
+      ],
+      "metingen": [
+        "extraLast",
+        "variant",
+        "reps"
+      ],
+      "cues": [
+        "Schouders weg van de oren",
+        "Borst naar de stang"
+      ],
+      "valkuilen": [
+        "Halve reps onderaan"
+      ],
+      "videolinks": [
+        "https://example.com/pull-up"
+      ],
+      "progressie": {
+        "modus": "ladder",
+        "profiel": "anker",
+        "repBereik": {
+          "min": 5,
+          "max": 8
+        },
+        "doelRIR": 2,
+        "sets": 3,
+        "treden": [
+          {
+            "label": "BW",
+            "last": {
+              "variant": "BW"
+            }
+          },
+          {
+            "label": "Vest 5",
+            "last": {
+              "extraKg": 5,
+              "materiaalId": "mat-vest"
+            }
+          },
+          {
+            "label": "Vest 10",
+            "last": {
+              "extraKg": 10,
+              "materiaalId": "mat-vest"
+            }
+          },
+          {
+            "label": "Vest 10 + 3s excentrisch",
+            "last": {
+              "extraKg": 10,
+              "tempo": "3s excentrisch",
+              "materiaalId": "mat-vest"
+            },
+            "repBereik": {
+              "min": 4,
+              "max": 6
+            }
+          }
+        ],
+        "huidigeTrede": "Vest 5",
+        "klim": {
+          "criterium": "rir",
+          "sessiesOpRij": 1
+        },
+        "stagnatie": {
+          "sessies": 3,
+          "actie": "lichter",
+          "percentage": 10
+        },
+        "volgorde": [
+          "reps",
+          "last",
+          "sets"
+        ]
+      }
+    },
+    {
+      "id": "oef-sl-rdl",
+      "naam": "Single-leg RDL",
+      "aliassen": [
+        "SL RDL"
+      ],
+      "patronen": [
+        "hinge"
+      ],
+      "spieren": {
+        "primair": [
+          "hamstrings",
+          "bilspieren"
+        ],
+        "secundair": []
+      },
+      "materiaalIds": [
+        "mat-kb"
+      ],
+      "metingen": [
+        "gewicht",
+        "reps"
+      ],
+      "unilateraal": true,
+      "progressie": {
+        "modus": "last",
+        "profiel": "opbouw",
+        "repBereik": {
+          "min": 8,
+          "max": 12
+        },
+        "doelRIR": 2,
+        "sets": 3
+      }
+    },
+    {
+      "id": "oef-kb-swing",
+      "naam": "Kettlebell swing",
+      "patronen": [
+        "hinge"
+      ],
+      "materiaalIds": [
+        "mat-kb"
+      ],
+      "metingen": [
+        "gewicht",
+        "reps"
+      ],
+      "tags": [
+        "finisher",
+        "fun"
+      ]
+    }
+  ],
+  "sjablonen": [],
+  "sessies": [
+    {
+      "id": "ses-2026-09-03",
+      "soort": "kracht",
+      "start": "2026-09-03T18:30",
+      "einde": "2026-09-03T19:25",
+      "duurMin": 55,
+      "rpe": 7,
+      "plezier": 4,
+      "notitie": "Goede sessie, grip gaf op het einde op.",
+      "bron": "notities",
+      "oefeningen": [
+        {
+          "oefeningId": "oef-pull-up",
+          "groep": "A",
+          "groepType": "superset",
+          "volgorde": 0,
+          "sets": [
+            {
+              "opwarm": true,
+              "variant": "BW",
+              "reps": 3
+            },
+            {
+              "trede": "Vest 5",
+              "extraKg": 5,
+              "reps": 7,
+              "rir": 2,
+              "kwaliteit": "controle"
+            },
+            {
+              "trede": "Vest 5",
+              "extraKg": 5,
+              "reps": 6,
+              "rir": 2,
+              "kwaliteit": "controle"
+            },
+            {
+              "trede": "Vest 5",
+              "extraKg": 5,
+              "reps": 6,
+              "rir": 1,
+              "kwaliteit": "gevecht"
+            }
+          ]
+        },
+        {
+          "oefeningId": "oef-sl-rdl",
+          "groep": "A",
+          "groepType": "superset",
+          "volgorde": 1,
+          "sets": [
+            {
+              "gewichtKg": 16,
+              "repsLinks": 10,
+              "repsRechts": 9,
+              "rir": 2,
+              "kwaliteit": "controle"
+            },
+            {
+              "gewichtKg": 16,
+              "repsLinks": 10,
+              "repsRechts": 10,
+              "rirLinks": 2,
+              "rirRechts": 3,
+              "kwaliteit": "makkelijk"
+            }
+          ]
+        },
+        {
+          "oefeningId": "oef-kb-swing",
+          "groep": "Finisher",
+          "groepType": "emom",
+          "volgorde": 2,
+          "notitie": "EMOM 4'",
+          "sets": [
+            {
+              "ronde": 1,
+              "gewichtKg": 16,
+              "reps": 12
+            },
+            {
+              "ronde": 2,
+              "gewichtKg": 16,
+              "reps": 12
+            },
+            {
+              "ronde": 3,
+              "gewichtKg": 16,
+              "reps": 12
+            },
+            {
+              "ronde": 4,
+              "gewichtKg": 16,
+              "reps": 10,
+              "kwaliteit": "gevecht"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "schemaVersie": 1,
+  "soort": "bibliotheek",
+  "gemaaktOp": "2026-10-16T20:00:00Z",
+  "bron": "Voorbeeldbestand (verzonnen data)",
+  "materiaal": [
+    {
+      "id": "mat-stang",
+      "naam": "Olympische stang",
+      "soort": "stang",
+      "gewichten": {
+        "type": "schijven",
+        "stangKg": 20,
+        "schijven": [
+          { "kg": 20, "aantal": 2 },
+          { "kg": 10, "aantal": 2 },
+          { "kg": 5, "aantal": 2 },
+          { "kg": 2.5, "aantal": 2 },
+          { "kg": 1.25, "aantal": 2 }
+        ]
+      }
+    },
+    {
+      "id": "mat-kb",
+      "naam": "Kettlebells",
+      "soort": "kettlebell",
+      "gewichten": { "type": "vast", "kg": [12, 16, 24] }
+    },
+    {
+      "id": "mat-vest",
+      "naam": "Gewichtsvest",
+      "soort": "vest",
+      "gewichten": { "type": "instelbaar", "minKg": 0, "maxKg": 20, "stapKg": 2.5 },
+      "notitie": "Blokjes van 2,5 kg"
+    },
+    {
+      "id": "mat-elastiek",
+      "naam": "Weerstandselastieken",
+      "soort": "elastiek",
+      "gewichten": { "type": "standen", "standen": ["licht", "medium", "zwaar"] }
+    },
+    { "id": "mat-box", "naam": "Plyobox 50 cm", "soort": "box" }
+  ],
+  "oefeningen": [
+    {
+      "id": "oef-pull-up",
+      "naam": "Pull-up",
+      "aliassen": ["Optrekken", "Pullup"],
+      "patronen": ["pull-verticaal"],
+      "spieren": { "primair": ["latissimus"], "secundair": ["biceps", "onderarmen"] },
+      "materiaalIds": ["mat-vest"],
+      "metingen": ["extraLast", "variant", "reps"],
+      "cues": ["Schouders weg van de oren", "Borst naar de stang"],
+      "valkuilen": ["Halve reps onderaan"],
+      "videolinks": ["https://example.com/pull-up"],
+      "progressie": {
+        "modus": "ladder",
+        "profiel": "anker",
+        "repBereik": { "min": 5, "max": 8 },
+        "doelRIR": 2,
+        "sets": 3,
+        "treden": [
+          { "label": "BW", "last": { "variant": "BW" } },
+          { "label": "Vest 5", "last": { "extraKg": 5, "materiaalId": "mat-vest" } },
+          { "label": "Vest 10", "last": { "extraKg": 10, "materiaalId": "mat-vest" } },
+          {
+            "label": "Vest 10 + 3s excentrisch",
+            "last": { "extraKg": 10, "tempo": "3s excentrisch", "materiaalId": "mat-vest" },
+            "repBereik": { "min": 4, "max": 6 }
+          }
+        ],
+        "huidigeTrede": "Vest 5",
+        "klim": { "criterium": "rir", "sessiesOpRij": 1 },
+        "stagnatie": { "sessies": 3, "actie": "lichter", "percentage": 10 },
+        "volgorde": ["reps", "last", "sets"]
+      }
+    },
+    {
+      "id": "oef-sl-rdl",
+      "naam": "Single-leg RDL",
+      "aliassen": ["SL RDL"],
+      "patronen": ["hinge"],
+      "spieren": { "primair": ["hamstrings", "bilspieren"], "secundair": [] },
+      "materiaalIds": ["mat-kb"],
+      "metingen": ["gewicht", "reps"],
+      "unilateraal": true,
+      "progressie": {
+        "modus": "last",
+        "profiel": "opbouw",
+        "repBereik": { "min": 8, "max": 12 },
+        "doelRIR": 2,
+        "sets": 3
+      }
+    },
+    {
+      "id": "oef-farmer",
+      "naam": "Farmer carry",
+      "patronen": ["carry"],
+      "materiaalIds": ["mat-kb"],
+      "metingen": ["gewicht", "afstand"],
+      "progressie": {
+        "modus": "last",
+        "profiel": "carry",
+        "afstandBereikM": { "min": 30, "max": 60 },
+        "sets": 3,
+        "klim": { "criterium": "afstand", "sessiesOpRij": 1 },
+        "volgorde": ["afstand", "last"]
+      }
+    },
+    {
+      "id": "oef-copenhagen",
+      "naam": "Copenhagen plank",
+      "patronen": ["core", "adductoren"],
+      "metingen": ["variant", "tijd"],
+      "unilateraal": true,
+      "progressie": {
+        "modus": "ladder",
+        "profiel": "isometrisch",
+        "doelRIR": 3,
+        "sets": 2,
+        "treden": [
+          { "label": "Kort (knie)", "last": { "variant": "knie op bank" }, "duurBereikSec": { "min": 20, "max": 40 } },
+          { "label": "Lang (voet)", "last": { "variant": "voet op bank" }, "duurBereikSec": { "min": 20, "max": 40 } }
+        ],
+        "klim": { "criterium": "duur", "sessiesOpRij": 1 }
+      }
+    },
+    {
+      "id": "oef-box-jump",
+      "naam": "Box jump",
+      "patronen": ["plyometrie"],
+      "materiaalIds": ["mat-box"],
+      "metingen": ["variant", "reps"],
+      "tags": ["power"],
+      "progressie": {
+        "modus": "ladder",
+        "profiel": "power",
+        "repBereik": { "min": 3, "max": 5 },
+        "sets": 3,
+        "treden": [
+          { "label": "Box 50", "last": { "variant": "50 cm" } },
+          { "label": "Box 50 enkel been", "last": { "variant": "50 cm, één been" } }
+        ],
+        "klim": { "criterium": "kwaliteit", "sessiesOpRij": 2 }
+      }
+    },
+    {
+      "id": "oef-kb-swing",
+      "naam": "Kettlebell swing",
+      "patronen": ["hinge"],
+      "materiaalIds": ["mat-kb"],
+      "metingen": ["gewicht", "reps"],
+      "tags": ["finisher", "fun"]
+    }
+  ],
+  "sjablonen": [
+    {
+      "id": "sjab-voorbeeld-a",
+      "naam": "Voorbeeld sessie A",
+      "opwarming": ["5' fietsen", "Heupmobiliteit", "2 opwarmsets per ankeroefening"],
+      "groepen": [
+        {
+          "label": "A",
+          "type": "superset",
+          "rondes": 3,
+          "rustTussenOefeningenSec": 60,
+          "rustTussenRondesSec": 120,
+          "items": [
+            { "oefeningId": "oef-pull-up", "repBereik": { "min": 5, "max": 8 }, "doelRIR": 2, "rol": "anker" },
+            { "oefeningId": "oef-sl-rdl", "repBereik": { "min": 8, "max": 12 }, "doelRIR": 2, "rol": "rotatie", "notitie": "Zwakke kant eerst" }
+          ]
+        },
+        {
+          "label": "B",
+          "type": "enkel",
+          "items": [
+            { "oefeningId": "oef-box-jump", "sets": 3, "repBereik": { "min": 3, "max": 3 }, "rustSec": 90, "rol": "anker" }
+          ]
+        },
+        {
+          "label": "C",
+          "type": "circuit",
+          "rondes": 2,
+          "rustTussenRondesSec": 60,
+          "items": [
+            { "oefeningId": "oef-farmer", "last": { "gewichtKg": 24, "afstandM": 40 } },
+            { "oefeningId": "oef-copenhagen", "last": { "duurSec": 30 } }
+          ]
+        },
+        {
+          "label": "Finisher",
+          "type": "emom",
+          "duurSec": 360,
+          "intervalSec": 60,
+          "items": [{ "oefeningId": "oef-kb-swing", "repBereik": { "min": 12, "max": 12 }, "last": { "gewichtKg": 16 } }]
+        }
+      ]
+    }
+  ]
+}

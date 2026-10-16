@@ -11,9 +11,11 @@
     "icons": "node scripts/make-icons.mjs"
   },
   "dependencies": {
+    "dexie": "4.4.6",
     "react": "19.2.9",
     "react-dom": "19.2.9",
-    "react-router": "7.18.4"
+    "react-router": "7.18.4",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

@@ -1,0 +1,74 @@
+{
+  "schemaVersie": 1,
+  "soort": "logs",
+  "gemaaktOp": "2026-10-16T20:00:00Z",
+  "bron": "Voorbeeldbestand (verzonnen data)",
+  "oefeningen": [
+    { "id": "oef-pull-up", "naam": "Pull-up" },
+    { "id": "oef-sl-rdl", "naam": "Single-leg RDL", "unilateraal": true },
+    { "id": "oef-kb-swing", "naam": "Kettlebell swing" }
+  ],
+  "sessies": [
+    {
+      "id": "ses-2026-09-03",
+      "soort": "kracht",
+      "start": "2026-09-03T18:30",
+      "einde": "2026-09-03T19:25",
+      "duurMin": 55,
+      "rpe": 7,
+      "plezier": 4,
+      "notitie": "Goede sessie, grip gaf op het einde op.",
+      "bron": "notities",
+      "oefeningen": [
+        {
+          "oefeningId": "oef-pull-up",
+          "groep": "A",
+          "groepType": "superset",
+          "volgorde": 0,
+          "sets": [
+            { "opwarm": true, "variant": "BW", "reps": 3 },
+            { "trede": "Vest 5", "extraKg": 5, "reps": 7, "rir": 2, "kwaliteit": "controle" },
+            { "trede": "Vest 5", "extraKg": 5, "reps": 6, "rir": 2, "kwaliteit": "controle" },
+            { "trede": "Vest 5", "extraKg": 5, "reps": 6, "rir": 1, "kwaliteit": "gevecht" }
+          ]
+        },
+        {
+          "oefeningId": "oef-sl-rdl",
+          "groep": "A",
+          "groepType": "superset",
+          "volgorde": 1,
+          "sets": [
+            { "gewichtKg": 16, "repsLinks": 10, "repsRechts": 9, "rir": 2, "kwaliteit": "controle" },
+            { "gewichtKg": 16, "repsLinks": 10, "repsRechts": 10, "rirLinks": 2, "rirRechts": 3, "kwaliteit": "makkelijk" }
+          ]
+        },
+        {
+          "oefeningId": "oef-kb-swing",
+          "groep": "Finisher",
+          "groepType": "emom",
+          "volgorde": 2,
+          "notitie": "EMOM 4'",
+          "sets": [
+            { "ronde": 1, "gewichtKg": 16, "reps": 12 },
+            { "ronde": 2, "gewichtKg": 16, "reps": 12 },
+            { "ronde": 3, "gewichtKg": 16, "reps": 12 },
+            { "ronde": 4, "gewichtKg": 16, "reps": 10, "kwaliteit": "gevecht" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ses-2026-09-06",
+      "start": "2026-09-06",
+      "plezier": 3,
+      "notitie": "Alleen de datum bekend, geen tijd.",
+      "oefeningen": [
+        {
+          "oefeningId": "oef-pull-up",
+          "volgorde": 0,
+          "sets": [{ "trede": "Vest 5", "extraKg": 5, "reps": 8, "rir": 2, "kwaliteit": "controle" }]
+        }
+      ]
+    }
+  ]
+}
