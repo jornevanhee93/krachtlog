@@ -1,14 +1,14 @@
 # Plan: krachtlog-app
 
 ## Context
-de gebruiker wil een eigen Android-app (PWA) om krachttraining te plannen, uit te voeren en te loggen. Nu staat alles in notitie-app (notitie-app): het programma in *het programma*, de ladders in *Progressive overload*, de sessies op *Sessie A/B — krachtfase*, en de logs als vrije tekst (`Log::`). Doel: de app moet bruikbaar zijn vanaf de **krachtfase (Sessie B op 29 okt, Sessie A op 2 nov)**, met de bestaande oefeningen en ladders erin. de gebruiker heeft nog nooit geprogrammeerd. Ik leg dus elke stap uit en zeg telkens precies wat hij moet doen om te testen.
+De gebruiker wil een eigen Android-app (PWA) om krachttraining te plannen, uit te voeren en te loggen. Tot nu toe staan zijn programma, ladders en logs als vrije tekst in een notitie-app. Doel: de app moet bruikbaar zijn vanaf de **krachtfase (Sessie B op 29 okt, Sessie A op 2 nov)**, met de bestaande oefeningen en ladders erin. De gebruiker heeft nog nooit geprogrammeerd. Ik leg dus elke stap uit en zeg telkens precies wat hij moet doen om te testen.
 
 Gemaakte keuzes (uit de vragenrondes):
 - Gemiste sessie: de app vraagt **Inhalen of Overslaan**. Bij inhalen blijft de rest van de planning op zijn dag, en de app waarschuwt als twee krachtsessies minder dan 48 uur uit elkaar liggen.
-- Setvormen: supersets/circuits (notitie-app-"blokken" met A/B en rondes), finishers (AMRAP/EMOM), opwarmsets apart, unilateraal per kant.
+- Setvormen: supersets/circuits (blokken met A/B en rondes), finishers (AMRAP/EMOM), opwarmsets apart, unilateraal per kant.
 - Kwaliteit per set: **Makkelijk / Controle / Gevecht**. Een set met *Gevecht* telt niet mee om een trede te klimmen.
-- De notitie-app-data zo snel mogelijk importeren: oefeningen, ladders, Sessie A/B krachtfase als sjabloon, en de paar bestaande logs.
-- Ontwikkeling volledig in de cloud (Claude Code-cloudsessie). Op de werklaptop kan zonder beheerdersrechten niets geïnstalleerd worden.
+- De bestaande data zo snel mogelijk importeren: oefeningen, ladders, Sessie A/B krachtfase als sjabloon, en de paar bestaande logs.
+- Ontwikkeling volledig in de cloud (Claude Code-cloudsessie). Op de werklaptop van de gebruiker kan zonder beheerdersrechten niets geïnstalleerd worden.
 - GitHub Pages met de publieke repo `jornevanhee93/krachtlog`. De app komt op https://jornevanhee93.github.io/krachtlog/. De trainingsdata komt nooit in de repo.
 
 ## Stack (met reden)
@@ -71,7 +71,7 @@ Gemaakte keuzes (uit de vragenrondes):
 - Materiaal, oefeningenbibliotheek, sjablonen.
 - Een sessie loggen vanuit een sjabloon of ad hoc, met de vorige waarden al ingevuld, de rusttimer, opwarmsets, per kant, en supersets/AMRAP/EMOM.
 - Schema v1, volledige back-up en herstel, import van de bibliotheek.
-- **De notitie-app-import**: ik zet de oefeningen, de ladders (als data, het rekenwerk volgt in fase 2), het materiaal (een concept op basis van notitie-app, door de gebruiker te controleren), Sessie A/B krachtfase en de logs van aug–okt om naar een importbestand.
+- **De import van bestaande data**: de oefeningen, de ladders (als data, het rekenwerk volgt in fase 2), het materiaal (een concept, door de gebruiker te controleren), Sessie A/B krachtfase en de bestaande logs worden omgezet naar importbestanden. Die staan niet in de repo.
 - Tests: import/export (validatie, round-trip back-up → herstel).
 
 **Fase 2 — Progressie**
@@ -85,7 +85,7 @@ Gemaakte keuzes (uit de vragenrondes):
   - grafieken van topset, volume, reps per variant, e1RM (Epley, alleen bij last + reps ≤ 12)
   - de ladderstap, de historiek, cues, video's en spieren
 - In de training staat het doel van vandaag bij elke oefening.
-- Tests: uitgebreide unittests van de progressielogica met de echte ladders als testgevallen (pull-up, bear hug squat, SL RDL).
+- Tests: uitgebreide unittests van de progressielogica met realistische ladders als testgevallen (pull-up, squat, single-leg RDL).
 
 **Fase 3 — Programma's**
 - Schema v2 met programma's. Import via bestand of plakken, met duidelijke foutmeldingen.
@@ -95,7 +95,7 @@ Gemaakte keuzes (uit de vragenrondes):
 - Tests: de planningslogica (gemist, inhalen, overslaan).
 
 **Fase 4 — Afwerking**
-- Logs exporteren (alles of een periode) + een compacte tekstsamenvatting voor een Claude-review (vervangt het lezen van de `Log::`-regels in notitie-app).
+- Logs exporteren (alles of een periode) + een compacte tekstsamenvatting voor een Claude-review.
 - De back-upherinnering na 7 dagen.
 - UX-verfijning op basis van wat de gebruiker tijdens het trainen merkt.
 
@@ -111,7 +111,7 @@ Buiten scope: lopen (het datamodel laat het later toe via `sessions.soort`), syn
 - `npm test` (Vitest) voor de logica en de import/export.
 - `npm run build` en `npm run preview` in de cloudsessie, om te controleren dat de build werkt.
 - Na een push naar `main`: de GitHub Action is groen en de app opent op https://jornevanhee93.github.io/krachtlog/.
-- de gebruiker test elke fase op zijn telefoon:
+- De gebruiker test elke fase op zijn telefoon:
   1. Open de link in Chrome → ⋮ → *Toevoegen aan startscherm*.
   2. Zet de vliegtuigmodus aan en open de app: hij moet werken.
   3. Log een testsessie, maak een back-up, wis de app-data en herstel.
