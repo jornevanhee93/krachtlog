@@ -121,7 +121,7 @@ export default function ExerciseEdit() {
       <TextArea label={t.notities} value={o.notities} onChange={(v) => zet({ notities: v || undefined })} />
       <Checkbox label={t.gearchiveerd} checked={o.gearchiveerd} onChange={(gearchiveerd) => zet({ gearchiveerd })} />
 
-      <Fouten fouten={fouten.map((f) => (f.pad === 'naam' ? { pad: '', bericht: t.naamVerplicht } : f))} />
+      <Fouten fouten={fouten.filter((f) => f.pad !== 'naam')} />
       <div className="row sticky-actions">
         <button className="btn" onClick={() => terug()}>
           {nl.algemeen.annuleren}

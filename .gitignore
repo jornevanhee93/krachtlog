@@ -13,3 +13,6 @@ emerge-*.json
 # Iconen worden bij elke build gemaakt door scripts/make-icons.mjs
 public/*.png
 public/favicon.svg
+test-results/
+playwright-report/
+e2e/screenshots/
