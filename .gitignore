@@ -9,6 +9,7 @@ coverage/
 # Trainingsdata hoort nooit in de repo
 *.backup.json
 krachtlog-*.json
+emerge-*.json
 # Iconen worden bij elke build gemaakt door scripts/make-icons.mjs
 public/*.png
 public/favicon.svg

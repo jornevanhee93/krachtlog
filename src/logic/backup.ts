@@ -72,8 +72,8 @@ export function backupNaarSnapshot(b: BackupBestand): Snapshot {
   };
 }
 
-/** Bestandsnaam voor een back-up, bv. krachtlog-backup-2026-10-29.json */
+/** Bestandsnaam voor een back-up, bv. emerge-backup-2026-10-29.json */
 export function backupBestandsnaam(nu: Date = new Date()): string {
   const d = new Date(nu.getTime() - nu.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  return `krachtlog-backup-${d}.json`;
+  return `emerge-backup-${d}.json`;
 }

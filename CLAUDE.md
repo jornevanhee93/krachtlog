@@ -1,6 +1,6 @@
 # krachtlog-app
 
-Persoonlijke PWA (Android via Chrome) om krachttraining te plannen, uit te voeren en te loggen. Eén gebruiker (de gebruiker), geen backend, geen login. De data staat alleen op het toestel (IndexedDB).
+Persoonlijke PWA (Android via Chrome), in de app **Emerge** genoemd, om krachttraining te plannen, uit te voeren en te loggen. Eén gebruiker (de gebruiker), geen backend, geen login. De data staat alleen op het toestel (IndexedDB).
 
 - Plan en fasen: `docs/plan.md`
 - Principes achter de progressie: `docs/trainingsfilosofie.md`
@@ -12,7 +12,7 @@ de gebruiker programmeert niet. Leg keuzes kort uit, in het Nederlands. Sluit el
 ## Stack
 Vite + React + TypeScript · Dexie (IndexedDB) · vite-plugin-pwa · Zod (validatie) · Recharts · Vitest · HashRouter · gewone CSS met variabelen. Hosting op GitHub Pages via een GitHub Action bij een push naar `main`.
 
-Repo: `jornevanhee93/krachtlog`. De app draait op https://jornevanhee93.github.io/krachtlog/, dus Vite heeft `base: '/krachtlog/'` nodig.
+Repo: `jornevanhee93/krachtlog`. De app heet in de UI "Emerge"; de repo, de link (`/krachtlog/`) en de IndexedDB-naam (`krachtlog`) blijven ongewijzigd zodat bestaande installaties en data blijven werken. De app draait op https://jornevanhee93.github.io/krachtlog/, dus Vite heeft `base: '/krachtlog/'` nodig.
 
 ## Conventies
 - Code, bestandsnamen en identifiers in het Engels. Alle UI-teksten in het Nederlands, centraal in `src/i18n/nl.ts`.

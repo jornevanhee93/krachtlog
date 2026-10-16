@@ -2,7 +2,7 @@
 import type { GroepType, Kwaliteit } from '../schema';
 
 export const nl = {
-  appName: 'Krachtlog',
+  appName: 'Emerge',
   algemeen: {
     bewaren: 'Bewaren',
     annuleren: 'Annuleren',
@@ -349,9 +349,9 @@ export const nl = {
     wisKlaar: 'Alles is gewist.',
   },
   pwa: {
-    updateAvailable: 'Er is een nieuwe versie van Krachtlog.',
+    updateAvailable: 'Er is een nieuwe versie van Emerge.',
     update: 'Bijwerken',
-    offlineReady: 'Krachtlog werkt nu ook offline.',
+    offlineReady: 'Emerge werkt nu ook offline.',
     close: 'Sluiten',
   },
 } as const;

@@ -1,6 +1,6 @@
 # JSON-schema v1
 
-Dit is het bestandsformaat voor back-up, herstel en import van Krachtlog. De Zod-schema's in `src/schema/` zijn de bron; dit document legt ze uit. Voorbeelden (met verzonnen data) staan in `docs/voorbeelden/`:
+Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-schema's in `src/schema/` zijn de bron; dit document legt ze uit. Voorbeelden (met verzonnen data) staan in `docs/voorbeelden/`:
 
 - [`bibliotheek.json`](voorbeelden/bibliotheek.json): materiaal, oefeningen met ladders, en een sjabloon met superset, circuit en EMOM
 - [`logs.json`](voorbeelden/logs.json): gelogde sessies, met opwarmsets, links/rechts en een EMOM

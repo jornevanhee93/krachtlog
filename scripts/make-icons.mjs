@@ -1,19 +1,28 @@
-// Maakt de app-iconen van Krachtlog (witte halter op groen) als PNG en SVG in public/.
+// Maakt de app-iconen van Emerge als PNG en SVG in public/.
+// Zwart-wit lijnicoon: een halve cirkel die boven een horizonlijn uitkomt.
 // Zonder extra pakketten: een eigen mini-PNG-encoder met node:zlib.
 // Draait automatisch vóór elke build (npm run icons).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 
-const BG = [0x1f, 0x6f, 0x5c];
-const FG = [0xff, 0xff, 0xff];
-// Halter op een raster van 512: [x, y, breedte, hoogte, hoekstraal]
-const SHAPES = [
-  [96, 240, 320, 32, 8], // stang
-  [56, 156, 48, 200, 12], // buitenste schijf links
-  [112, 186, 36, 140, 10], // binnenste schijf links
-  [408, 156, 48, 200, 12], // buitenste schijf rechts
-  [364, 186, 36, 140, 10], // binnenste schijf rechts
-];
+const BG = [0, 0, 0];
+const FG = [255, 255, 255];
+
+// Op een raster van 512 (veilige zone gecentreerd).
+const LIJN = { x1: 136, x2: 376, y: 300 }; // horizon
+const BOOG = { cx: 256, cy: 300, r: 88 }; // halve cirkel erboven
+const DIKTE = 13; // halve lijndikte
+
+function afstandTotLijn(px, py) {
+  const x = Math.min(Math.max(px, LIJN.x1), LIJN.x2);
+  return Math.hypot(px - x, py - LIJN.y);
+}
+
+function afstandTotBoog(px, py) {
+  if (py <= BOOG.cy) return Math.abs(Math.hypot(px - BOOG.cx, py - BOOG.cy) - BOOG.r);
+  // Onder de horizon: afstand tot de eindpunten van de boog
+  return Math.min(Math.hypot(px - (BOOG.cx - BOOG.r), py - BOOG.cy), Math.hypot(px - (BOOG.cx + BOOG.r), py - BOOG.cy));
+}
 
 function inRoundRect(px, py, x, y, w, h, r) {
   if (px < x || py < y || px > x + w || py > y + h) return false;
@@ -22,11 +31,9 @@ function inRoundRect(px, py, x, y, w, h, r) {
   return (px - cx) ** 2 + (py - cy) ** 2 <= r * r;
 }
 
-// pad = marge rond de halter (op het 512-raster); bgRadius = hoekstraal van de achtergrond.
-function render(size, pad, bgRadius) {
+// schaal: hoe groot het teken is t.o.v. het raster (kleiner bij maskable); bgRadius: hoekstraal achtergrond.
+function render(size, schaal, bgRadius) {
   const ss = 4; // supersampling voor gladde randen
-  const k = (512 - 2 * pad) / 512;
-  const shapes = SHAPES.map(([x, y, w, h, r]) => [pad + x * k, pad + y * k, w * k, h * k, r * k]);
   const px = Buffer.alloc(size * size * 4);
   for (let j = 0; j < size; j++) {
     for (let i = 0; i < size; i++) {
@@ -38,7 +45,10 @@ function render(size, pad, bgRadius) {
           const v = ((j + (sj + 0.5) / ss) / size) * 512;
           if (!inRoundRect(u, v, 0, 0, 512, 512, bgRadius)) continue;
           bg++;
-          if (shapes.some((s) => inRoundRect(u, v, ...s))) fg++;
+          // Terug naar het tekenraster (rond het midden geschaald)
+          const x = 256 + (u - 256) / schaal;
+          const y = 256 + (v - 256) / schaal;
+          if (afstandTotLijn(x, y) <= DIKTE || afstandTotBoog(x, y) <= DIKTE) fg++;
         }
       }
       const n = ss * ss;
@@ -85,17 +95,18 @@ function encodePng(size, rgba) {
   ]);
 }
 
-const hex = (c) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
 const svg =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
-  `<rect width="512" height="512" rx="96" fill="${hex(BG)}"/>` +
-  SHAPES.map(([x, y, w, h, r]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${hex(FG)}"/>`).join('') +
-  '</svg>\n';
+  '<rect width="512" height="512" rx="112" fill="#000"/>' +
+  `<g fill="none" stroke="#fff" stroke-width="${DIKTE * 2}" stroke-linecap="round">` +
+  `<line x1="${LIJN.x1}" y1="${LIJN.y}" x2="${LIJN.x2}" y2="${LIJN.y}"/>` +
+  `<path d="M${BOOG.cx - BOOG.r} ${BOOG.cy}A${BOOG.r} ${BOOG.r} 0 0 1 ${BOOG.cx + BOOG.r} ${BOOG.cy}"/>` +
+  '</g></svg>\n';
 
 mkdirSync('public', { recursive: true });
 writeFileSync('public/favicon.svg', svg);
-writeFileSync('public/pwa-192x192.png', render(192, 24, 96));
-writeFileSync('public/pwa-512x512.png', render(512, 24, 96));
-writeFileSync('public/maskable-512x512.png', render(512, 100, 0)); // veilige zone voor maskable
-writeFileSync('public/apple-touch-icon.png', render(180, 24, 0));
+writeFileSync('public/pwa-192x192.png', render(192, 1, 112));
+writeFileSync('public/pwa-512x512.png', render(512, 1, 112));
+writeFileSync('public/maskable-512x512.png', render(512, 0.8, 0)); // teken kleiner: veilige zone voor maskable
+writeFileSync('public/apple-touch-icon.png', render(180, 1, 0));
 console.log('Iconen gemaakt in public/');

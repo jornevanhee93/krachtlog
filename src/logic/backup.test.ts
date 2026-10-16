@@ -74,6 +74,6 @@ describe('back-up → herstel (round-trip)', () => {
 
 describe('backupBestandsnaam', () => {
   it('bevat de datum', () => {
-    expect(backupBestandsnaam(new Date(2026, 9, 29, 12))).toBe('krachtlog-backup-2026-10-29.json');
+    expect(backupBestandsnaam(new Date(2026, 9, 29, 12))).toBe('emerge-backup-2026-10-29.json');
   });
 });
