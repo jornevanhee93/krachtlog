@@ -133,3 +133,41 @@ describe('foutmeldingen', () => {
     expect(reps?.bericht).toMatch(/getal|number/i);
   });
 });
+
+describe('programmabestand: duidelijke foutmeldingen', () => {
+  const basis = {
+    schemaVersie: 3,
+    soort: 'programma',
+    oefeningen: [{ id: 'sq', naam: 'Squat' }],
+    programma: {
+      id: 'p',
+      naam: 'Blok',
+      startDatum: '2026-10-26',
+      blokken: [{ naam: 'B1', weken: [{ sessies: [{ naam: 'A', weekdag: 'ma', groepen: [{ items: [{ oefeningId: 'sq' }] }] }] }] }],
+    },
+  };
+  const met = (fn: (b: typeof basis) => void) => {
+    const b = structuredClone(basis);
+    fn(b);
+    return parseObject(b);
+  };
+
+  it('een geldig programma', () => {
+    expect(parseObject(basis).ok).toBe(true);
+  });
+  it('een verkeerde weekdag', () => {
+    const r = met((b) => ((b.programma.blokken[0].weken[0].sessies[0] as { weekdag: string }).weekdag = 'maandag'));
+    expect(!r.ok && r.fouten[0]).toMatchObject({ pad: expect.stringContaining('weekdag'), bericht: expect.stringMatching(/"ma", "di"/) });
+  });
+  it('een onbekende oefening', () => {
+    const r = met((b) => (b.programma.blokken[0].weken[0].sessies[0].groepen[0].items[0].oefeningId = 'dl'));
+    expect(!r.ok && r.fouten[0].bericht).toMatch(/oefening "dl" bestaat niet/);
+  });
+  it('een ongeldige startdatum en een tijd', () => {
+    const r = met((b) => {
+      b.programma.startDatum = '26/10/2026';
+      (b.programma.blokken[0].weken[0].sessies[0] as { tijd?: string }).tijd = '7u';
+    });
+    expect(!r.ok && r.fouten.map((f) => f.bericht).join(' ')).toMatch(/"2026-10-26".*"18:30"|"18:30".*"2026-10-26"/);
+  });
+});

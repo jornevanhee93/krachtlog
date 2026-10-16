@@ -11,7 +11,9 @@ import { parseBestand, type Fout } from '../logic/parseFile';
 import { formatMb, requestPersistence, type PersistStatus } from '../logic/storage';
 import { persistenceStatus } from '../persistence';
 import { instellingen as instellingenSchema, type Instellingen } from '../schema';
-import { NumberField, RangeField } from '../components/form';
+import { NumberField, RangeField, Segmented } from '../components/form';
+import { exporteerLogs, logsBestandsnaam, tekstSamenvatting, type Periode } from '../logic/exportLogs';
+import { datumPlus, lokaleDatum } from '../logic/planning';
 import { valideer } from '../logic/parseFile';
 import { deelJson, downloadJson, kanDelen, leesTekst } from '../ui/files';
 
@@ -22,6 +24,7 @@ export default function DataScreen() {
     <section className="screen">
       <h1>{t.title}</h1>
       <BackupCard />
+      <ExportCard />
       <SettingsCard />
       <ImportCard />
       <RestoreCard />
@@ -41,6 +44,7 @@ function BackupCard() {
   const inst = useLiveQuery(() => db.instellingen.get('instellingen'));
   const [melding, setMelding] = useState('');
   const laatste = inst?.value.laatsteBackup;
+  const herinnerNa = inst?.value.filosofie.planning.backupHerinneringDagen ?? 7;
 
   const maak = async (delen: boolean) => {
     setMelding('');
@@ -60,7 +64,7 @@ function BackupCard() {
     <div className="card">
       <h2>{t.backupTitel}</h2>
       <p className="muted">{t.backupUitleg}</p>
-      <p className={laatste && dagenGeleden(laatste) < 7 ? '' : 'warn'}>
+      <p className={laatste && dagenGeleden(laatste) < herinnerNa ? '' : 'warn'}>
         {laatste ? t.laatsteBackup(wanneer(laatste)) : t.nooitBackup}
       </p>
       <div className="stack">
@@ -74,6 +78,99 @@ function BackupCard() {
         )}
       </div>
       {melding && <p className="ok">{melding}</p>}
+    </div>
+  );
+}
+
+type PeriodeKeuze = 'alles' | '4w' | '12w' | 'eigen';
+
+/** Logs exporteren als JSON of als korte tekst voor een review in een chat. */
+function ExportCard() {
+  const [keuze, setKeuze] = useState<PeriodeKeuze>('4w');
+  const [van, setVan] = useState('');
+  const [tot, setTot] = useState('');
+  const [tekst, setTekst] = useState('');
+  const [melding, setMelding] = useState('');
+
+  const periode = (): Periode => {
+    const vandaag = lokaleDatum(new Date());
+    if (keuze === '4w') return { van: datumPlus(vandaag, -28) };
+    if (keuze === '12w') return { van: datumPlus(vandaag, -84) };
+    if (keuze === 'eigen') return { van: van || undefined, tot: tot || undefined };
+    return {};
+  };
+
+  const json = async (delen: boolean) => {
+    setMelding('');
+    const nu = new Date();
+    const bestand = exporteerLogs(await leesSnapshot(), periode(), nu);
+    if (bestand.sessies.length === 0) return setMelding(t.exportLeeg);
+    if (delen) {
+      if (!(await deelJson(logsBestandsnaam(nu), bestand))) return;
+    } else downloadJson(logsBestandsnaam(nu), bestand);
+    setMelding(t.exportKlaar(bestand.sessies.length));
+  };
+
+  const maakTekst = async () => {
+    setMelding('');
+    const snap = await leesSnapshot();
+    const tk = tekstSamenvatting({ snap, filosofie: snap.instellingen.filosofie, periode: periode() });
+    setTekst(tk);
+    try {
+      await navigator.clipboard.writeText(tk);
+      setMelding(t.tekstGekopieerd);
+    } catch {
+      setMelding(t.tekstKopieerZelf);
+    }
+  };
+
+  return (
+    <div className="card">
+      <h2>{t.exportTitel}</h2>
+      <p className="muted">{t.exportUitleg}</p>
+      <Segmented
+        value={keuze}
+        options={[
+          { value: '4w', label: t.periode['4w'] },
+          { value: '12w', label: t.periode['12w'] },
+          { value: 'alles', label: t.periode.alles },
+          { value: 'eigen', label: t.periode.eigen },
+        ]}
+        onChange={(k) => k && setKeuze(k)}
+        ariaLabel={t.periodeLabel}
+      />
+      {keuze === 'eigen' && (
+        <div className="grid-2">
+          <label className="field">
+            <span>{t.van}</span>
+            <input type="date" value={van} onChange={(e) => setVan(e.target.value)} />
+          </label>
+          <label className="field">
+            <span>{t.tot}</span>
+            <input type="date" value={tot} onChange={(e) => setTot(e.target.value)} />
+          </label>
+        </div>
+      )}
+      <div className="stack">
+        <button className="btn btn-primary btn-block" onClick={() => void maakTekst()}>
+          {t.tekstKopieren}
+        </button>
+        <button className="btn btn-block" onClick={() => void json(false)}>
+          {t.jsonDownloaden}
+        </button>
+        {kanDelen() && (
+          <button className="btn btn-block" onClick={() => void json(true)}>
+            {t.jsonDelen}
+          </button>
+        )}
+      </div>
+      {melding && <p className="ok">{melding}</p>}
+      {tekst && (
+        <label className="field">
+          <span>{t.tekstVoorbeeld}</span>
+          <textarea className="export-tekst" readOnly rows={8} value={tekst} onFocus={(e) => e.target.select()} />
+        </label>
+      )}
     </div>
   );
 }
