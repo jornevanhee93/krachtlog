@@ -297,6 +297,30 @@ export function volgendeSet(item: ActiveItem): number {
   return item.sets.findIndex((x) => !x.klaar);
 }
 
+/** Opent een oefening; tik je op de oefening die al open is, dan klapt ze dicht. */
+export function wisselOpen(s: ActiveSession, pos: Focus): ActiveSession {
+  const open = s.focus?.groep === pos.groep && s.focus.item === pos.item;
+  return { ...s, focus: open ? null : pos };
+}
+
+/** Samenvatting voor een dichte kaart: voortgang en de laatst afgewerkte werkset. */
+export function itemVoortgang(item: ActiveItem): { klaar: number; totaal: number; laatste?: LogSet; afgewerkt: boolean } {
+  const werk = item.sets.filter((x) => !x.opwarm);
+  const gedaan = werk.filter((x) => x.klaar);
+  const laatste = gedaan.at(-1);
+  return {
+    klaar: gedaan.length,
+    totaal: werk.length,
+    laatste: laatste ? (({ klaar: _k, ...rest }) => rest)(laatste) : undefined,
+    afgewerkt: item.sets.length > 0 && volgendeSet(item) < 0,
+  };
+}
+
+/** Is elke set van elke oefening afgevinkt? */
+export function allesAfgewerkt(s: ActiveSession): boolean {
+  return s.groepen.length > 0 && s.groepen.every((g) => g.items.every((it) => volgendeSet(it) < 0));
+}
+
 function eersteOpen(groepen: ActiveGroup[]): Focus | null {
   for (let g = 0; g < groepen.length; g++) {
     for (let i = 0; i < groepen[g].items.length; i++) {

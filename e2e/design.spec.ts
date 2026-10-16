@@ -19,8 +19,7 @@ test('met bibliotheek en logs: lijsten, bewerken en training', async ({ page }, 
     await page.waitForTimeout(150);
     await controleerScherm(page, `vol-${s}`, info.project.name);
   }
-  await page.goto('#/oefeningen');
-  await page.locator('.list-item').first().click();
+  await page.goto('#/oefeningen/oef-box-jump');
   await controleerScherm(page, 'oefening-bewerken', info.project.name);
   await page.locator('.icon-picker').scrollIntoViewIfNeeded();
   await page.locator('.icon-picker').screenshot({ path: `e2e/screenshots/${info.project.name}-iconen.png` });

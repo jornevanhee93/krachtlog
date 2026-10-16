@@ -14,9 +14,9 @@ describe('oefeningenlijst', () => {
   it('toont per oefening een icoon dat volgt uit het materiaal', async () => {
     await importeerVoorbeeld('bibliotheek.json');
     renderApp('/oefeningen');
-    const rij = (await screen.findByText('Kettlebell swing')).closest('a')!;
+    const rij = (await screen.findByText('Kettlebell swing')).closest('button')!;
     expect(rij.querySelector('svg.ex-icon')).toBeTruthy();
-    const pullup = (await screen.findByText('Pull-up')).closest('a')!;
+    const pullup = (await screen.findByText('Pull-up')).closest('button')!;
     expect(within(pullup).getByText(/ladder/)).toBeTruthy();
   });
 });

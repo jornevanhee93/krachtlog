@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { oefening, sjabloon } from '../schema';
 import {
   STANDAARD_RUST_SEC,
+  allesAfgewerkt,
+  itemVoortgang,
   naarSessie,
   naarSjabloon,
   setKlaar,
@@ -11,6 +13,7 @@ import {
   voegOefeningToe,
   voegOpwarmsetToe,
   volgendeSet,
+  wisselOpen,
   type ActiveSession,
 } from './activeSession';
 
@@ -167,5 +170,47 @@ describe('afsluiten', () => {
   it('verwijdert een oefening en een lege groep', () => {
     const s = verwijderOefening(startSessie(sjab, oefeningen, {}), { groep: 1, item: 0 });
     expect(s.groepen.map((g) => g.label)).toEqual(['A', 'F']);
+  });
+});
+
+describe('accordeon', () => {
+  it('opent een andere oefening en klapt de open oefening dicht bij een tweede tik', () => {
+    const s = startSessie(sjab, oefeningen, {}, new Date(T0));
+    expect(s.focus).toEqual({ groep: 0, item: 0 });
+    const b = wisselOpen(s, { groep: 1, item: 0 });
+    expect(b.focus).toEqual({ groep: 1, item: 0 });
+    expect(wisselOpen(b, { groep: 1, item: 0 }).focus).toBeNull();
+  });
+
+  it('na de laatste set van een enkele oefening opent de volgende vanzelf', () => {
+    let s = startSessie(sjab, oefeningen, {}, new Date(T0));
+    s = { ...s, focus: { groep: 1, item: 0 } };
+    s = setKlaar(s, { groep: 1, item: 0 }, 0, T0);
+    expect(s.focus).toEqual({ groep: 1, item: 0 });
+    s = setKlaar(s, { groep: 1, item: 0 }, 1, T0);
+    expect(s.focus).toEqual({ groep: 2, item: 0 });
+  });
+
+  it('in een superset gaat het na elke set naar de volgende oefening van de ronde, daarna verder', () => {
+    let s = startSessie(sjab, oefeningen, {}, new Date(T0));
+    s = setKlaar(s, { groep: 0, item: 0 }, 0, T0);
+    expect(s.focus).toEqual({ groep: 0, item: 1 });
+    s = setKlaar(s, { groep: 0, item: 1 }, 0, T0);
+    expect(s.focus).toEqual({ groep: 0, item: 0 });
+    s = setKlaar(s, { groep: 0, item: 0 }, 1, T0);
+    s = setKlaar(s, { groep: 0, item: 1 }, 1, T0);
+    expect(s.focus).toEqual({ groep: 1, item: 0 });
+  });
+
+  it('itemVoortgang en allesAfgewerkt', () => {
+    let s = startSessie(sjab, oefeningen, {}, new Date(T0));
+    s = voegOpwarmsetToe(s, { groep: 1, item: 0 });
+    s = setKlaar(s, { groep: 1, item: 0 }, 0, T0);
+    s = setKlaar(s, { groep: 1, item: 0 }, 1, T0);
+    const v = itemVoortgang(s.groepen[1].items[0]);
+    expect(v).toMatchObject({ klaar: 1, totaal: 2, afgewerkt: false });
+    expect(v.laatste?.gewichtKg).toBe(16);
+    expect(v.laatste && 'klaar' in v.laatste).toBe(false);
+    expect(allesAfgewerkt(s)).toBe(false);
   });
 });

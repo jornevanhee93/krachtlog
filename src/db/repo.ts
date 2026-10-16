@@ -3,7 +3,7 @@ import { instellingen as instellingenSchema, type Instellingen, type LogSet, typ
 import type { ActiveSession } from '../logic/activeSession';
 import { sessieNaarRecords, type Snapshot } from '../logic/backup';
 import type { ImportResultaat } from '../logic/importPlan';
-import { db as standaardDb, type KrachtlogDb } from './db';
+import { db as standaardDb, type EntryRecord, type KrachtlogDb } from './db';
 
 export async function leesInstellingen(db: KrachtlogDb = standaardDb): Promise<Instellingen> {
   const rec = await db.instellingen.get('instellingen');
@@ -84,6 +84,21 @@ export async function vorigeSets(oefeningIds: string[], db: KrachtlogDb = standa
     if (laatste) uit[id] = laatste.sets;
   }
   return uit;
+}
+
+/** De laatste n keren dat een oefening gedaan werd, de recentste eerst. */
+export async function laatsteEntries(oefeningId: string, n: number, db: KrachtlogDb = standaardDb): Promise<EntryRecord[]> {
+  return db.entries
+    .where('[oefeningId+start]')
+    .between([oefeningId, ''], [oefeningId, '\uffff'])
+    .reverse()
+    .limit(n)
+    .toArray();
+}
+
+/** Alle keren dat een oefening gedaan werd, de oudste eerst. */
+export async function alleEntries(oefeningId: string, db: KrachtlogDb = standaardDb): Promise<EntryRecord[]> {
+  return db.entries.where('[oefeningId+start]').between([oefeningId, ''], [oefeningId, '\uffff']).toArray();
 }
 
 export async function pasImportToe(res: ImportResultaat, db: KrachtlogDb = standaardDb) {

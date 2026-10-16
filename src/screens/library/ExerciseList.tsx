@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import ExerciseIcon from '../../components/ExerciseIcon';
+import ExerciseOverview from '../../components/ExerciseOverview';
 import { Checkbox } from '../../components/form';
 import { db } from '../../db/db';
 import { nl } from '../../i18n/nl';
@@ -23,6 +24,8 @@ function leesFilter(): { zoek: string; patroon: string } {
 export default function ExerciseList() {
   const [filter, setFilterState] = useState(leesFilter);
   const [archief, setArchief] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
+  const navigate = useNavigate();
   const oefeningen = useLiveQuery(() => db.oefeningen.orderBy('naam').toArray(), []);
   const materiaal = useLiveQuery(() => db.materiaal.toArray(), []) ?? [];
 
@@ -81,7 +84,7 @@ export default function ExerciseList() {
       <ul className="list">
         {lijst.map((o) => (
           <li key={o.id}>
-            <Link to={`/oefeningen/${encodeURIComponent(o.id)}`} className="list-item with-icon">
+            <button className="list-item with-icon" onClick={() => setInfo(o.id)}>
               <ExerciseIcon icoon={oefeningIcoon(o, materiaal)} />
               <span className="grow">
                 <strong>
@@ -94,12 +97,19 @@ export default function ExerciseList() {
                     .join(' · ')}
                 </small>
               </span>
-            </Link>
+            </button>
           </li>
         ))}
       </ul>
       {(oefeningen ?? []).some((o) => o.gearchiveerd) && (
         <Checkbox label={t.toonGearchiveerd} checked={archief} onChange={setArchief} />
+      )}
+      {info && (
+        <ExerciseOverview
+          oefeningId={info}
+          onSluit={() => setInfo(null)}
+          onBewerk={() => navigate(`/oefeningen/${encodeURIComponent(info)}`)}
+        />
       )}
     </section>
   );

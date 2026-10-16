@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import ExerciseIcon from '../../components/ExerciseIcon';
 import { nl } from '../../i18n/nl';
 import {
+  itemVoortgang,
   setKlaar,
   updateItem,
   updateSet,
@@ -21,6 +22,11 @@ import SetEditor from './SetEditor';
 
 const t = nl.training;
 
+/**
+ * Eén oefening in de training, als accordeonkaart.
+ * Dicht: icoon, naam, voortgang en de laatste set. Open: de sets, alleen de huidige set met invoer.
+ * Tik op het icoon of de naam opent het overzichtspaneel; tik op de rest klapt de kaart open of dicht.
+ */
 export default function ExerciseCard(props: {
   item: ActiveItem;
   groep: ActiveGroup;
@@ -29,8 +35,11 @@ export default function ExerciseCard(props: {
   oefening: Oefening | undefined;
   icoon: Icoon;
   vorige: LogSet[] | undefined;
+  /** Doel van vandaag (voorstel), als er een is. */
+  vandaag?: string;
   update: (fn: (s: ActiveSession) => ActiveSession) => void;
-  onFocus: () => void;
+  onToggle: () => void;
+  onInfo: () => void;
   onVervang: () => void;
   onVerwijder: () => void;
 }) {
@@ -38,6 +47,7 @@ export default function ExerciseCard(props: {
   const volgende = volgendeSet(item);
   const [gekozen, setGekozen] = useState<number | null>(null);
   const [notitieOpen, setNotitieOpen] = useState(Boolean(item.notitie));
+  const [opwarmOpen, setOpwarmOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const actief = gekozen ?? (volgende >= 0 ? volgende : null);
 
@@ -46,37 +56,84 @@ export default function ExerciseCard(props: {
     setGekozen(null);
   }, [focus]);
 
-  const klaar = item.sets.filter((s) => s.klaar && !s.opwarm).length;
-  const werk = item.sets.filter((s) => !s.opwarm).length;
+  const voortgang = itemVoortgang(item);
   const doel = doelTekst(item.doel, oefening);
   const vorigeTekst = props.vorige?.filter((s) => !s.opwarm).map(setTekst).join('  |  ');
+  const naam = oefening?.naam ?? nl.algemeen.onbekendeOefening;
+  const opwarmSets = item.sets.filter((s) => s.opwarm);
+  // Afgewerkte opwarmsets klappen samen tot één regel (tenzij je er een wil aanpassen).
+  const opwarmIngeklapt =
+    opwarmSets.length > 0 && opwarmSets.every((s) => s.klaar) && !opwarmOpen && !(actief !== null && item.sets[actief]?.opwarm);
+  const samenvatting = voortgang.laatste ? setTekst(voortgang.laatste) : doel;
   let werkNr = 0;
   let opwarmNr = 0;
 
   return (
-    <div ref={ref} className={`card exercise-card ${focus ? 'focus' : ''}`}>
-      <button className="exercise-head" onClick={props.onFocus} aria-expanded={focus}>
-        <ExerciseIcon icoon={props.icoon} />
-        <span className="grow">
-          <strong>{oefening?.naam ?? nl.algemeen.onbekendeOefening}</strong>
-          {doel && <small className="muted"> · {doel}</small>}
-        </span>
-        <span className="badge">
-          {klaar}/{werk}
-        </span>
-      </button>
-      {item.doel.notitie && <p className="small muted">{item.doel.notitie}</p>}
+    <div
+      ref={ref}
+      className={`card exercise-card ${focus ? 'open' : ''} ${voortgang.afgewerkt ? 'done' : ''}`}
+      data-testid="exercise-card"
+    >
+      <div className="exercise-head">
+        <button className="exercise-name" onClick={props.onInfo} aria-label={`${t.overzicht}: ${naam}`}>
+          <ExerciseIcon icoon={props.icoon} />
+          <strong>{naam}</strong>
+        </button>
+        <button
+          className="exercise-toggle"
+          onClick={props.onToggle}
+          aria-expanded={focus}
+          aria-label={focus ? t.dichtklappen(naam) : t.openklappen(naam)}
+        >
+          <span className="badge">
+            {voortgang.afgewerkt ? '✓ ' : ''}
+            {voortgang.klaar}/{voortgang.totaal}
+          </span>
+          <span className="chevron" aria-hidden="true">
+            {focus ? '⌃' : '⌄'}
+          </span>
+        </button>
+      </div>
+      {!focus && samenvatting && (
+        <button className="exercise-sub" onClick={props.onToggle}>
+          {samenvatting}
+        </button>
+      )}
 
       {focus && (
-        <>
+        <div className="exercise-body">
+          {(doel || props.vandaag) && (
+            <p className="small">
+              {props.vandaag ? (
+                <>
+                  <strong>{t.vandaag}:</strong> {props.vandaag}
+                </>
+              ) : (
+                <span className="muted">
+                  {t.doel}: {doel}
+                </span>
+              )}
+            </p>
+          )}
+          {item.doel.notitie && <p className="small muted">{item.doel.notitie}</p>}
           {vorigeTekst && (
             <p className="small muted">
               {t.vorige}: {vorigeTekst}
             </p>
           )}
           <ol className="set-list">
+            {opwarmIngeklapt && (
+              <li className="done">
+                <button className="set-row" onClick={() => setOpwarmOpen(true)} aria-expanded={false}>
+                  <span className="set-nr">{t.opwarmKort}</span>
+                  <span className="grow">{t.opwarmsetsKlaar(opwarmSets.length)}</span>
+                  <span>✓</span>
+                </button>
+              </li>
+            )}
             {item.sets.map((s, i) => {
               const nr = s.opwarm ? `${t.opwarmKort} ${++opwarmNr}` : groep.type === 'enkel' ? `${++werkNr}` : `R${s.ronde ?? ++werkNr}`;
+              if (s.opwarm && opwarmIngeklapt) return null;
               const open = i === actief;
               return (
                 <li key={i} className={`${s.klaar ? 'done' : ''} ${open ? 'open' : ''}`}>
@@ -91,7 +148,9 @@ export default function ExerciseCard(props: {
                     <>
                       <div className="set-row set-row-open">
                         <span className="set-nr">{nr}</span>
-                        <span className="grow">{s.opwarm ? t.opwarmset : groep.type === 'enkel' ? `${t.set} ${werkNr}` : `${t.ronde} ${s.ronde ?? ''}`}</span>
+                        <span className="grow">
+                          {s.opwarm ? t.opwarmset : groep.type === 'enkel' ? `${t.set} ${werkNr}` : `${t.ronde} ${s.ronde ?? ''}`}
+                        </span>
                       </div>
                       <SetEditor
                         set={s}
@@ -114,6 +173,11 @@ export default function ExerciseCard(props: {
               );
             })}
           </ol>
+          {opwarmSets.length > 0 && !opwarmIngeklapt && opwarmSets.every((s) => s.klaar) && (
+            <button className="btn btn-small" onClick={() => setOpwarmOpen(false)}>
+              {t.opwarmInklappen}
+            </button>
+          )}
           <div className="row wrap">
             <button className="btn btn-small" onClick={() => update((x) => voegSetToe(x, pos))}>
               {t.extraSet}
@@ -141,7 +205,7 @@ export default function ExerciseCard(props: {
               />
             </label>
           )}
-        </>
+        </div>
       )}
     </div>
   );

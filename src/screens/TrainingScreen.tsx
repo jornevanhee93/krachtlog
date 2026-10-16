@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import ExerciseOverview from '../components/ExerciseOverview';
 import ExercisePicker from '../components/ExercisePicker';
 import { db } from '../db/db';
 import { bewaarActief, bewaarSessie, leesActief, vorigeSets, wisActief } from '../db/repo';
@@ -8,11 +9,13 @@ import { useNow } from '../hooks/useNow';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { nl } from '../i18n/nl';
 import {
+  allesAfgewerkt,
   naarSessie,
   naarSjabloon,
   vervangOefening,
   verwijderOefening,
   voegOefeningToe,
+  wisselOpen,
   type ActiveSession,
   type Focus,
 } from '../logic/activeSession';
@@ -35,6 +38,7 @@ export default function TrainingScreen() {
   const [vorige, setVorige] = useState<Record<string, LogSet[]>>({});
   const [picker, setPicker] = useState<Picker | null>(null);
   const [afsluiten, setAfsluiten] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
   const oefeningen = useLiveQuery(() => db.oefeningen.toArray(), []);
   const materiaal = useLiveQuery(() => db.materiaal.toArray(), []) ?? [];
   const perId = new Map((oefeningen ?? []).map((o) => [o.id, o]));
@@ -101,7 +105,7 @@ export default function TrainingScreen() {
   };
 
   const verstreken = (nu - new Date(sessie.start).getTime()) / 1000;
-  const allesKlaar = sessie.focus === null && sessie.groepen.length > 0;
+  const allesKlaar = allesAfgewerkt(sessie);
 
   return (
     <section className={`screen training ${sessie.rust ? 'met-rust' : ''}`}>
@@ -155,7 +159,8 @@ export default function TrainingScreen() {
               icoon={oefeningIcoon(perId.get(item.oefeningId), materiaal)}
               vorige={vorige[item.oefeningId]}
               update={update}
-              onFocus={() => update((s) => ({ ...s, focus: { groep: gi, item: ii } }))}
+              onToggle={() => update((s) => wisselOpen(s, { groep: gi, item: ii }))}
+              onInfo={() => setInfo(item.oefeningId)}
               onVervang={() => setPicker({ soort: 'vervangen', pos: { groep: gi, item: ii } })}
               onVerwijder={() => {
                 if (window.confirm(t.verwijderVraag)) update((s) => verwijderOefening(s, { groep: gi, item: ii }));
@@ -189,6 +194,14 @@ export default function TrainingScreen() {
           titel={picker.soort === 'vervangen' ? t.vervangen : t.oefeningToevoegen}
           onKies={(o) => void kiesOefening(o)}
           onSluit={() => setPicker(null)}
+        />
+      )}
+      {info && (
+        <ExerciseOverview
+          oefeningId={info}
+          kop={<span className="clock">{formatKlok(verstreken)}</span>}
+          onSluit={() => setInfo(null)}
+          onBewerk={() => navigate(`/oefeningen/${encodeURIComponent(info)}`)}
         />
       )}
       {afsluiten && <FinishSheet sessie={sessie} onBewaar={(g) => void bewaar(g)} onSluit={() => setAfsluiten(false)} />}
