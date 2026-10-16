@@ -1,0 +1,482 @@
+// De lopende sessie: aanmaken, sets afvinken, springen in supersets, afsluiten.
+// Alles puur: elke functie geeft een nieuwe sessie terug.
+import type {
+  GroepType,
+  LastSpec,
+  LogSet,
+  Oefening,
+  Sessie,
+  Sjabloon,
+  SjabloonGroep,
+  SjabloonItem,
+} from '../schema';
+import { nieuwId } from './ids';
+
+export const STANDAARD_RUST_SEC = 90;
+export const STANDAARD_SETS = 3;
+
+export interface DraftSet extends LogSet {
+  klaar: boolean;
+}
+
+export interface ItemDoel {
+  sets?: number;
+  repBereik?: { min: number; max: number };
+  doelRIR?: number;
+  rustSec?: number;
+  rol?: 'anker' | 'rotatie';
+  last?: LastSpec;
+  notitie?: string;
+}
+
+export interface ActiveItem {
+  key: string;
+  oefeningId: string;
+  doel: ItemDoel;
+  sets: DraftSet[];
+  notitie?: string;
+}
+
+export interface ActiveGroup {
+  key: string;
+  label?: string;
+  type: GroepType;
+  rondes: number;
+  rustTussenRondesSec?: number;
+  rustTussenOefeningenSec?: number;
+  duurSec?: number;
+  intervalSec?: number;
+  notitie?: string;
+  items: ActiveItem[];
+}
+
+export interface Focus {
+  groep: number;
+  item: number;
+}
+
+export interface ActiveSession {
+  id: string;
+  start: string;
+  sjabloonId?: string;
+  sjabloonNaam?: string;
+  opwarming: string[];
+  groepen: ActiveGroup[];
+  focus: Focus | null;
+  /** Lopende rusttimer: eindtijd in ms sinds 1970. */
+  rust?: { eindigtOp: number; duurSec: number };
+  /** Lopende groepstimer (AMRAP/EMOM): starttijd in ms. */
+  groepTimer?: { groepKey: string; gestartOp: number };
+}
+
+/** De vorige keer dat een oefening gedaan werd (alleen de sets zijn nodig). */
+export type VorigeSets = Record<string, LogSet[] | undefined>;
+
+const WAARDE_VELDEN = [
+  'gewichtKg',
+  'extraKg',
+  'trede',
+  'variant',
+  'tempo',
+  'reps',
+  'repsLinks',
+  'repsRechts',
+  'duurSec',
+  'afstandM',
+] as const;
+
+/** Neemt alleen de waarden over (geen RIR, kwaliteit of notitie: die vul je elke keer opnieuw in). */
+export function kopieerWaarden(set: Partial<LogSet>): LogSet {
+  const uit: LogSet = { opwarm: false };
+  for (const veld of WAARDE_VELDEN) {
+    if (set[veld] !== undefined) (uit as Record<string, unknown>)[veld] = set[veld];
+  }
+  return uit;
+}
+
+function huidigeTredeLast(oefening: Oefening | undefined): { trede?: string; last?: LastSpec } {
+  const p = oefening?.progressie;
+  if (!p || p.modus !== 'ladder' || p.treden.length === 0) return {};
+  const t = p.treden.find((x) => x.label.toLowerCase() === p.huidigeTrede?.toLowerCase()) ?? p.treden[0];
+  return { trede: t.label, last: t.last };
+}
+
+/** Startwaarden voor een set als er geen vorige keer is: uit het sjabloon of de ladder. */
+function startSet(doel: ItemDoel, oefening: Oefening | undefined): LogSet {
+  const ladder = huidigeTredeLast(oefening);
+  const last = { ...ladder.last, ...doel.last };
+  const set: LogSet = { opwarm: false };
+  if (ladder.trede) set.trede = ladder.trede;
+  if (last.gewichtKg !== undefined) set.gewichtKg = last.gewichtKg;
+  if (last.extraKg !== undefined) set.extraKg = last.extraKg;
+  if (last.variant) set.variant = last.variant;
+  if (last.tempo) set.tempo = last.tempo;
+  if (last.duurSec !== undefined) set.duurSec = last.duurSec;
+  if (last.afstandM !== undefined) set.afstandM = last.afstandM;
+  const metingen = oefening?.metingen ?? ['gewicht', 'reps'];
+  const reps = doel.repBereik?.min ?? oefening?.progressie?.repBereik?.min;
+  if (metingen.includes('reps')) {
+    if (oefening?.unilateraal) {
+      set.repsLinks = reps ?? 0;
+      set.repsRechts = reps ?? 0;
+    } else {
+      set.reps = reps ?? 0;
+    }
+  }
+  if (metingen.includes('gewicht') && set.gewichtKg === undefined) set.gewichtKg = 0;
+  if (metingen.includes('tijd') && set.duurSec === undefined) set.duurSec = 0;
+  if (metingen.includes('afstand') && set.afstandM === undefined) set.afstandM = 0;
+  return set;
+}
+
+function aantalSets(groep: Pick<ActiveGroup, 'type' | 'rondes' | 'duurSec' | 'intervalSec'>, doel: ItemDoel, vorige?: LogSet[]) {
+  switch (groep.type) {
+    case 'superset':
+    case 'circuit':
+      return groep.rondes;
+    case 'emom':
+      return groep.duurSec ? Math.max(1, Math.floor(groep.duurSec / (groep.intervalSec || 60))) : groep.rondes;
+    case 'amrap':
+      return 1;
+    case 'enkel': {
+      const werk = vorige?.filter((s) => !s.opwarm).length;
+      return doel.sets ?? (werk || undefined) ?? STANDAARD_SETS;
+    }
+  }
+}
+
+/** Plant de sets voor een oefening: de waarden van de vorige keer, anders uit het sjabloon of de ladder. */
+export function planSets(
+  groep: Pick<ActiveGroup, 'type' | 'rondes' | 'duurSec' | 'intervalSec'>,
+  doel: ItemDoel,
+  oefening: Oefening | undefined,
+  vorige: LogSet[] | undefined,
+): DraftSet[] {
+  const werk = vorige?.filter((s) => !s.opwarm) ?? [];
+  const n = aantalSets(groep, doel, vorige);
+  const metRonde = groep.type !== 'enkel';
+  return Array.from({ length: n }, (_, i) => {
+    const bron = werk.length ? kopieerWaarden(werk[Math.min(i, werk.length - 1)]) : startSet(doel, oefening);
+    const set: DraftSet = { ...bron, opwarm: false, klaar: false };
+    if (metRonde) set.ronde = i + 1;
+    return set;
+  });
+}
+
+function itemDoel(item: SjabloonItem): ItemDoel {
+  const { sets, repBereik, doelRIR, rustSec, rol, last, notitie } = item;
+  return { sets, repBereik, doelRIR, rustSec, rol, last, notitie };
+}
+
+function groepUitSjabloon(g: SjabloonGroep, oefeningen: Map<string, Oefening>, vorige: VorigeSets): ActiveGroup {
+  const groep: ActiveGroup = {
+    key: nieuwId('grp'),
+    label: g.label,
+    type: g.type,
+    rondes: g.rondes,
+    rustTussenRondesSec: g.rustTussenRondesSec,
+    rustTussenOefeningenSec: g.rustTussenOefeningenSec,
+    duurSec: g.duurSec,
+    intervalSec: g.intervalSec,
+    notitie: g.notitie,
+    items: [],
+  };
+  groep.items = g.items.map((it) => {
+    const doel = itemDoel(it);
+    return {
+      key: nieuwId('itm'),
+      oefeningId: it.oefeningId,
+      doel,
+      sets: planSets(groep, doel, oefeningen.get(it.oefeningId), vorige[it.oefeningId]),
+    };
+  });
+  return groep;
+}
+
+/** Start een sessie vanuit een sjabloon, of leeg (zonder sjabloon). */
+export function startSessie(
+  sjabloon: Sjabloon | undefined,
+  oefeningen: Oefening[],
+  vorige: VorigeSets,
+  nu: Date = new Date(),
+): ActiveSession {
+  const map = new Map(oefeningen.map((o) => [o.id, o]));
+  const groepen = sjabloon ? sjabloon.groepen.map((g) => groepUitSjabloon(g, map, vorige)) : [];
+  return {
+    id: nieuwId('ses'),
+    start: nu.toISOString(),
+    sjabloonId: sjabloon?.id,
+    sjabloonNaam: sjabloon?.naam,
+    opwarming: sjabloon?.opwarming ?? [],
+    groepen,
+    focus: groepen.length ? { groep: 0, item: 0 } : null,
+  };
+}
+
+/** Voegt een oefening toe als nieuwe groep (enkel) achteraan. */
+export function voegOefeningToe(s: ActiveSession, oefening: Oefening, vorige: LogSet[] | undefined): ActiveSession {
+  const groep: ActiveGroup = { key: nieuwId('grp'), type: 'enkel', rondes: 1, items: [] };
+  groep.items = [{ key: nieuwId('itm'), oefeningId: oefening.id, doel: {}, sets: planSets(groep, {}, oefening, vorige) }];
+  const groepen = [...s.groepen, groep];
+  return { ...s, groepen, focus: { groep: groepen.length - 1, item: 0 } };
+}
+
+/** Vervangt een oefening; de sets die nog niet klaar zijn worden opnieuw gepland. */
+export function vervangOefening(
+  s: ActiveSession,
+  pos: Focus,
+  oefening: Oefening,
+  vorige: LogSet[] | undefined,
+): ActiveSession {
+  return updateItem(s, pos, (item, groep) => ({
+    ...item,
+    oefeningId: oefening.id,
+    sets: planSets(groep, item.doel, oefening, vorige).map((set, i) =>
+      item.sets[i]?.ronde !== undefined ? { ...set, ronde: item.sets[i].ronde } : set,
+    ),
+  }));
+}
+
+/** Verwijdert een oefening; een lege groep verdwijnt mee. */
+export function verwijderOefening(s: ActiveSession, pos: Focus): ActiveSession {
+  const groepen = s.groepen
+    .map((g, gi) => (gi === pos.groep ? { ...g, items: g.items.filter((_, ii) => ii !== pos.item) } : g))
+    .filter((g) => g.items.length > 0);
+  return { ...s, groepen, focus: eersteOpen(groepen) };
+}
+
+export function updateItem(
+  s: ActiveSession,
+  pos: Focus,
+  fn: (item: ActiveItem, groep: ActiveGroup) => ActiveItem,
+): ActiveSession {
+  return {
+    ...s,
+    groepen: s.groepen.map((g, gi) =>
+      gi === pos.groep ? { ...g, items: g.items.map((it, ii) => (ii === pos.item ? fn(it, g) : it)) } : g,
+    ),
+  };
+}
+
+export function updateSet(s: ActiveSession, pos: Focus, setIndex: number, patch: Partial<DraftSet>): ActiveSession {
+  return updateItem(s, pos, (item) => ({
+    ...item,
+    sets: item.sets.map((set, i) => (i === setIndex ? { ...set, ...patch } : set)),
+  }));
+}
+
+/** Voegt een opwarmset toe vóór de werksets, met de waarden van de eerste werkset. */
+export function voegOpwarmsetToe(s: ActiveSession, pos: Focus): ActiveSession {
+  return updateItem(s, pos, (item) => {
+    const eerste = item.sets.find((x) => !x.opwarm);
+    const nieuw: DraftSet = { ...kopieerWaarden(eerste ?? {}), opwarm: true, klaar: false };
+    const aantalOpwarm = item.sets.filter((x) => x.opwarm).length;
+    const sets = [...item.sets];
+    sets.splice(aantalOpwarm, 0, nieuw);
+    return { ...item, sets };
+  });
+}
+
+/** Voegt een extra werkset toe met de waarden van de laatste set. */
+export function voegSetToe(s: ActiveSession, pos: Focus): ActiveSession {
+  return updateItem(s, pos, (item, groep) => {
+    const werk = item.sets.filter((x) => !x.opwarm);
+    const laatste = werk[werk.length - 1];
+    const nieuw: DraftSet = { ...kopieerWaarden(laatste ?? {}), opwarm: false, klaar: false };
+    if (groep.type !== 'enkel') nieuw.ronde = (laatste?.ronde ?? 0) + 1;
+    return { ...item, sets: [...item.sets, nieuw] };
+  });
+}
+
+export function verwijderSet(s: ActiveSession, pos: Focus, setIndex: number): ActiveSession {
+  return updateItem(s, pos, (item) => ({ ...item, sets: item.sets.filter((_, i) => i !== setIndex) }));
+}
+
+/** Index van de eerstvolgende set die nog niet klaar is (opwarmsets eerst), of -1. */
+export function volgendeSet(item: ActiveItem): number {
+  return item.sets.findIndex((x) => !x.klaar);
+}
+
+function eersteOpen(groepen: ActiveGroup[]): Focus | null {
+  for (let g = 0; g < groepen.length; g++) {
+    for (let i = 0; i < groepen[g].items.length; i++) {
+      if (volgendeSet(groepen[g].items[i]) >= 0) return { groep: g, item: i };
+    }
+  }
+  return null;
+}
+
+/** Hoe ver een item is in de groep: het aantal afgewerkte werksets. */
+function werkKlaar(item: ActiveItem) {
+  return item.sets.filter((x) => x.klaar && !x.opwarm).length;
+}
+
+/**
+ * Markeert een set als klaar en bepaalt wat er daarna komt:
+ * - enkel: rust, en dezelfde oefening blijft in beeld tot alle sets klaar zijn
+ * - superset/circuit: naar de volgende oefening van de groep; rust tussen oefeningen of na een ronde
+ * - amrap/emom: naar de volgende oefening, zonder rusttimer; een AMRAP krijgt automatisch een nieuwe ronde
+ */
+export function setKlaar(s: ActiveSession, pos: Focus, setIndex: number, nu: number = Date.now()): ActiveSession {
+  const groep = s.groepen[pos.groep];
+  const item = groep.items[pos.item];
+  const wasOpwarm = item.sets[setIndex]?.opwarm;
+  let volgende = updateSet(s, pos, setIndex, { klaar: true });
+  let g = volgende.groepen[pos.groep];
+
+  // AMRAP: is de ronde voor alle oefeningen klaar, dan komt er een nieuwe ronde bij.
+  if (g.type === 'amrap' && g.items.every((it) => volgendeSet(it) < 0)) {
+    volgende = {
+      ...volgende,
+      groepen: volgende.groepen.map((gr, gi) =>
+        gi === pos.groep
+          ? {
+              ...gr,
+              items: gr.items.map((it) => {
+                const laatste = it.sets.filter((x) => !x.opwarm).at(-1);
+                const nieuw: DraftSet = { ...kopieerWaarden(laatste ?? {}), opwarm: false, klaar: false };
+                nieuw.ronde = (laatste?.ronde ?? 0) + 1;
+                return { ...it, sets: [...it.sets, nieuw] };
+              }),
+            }
+          : gr,
+      ),
+    };
+    g = volgende.groepen[pos.groep];
+  }
+
+  let focus: Focus | null = pos;
+  let rustSec: number | undefined;
+
+  if (wasOpwarm) {
+    rustSec = undefined; // na een opwarmset geen timer
+  } else if (g.type === 'enkel') {
+    rustSec = item.doel.rustSec ?? g.rustTussenRondesSec ?? STANDAARD_RUST_SEC;
+    if (volgendeSet(g.items[pos.item]) < 0) focus = eersteOpenNa(volgende.groepen, pos);
+  } else {
+    // Volgende oefening in de groep die het minst ver is (zo blijft de volgorde A1 → A2 → A1 …).
+    const n = g.items.length;
+    let gekozen: number | null = null;
+    for (let stap = 1; stap <= n; stap++) {
+      const kandidaat = (pos.item + stap) % n;
+      if (volgendeSet(g.items[kandidaat]) >= 0) {
+        gekozen = kandidaat;
+        break;
+      }
+    }
+    if (gekozen === null) {
+      focus = eersteOpenNa(volgende.groepen, pos);
+      if (g.type === 'superset' || g.type === 'circuit') rustSec = g.rustTussenRondesSec ?? item.doel.rustSec;
+    } else {
+      focus = { groep: pos.groep, item: gekozen };
+      // Terug naar een eerdere oefening in de groep = einde van een ronde.
+      const rondeKlaar = gekozen <= pos.item;
+      if (g.type === 'superset' || g.type === 'circuit') {
+        rustSec = rondeKlaar
+          ? (g.rustTussenRondesSec ?? item.doel.rustSec ?? STANDAARD_RUST_SEC)
+          : (item.doel.rustSec ?? g.rustTussenOefeningenSec);
+      }
+    }
+  }
+
+  const rust = rustSec && rustSec > 0 ? { eindigtOp: nu + rustSec * 1000, duurSec: rustSec } : undefined;
+  return { ...volgende, focus, rust };
+}
+
+function eersteOpenNa(groepen: ActiveGroup[], pos: Focus): Focus | null {
+  for (let g = pos.groep; g < groepen.length; g++) {
+    for (let i = 0; i < groepen[g].items.length; i++) {
+      if (volgendeSet(groepen[g].items[i]) >= 0) return { groep: g, item: i };
+    }
+  }
+  return eersteOpen(groepen);
+}
+
+export interface Afsluiting {
+  einde: string;
+  duurMin?: number;
+  rpe?: number;
+  plezier?: number;
+  notitie?: string;
+}
+
+/** Zet de lopende sessie om naar een gelogde sessie: alleen afgewerkte sets tellen. */
+export function naarSessie(s: ActiveSession, a: Afsluiting): Sessie {
+  const oefeningen: Sessie['oefeningen'] = [];
+  s.groepen.forEach((g, gi) => {
+    const label = g.label ?? String(gi + 1);
+    for (const item of g.items) {
+      const sets = item.sets.filter((x) => x.klaar).map(({ klaar: _klaar, ...set }) => set);
+      if (sets.length === 0) continue;
+      oefeningen.push({
+        oefeningId: item.oefeningId,
+        groep: label,
+        groepType: g.type,
+        volgorde: oefeningen.length,
+        notitie: item.notitie,
+        sets,
+      });
+    }
+  });
+  return schoon({
+    id: s.id,
+    soort: 'kracht',
+    start: s.start,
+    einde: a.einde,
+    duurMin: a.duurMin,
+    rpe: a.rpe,
+    plezier: a.plezier,
+    notitie: a.notitie?.trim() || undefined,
+    sjabloonId: s.sjabloonId,
+    oefeningen,
+  });
+}
+
+/** Maakt een sjabloon van wat je in deze sessie gedaan hebt. */
+export function naarSjabloon(s: ActiveSession, naam: string): Sjabloon {
+  const groepen: SjabloonGroep[] = [];
+  for (const g of s.groepen) {
+    const items: SjabloonItem[] = [];
+    for (const item of g.items) {
+      const werk = item.sets.filter((x) => x.klaar && !x.opwarm);
+      if (werk.length === 0) continue;
+      const reps = werk
+        .map((x) => x.reps ?? Math.min(x.repsLinks ?? Infinity, x.repsRechts ?? Infinity))
+        .filter((x) => Number.isFinite(x));
+      const repBereik =
+        item.doel.repBereik ?? (reps.length ? { min: Math.min(...reps), max: Math.max(...reps) } : undefined);
+      items.push(
+        schoon({
+          oefeningId: item.oefeningId,
+          sets: g.type === 'enkel' ? werk.length : undefined,
+          repBereik,
+          doelRIR: item.doel.doelRIR,
+          rustSec: item.doel.rustSec,
+          rol: item.doel.rol,
+          notitie: item.doel.notitie,
+        }),
+      );
+    }
+    if (items.length === 0) continue;
+    const rondes = g.type === 'superset' || g.type === 'circuit' ? Math.max(...g.items.map(werkKlaar)) : g.rondes;
+    groepen.push(
+      schoon({
+        label: g.label,
+        type: g.type,
+        rondes: Math.max(1, rondes),
+        rustTussenRondesSec: g.rustTussenRondesSec,
+        rustTussenOefeningenSec: g.rustTussenOefeningenSec,
+        duurSec: g.duurSec,
+        intervalSec: g.intervalSec,
+        notitie: g.notitie,
+        items,
+      }),
+    );
+  }
+  return { id: nieuwId('sjab'), naam: naam.trim(), opwarming: s.opwarming, groepen };
+}
+
+/** Haalt velden met de waarde undefined weg (netter in JSON en IndexedDB). */
+export function schoon<T extends object>(obj: T): T {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T;
+}

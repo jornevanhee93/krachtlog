@@ -1,0 +1,50 @@
+import Dexie, { type EntityTable } from 'dexie';
+import type { Instellingen, LogSet, Materiaal, Oefening, Sessie, SessieOefening, Sjabloon } from '../schema';
+import type { ActiveSession } from '../logic/activeSession';
+
+/** Een sessie zonder de oefeningen; die staan apart in "entries". */
+export type SessieRecord = Omit<Sessie, 'oefeningen'>;
+
+/** Eén oefening binnen een sessie. Geïndexeerd op oefeningId (+ start) voor snelle historiek per oefening. */
+export interface EntryRecord extends Omit<SessieOefening, 'sets'> {
+  id: string;
+  sessieId: string;
+  /** Kopie van de sessiestart, zodat we per oefening op datum kunnen sorteren. */
+  start: string;
+  sets: LogSet[];
+}
+
+export interface SettingRecord {
+  key: 'instellingen';
+  value: Instellingen;
+}
+
+export interface ActiveRecord {
+  key: 'actief';
+  value: ActiveSession;
+}
+
+export class KrachtlogDb extends Dexie {
+  materiaal!: EntityTable<Materiaal, 'id'>;
+  oefeningen!: EntityTable<Oefening, 'id'>;
+  sjablonen!: EntityTable<Sjabloon, 'id'>;
+  sessies!: EntityTable<SessieRecord, 'id'>;
+  entries!: EntityTable<EntryRecord, 'id'>;
+  instellingen!: EntityTable<SettingRecord, 'key'>;
+  actief!: EntityTable<ActiveRecord, 'key'>;
+
+  constructor(name = 'krachtlog') {
+    super(name);
+    this.version(1).stores({
+      materiaal: '&id, naam',
+      oefeningen: '&id, naam, *patronen',
+      sjablonen: '&id, naam',
+      sessies: '&id, start, soort, sjabloonId',
+      entries: '&id, sessieId, oefeningId, [oefeningId+start]',
+      instellingen: '&key',
+      actief: '&key',
+    });
+  }
+}
+
+export const db = new KrachtlogDb();
