@@ -1,4 +1,4 @@
-lock: 2026-10-16T21:24:01Z run-a1
+lock: 2026-10-16T21:30:26Z run-a1
 
 # Voortgang nachtbouw
 
@@ -10,7 +10,7 @@ Afgevinkt = klaar en getest (met commit).
 - [x] 2. UX-stap 4: iconen — eigen SVG-lijniconen, automatisch uit materiaal, te overschrijven; schemaVersie 2 (+ migratie, v1 blijft importeerbaar); icoon in lijst en trainingskaart (paneel: zie item 4)
 - [x] 3. UX-stap 5: training als accordeon — open/dicht per kaart, auto-volgende, opwarmsets inklapbaar, klok sticky (e2e/training.spec.ts)
 - [x] 4. UX-stap 6: overzichtspaneel — vanuit training (naam/icoon) en oefeningenlijst, veeg/knop sluit; grafieken en voorstel volgen in item 5
-- [ ] 5. Fase 2: progressie
+- [x] 5. Fase 2: progressie — src/logic/loadCalc.ts, progression.ts, charts.ts (+ tests); voorstel en grafieken in het paneel; 'Vandaag' per oefening in de training; voorstel ingevuld bij de start; Instellingen-kaart op Data
 - [ ] 6. Fase 3: programma's
 - [ ] 7. Fase 4: export, back-upherinnering, kleine UX
 - [ ] 8. Eindtest en testschema

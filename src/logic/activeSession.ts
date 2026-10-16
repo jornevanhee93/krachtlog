@@ -11,6 +11,7 @@ import type {
   SjabloonItem,
 } from '../schema';
 import { nieuwId } from './ids';
+import type { Voorstel } from './progression';
 
 export const STANDAARD_RUST_SEC = 90;
 export const STANDAARD_SETS = 3;
@@ -71,6 +72,39 @@ export interface ActiveSession {
 
 /** De vorige keer dat een oefening gedaan werd (alleen de sets zijn nodig). */
 export type VorigeSets = Record<string, LogSet[] | undefined>;
+
+/** Voorstellen per oefening-id (uit de progressielogica). */
+export type Voorstellen = Record<string, Voorstel | undefined>;
+
+/**
+ * Neemt een voorstel over in een geplande werkset, alleen als het een nieuwe stand is (klimmen of lichter):
+ * de trede en de last, en de reps terug naar het doel. Bij herhalen blijven de waarden van de vorige keer staan.
+ */
+export function pasVoorstelToe(set: LogSet, v: Voorstel | undefined, oefening: Oefening | undefined): LogSet {
+  if (!v || (v.type !== 'klim' && v.type !== 'lichter')) return set;
+  const uit: LogSet = { ...set };
+  if (v.trede) uit.trede = v.trede;
+  const l = v.last ?? {};
+  if (l.gewichtKg !== undefined) uit.gewichtKg = l.gewichtKg;
+  if (l.extraKg !== undefined) uit.extraKg = l.extraKg;
+  else if (v.trede && uit.extraKg !== undefined) uit.extraKg = 0;
+  if (v.trede) {
+    uit.variant = l.variant;
+    uit.tempo = l.tempo;
+  }
+  if (v.doelReps !== undefined && oefening?.metingen.includes('reps')) {
+    if (oefening.unilateraal) {
+      uit.repsLinks = v.doelReps;
+      uit.repsRechts = v.doelReps;
+    } else {
+      uit.reps = v.doelReps;
+    }
+  }
+  if (v.duurSec !== undefined && oefening?.metingen.includes('tijd') && v.type === 'klim' && v.trede) {
+    uit.duurSec = oefening.progressie?.duurBereikSec?.min ?? uit.duurSec;
+  }
+  return schoon(uit);
+}
 
 const WAARDE_VELDEN = [
   'gewichtKg',
@@ -151,13 +185,14 @@ export function planSets(
   doel: ItemDoel,
   oefening: Oefening | undefined,
   vorige: LogSet[] | undefined,
+  voorstel?: Voorstel,
 ): DraftSet[] {
   const werk = vorige?.filter((s) => !s.opwarm) ?? [];
   const n = aantalSets(groep, doel, vorige);
   const metRonde = groep.type !== 'enkel';
   return Array.from({ length: n }, (_, i) => {
     const bron = werk.length ? kopieerWaarden(werk[Math.min(i, werk.length - 1)]) : startSet(doel, oefening);
-    const set: DraftSet = { ...bron, opwarm: false, klaar: false };
+    const set: DraftSet = { ...pasVoorstelToe(bron, voorstel, oefening), opwarm: false, klaar: false };
     if (metRonde) set.ronde = i + 1;
     return set;
   });
@@ -168,7 +203,12 @@ function itemDoel(item: SjabloonItem): ItemDoel {
   return { sets, repBereik, doelRIR, rustSec, rol, last, notitie };
 }
 
-function groepUitSjabloon(g: SjabloonGroep, oefeningen: Map<string, Oefening>, vorige: VorigeSets): ActiveGroup {
+function groepUitSjabloon(
+  g: SjabloonGroep,
+  oefeningen: Map<string, Oefening>,
+  vorige: VorigeSets,
+  voorstellen: Voorstellen,
+): ActiveGroup {
   const groep: ActiveGroup = {
     key: nieuwId('grp'),
     label: g.label,
@@ -187,7 +227,7 @@ function groepUitSjabloon(g: SjabloonGroep, oefeningen: Map<string, Oefening>, v
       key: nieuwId('itm'),
       oefeningId: it.oefeningId,
       doel,
-      sets: planSets(groep, doel, oefeningen.get(it.oefeningId), vorige[it.oefeningId]),
+      sets: planSets(groep, doel, oefeningen.get(it.oefeningId), vorige[it.oefeningId], voorstellen[it.oefeningId]),
     };
   });
   return groep;
@@ -199,9 +239,10 @@ export function startSessie(
   oefeningen: Oefening[],
   vorige: VorigeSets,
   nu: Date = new Date(),
+  voorstellen: Voorstellen = {},
 ): ActiveSession {
   const map = new Map(oefeningen.map((o) => [o.id, o]));
-  const groepen = sjabloon ? sjabloon.groepen.map((g) => groepUitSjabloon(g, map, vorige)) : [];
+  const groepen = sjabloon ? sjabloon.groepen.map((g) => groepUitSjabloon(g, map, vorige, voorstellen)) : [];
   return {
     id: nieuwId('ses'),
     start: nu.toISOString(),
@@ -214,9 +255,14 @@ export function startSessie(
 }
 
 /** Voegt een oefening toe als nieuwe groep (enkel) achteraan. */
-export function voegOefeningToe(s: ActiveSession, oefening: Oefening, vorige: LogSet[] | undefined): ActiveSession {
+export function voegOefeningToe(
+  s: ActiveSession,
+  oefening: Oefening,
+  vorige: LogSet[] | undefined,
+  voorstel?: Voorstel,
+): ActiveSession {
   const groep: ActiveGroup = { key: nieuwId('grp'), type: 'enkel', rondes: 1, items: [] };
-  groep.items = [{ key: nieuwId('itm'), oefeningId: oefening.id, doel: {}, sets: planSets(groep, {}, oefening, vorige) }];
+  groep.items = [{ key: nieuwId('itm'), oefeningId: oefening.id, doel: {}, sets: planSets(groep, {}, oefening, vorige, voorstel) }];
   const groepen = [...s.groepen, groep];
   return { ...s, groepen, focus: { groep: groepen.length - 1, item: 0 } };
 }
@@ -227,11 +273,12 @@ export function vervangOefening(
   pos: Focus,
   oefening: Oefening,
   vorige: LogSet[] | undefined,
+  voorstel?: Voorstel,
 ): ActiveSession {
   return updateItem(s, pos, (item, groep) => ({
     ...item,
     oefeningId: oefening.id,
-    sets: planSets(groep, item.doel, oefening, vorige).map((set, i) =>
+    sets: planSets(groep, item.doel, oefening, vorige, voorstel).map((set, i) =>
       item.sets[i]?.ronde !== undefined ? { ...set, ronde: item.sets[i].ronde } : set,
     ),
   }));

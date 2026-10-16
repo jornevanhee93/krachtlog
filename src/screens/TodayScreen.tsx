@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { db } from '../db/db';
-import { bewaarActief, leesActief, leesInstellingen, vorigeSets } from '../db/repo';
+import { bewaarActief, leesActief, leesInstellingen, voorstellenVoor, vorigeSets } from '../db/repo';
 import { nl } from '../i18n/nl';
 import { startSessie } from '../logic/activeSession';
 import { dagenGeleden, formatDatumTijd } from '../logic/format';
@@ -23,7 +23,7 @@ export default function TodayScreen() {
     try {
       if (await leesActief()) return window.alert(t.actiefBezig);
       const ids = sjabloon ? sjabloon.groepen.flatMap((g) => g.items.map((i) => i.oefeningId)) : [];
-      const s = startSessie(sjabloon, await db.oefeningen.toArray(), await vorigeSets(ids));
+      const s = startSessie(sjabloon, await db.oefeningen.toArray(), await vorigeSets(ids), new Date(), await voorstellenVoor(ids));
       await bewaarActief(s);
       navigate('/training');
     } finally {

@@ -45,7 +45,9 @@ export function punten(historiek: Gedaan[], lichaamsgewichtKg?: number): Punt[] 
         const volReps = s.reps ?? (s.repsLinks ?? 0) + (s.repsRechts ?? 0);
         volume += last ? last * volReps : volReps;
         if (last !== undefined && (topset === undefined || last > topset)) topset = last;
-        const e = epley(last, reps);
+        // Een extra last (vest) zonder lichaamsgewicht zegt niets over de 1RM.
+        const echteLast = s.gewichtKg !== undefined || (lichaamsgewichtKg !== undefined && s.extraKg !== undefined);
+        const e = echteLast ? epley(last, reps) : undefined;
         if (e !== undefined && (e1rm === undefined || e > e1rm)) e1rm = e;
       }
       return { datum: g.start.slice(0, 10), topset, volume: rond1(volume), e1rm };

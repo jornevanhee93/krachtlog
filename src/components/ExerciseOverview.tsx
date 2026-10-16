@@ -1,12 +1,16 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from 'react';
 import { db } from '../db/db';
-import { laatsteEntries } from '../db/repo';
+import { laatsteEntries, leesInstellingen } from '../db/repo';
+import { useProgressie } from '../hooks/useProgressie';
 import { nl } from '../i18n/nl';
 import { formatDatum } from '../logic/format';
 import { oefeningIcoon } from '../logic/icon';
 import { setTekst } from '../ui/setText';
 import ExerciseIcon from './ExerciseIcon';
+import VoorstelBlok from './VoorstelBlok';
+
+const ProgressCharts = lazy(() => import('./ProgressCharts'));
 
 const t = nl.overzicht;
 const VEEG_DREMPEL = 80;
@@ -29,6 +33,8 @@ export default function ExerciseOverview(props: {
   const oefening = useLiveQuery(() => db.oefeningen.get(props.oefeningId), [props.oefeningId]);
   const materiaal = useLiveQuery(() => db.materiaal.toArray(), []) ?? [];
   const sessies = useLiveQuery(() => laatsteEntries(props.oefeningId, 3), [props.oefeningId]);
+  const instellingen = useLiveQuery(() => leesInstellingen(), []);
+  const info = useProgressie([props.oefeningId])?.get(props.oefeningId);
   const [veeg, setVeeg] = useState(0);
   const startY = useRef<number | null>(null);
 
@@ -42,7 +48,7 @@ export default function ExerciseOverview(props: {
   }, []);
 
   const p = oefening?.progressie;
-  const huidig = (props.huidigeTrede ?? p?.huidigeTrede)?.toLowerCase();
+  const huidig = (props.huidigeTrede ?? info?.stand.trede?.label ?? p?.huidigeTrede)?.toLowerCase();
   const naam = oefening?.naam ?? nl.algemeen.onbekendeOefening;
 
   return (
@@ -77,6 +83,22 @@ export default function ExerciseOverview(props: {
 
         <div className="panel-body">
           {props.children}
+
+          {info && info.voorstel.type !== 'geen' && (
+            <section>
+              <h3>{t.voorstel}</h3>
+              <VoorstelBlok voorstel={info.voorstel} />
+            </section>
+          )}
+
+          {oefening && info && info.historiek.length > 0 && (
+            <section>
+              <h3>{t.verloop}</h3>
+              <Suspense fallback={<p className="muted small">…</p>}>
+                <ProgressCharts historiek={info.historiek} oefening={oefening} lichaamsgewichtKg={instellingen?.lichaamsgewichtKg} />
+              </Suspense>
+            </section>
+          )}
 
           {p?.modus === 'ladder' && p.treden.length > 0 && (
             <section>

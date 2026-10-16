@@ -7,6 +7,7 @@ import {
   itemVoortgang,
   naarSessie,
   naarSjabloon,
+  pasVoorstelToe,
   setKlaar,
   startSessie,
   verwijderOefening,
@@ -16,6 +17,7 @@ import {
   wisselOpen,
   type ActiveSession,
 } from './activeSession';
+import type { Voorstel } from './progression';
 
 const oef = (o: z.input<typeof oefening>) => oefening.parse(o);
 const oefeningen = [
@@ -212,5 +214,27 @@ describe('accordeon', () => {
     expect(v.laatste?.gewichtKg).toBe(16);
     expect(v.laatste && 'klaar' in v.laatste).toBe(false);
     expect(allesAfgewerkt(s)).toBe(false);
+  });
+});
+
+describe('voorstel overnemen bij de start', () => {
+  const klim: Voorstel = { type: 'klim', trede: 'Vest 10', last: { extraKg: 10 }, doelReps: 5, uitleg: '', alternatieven: [] };
+
+  it('klimmen: nieuwe trede en last, reps terug naar het doel', () => {
+    const s = startSessie(sjab, oefeningen, { pu: [{ opwarm: false, trede: 'Vest 5', extraKg: 5, reps: 8 }] }, new Date(T0), { pu: klim });
+    const sets = s.groepen[0].items[0].sets;
+    expect(sets.every((x) => x.trede === 'Vest 10' && x.extraKg === 10 && x.reps === 5)).toBe(true);
+  });
+
+  it('herhalen: de waarden van de vorige keer blijven staan', () => {
+    const herhaal: Voorstel = { ...klim, type: 'herhaal', trede: 'Vest 5', last: { extraKg: 5 } };
+    const s = startSessie(sjab, oefeningen, { pu: [{ opwarm: false, trede: 'Vest 5', extraKg: 5, reps: 7 }] }, new Date(T0), { pu: herhaal });
+    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ trede: 'Vest 5', reps: 7 });
+  });
+
+  it('unilateraal: beide kanten krijgen het doel', () => {
+    const v: Voorstel = { type: 'lichter', last: { gewichtKg: 20 }, doelReps: 8, uitleg: '', alternatieven: [] };
+    const set = pasVoorstelToe({ opwarm: false, gewichtKg: 24, repsLinks: 10, repsRechts: 9 }, v, oefeningen[1]);
+    expect(set).toMatchObject({ gewichtKg: 20, repsLinks: 8, repsRechts: 8 });
   });
 });

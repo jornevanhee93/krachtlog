@@ -36,7 +36,7 @@ export default function ExerciseCard(props: {
   icoon: Icoon;
   vorige: LogSet[] | undefined;
   /** Doel van vandaag (voorstel), als er een is. */
-  vandaag?: string;
+  vandaag?: { tekst: string; uitleg: string };
   update: (fn: (s: ActiveSession) => ActiveSession) => void;
   onToggle: () => void;
   onInfo: () => void;
@@ -106,7 +106,11 @@ export default function ExerciseCard(props: {
             <p className="small">
               {props.vandaag ? (
                 <>
-                  <strong>{t.vandaag}:</strong> {props.vandaag}
+                  <strong>
+                    {t.vandaag}: {props.vandaag.tekst}
+                  </strong>
+                  <br />
+                  <span className="muted">{props.vandaag.uitleg}</span>
                 </>
               ) : (
                 <span className="muted">

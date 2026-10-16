@@ -4,7 +4,9 @@ import { Link, useNavigate } from 'react-router';
 import ExerciseOverview from '../components/ExerciseOverview';
 import ExercisePicker from '../components/ExercisePicker';
 import { db } from '../db/db';
-import { bewaarActief, bewaarSessie, leesActief, vorigeSets, wisActief } from '../db/repo';
+import { bewaarActief, bewaarSessie, leesActief, voorstellenVoor, vorigeSets, wisActief } from '../db/repo';
+import { useProgressie } from '../hooks/useProgressie';
+import { voorstelTekst, type Voorstel } from '../logic/progression';
 import { useNow } from '../hooks/useNow';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { nl } from '../i18n/nl';
@@ -44,6 +46,7 @@ export default function TrainingScreen() {
   const perId = new Map((oefeningen ?? []).map((o) => [o.id, o]));
   const schermAan = useWakeLock(Boolean(sessie));
   const nu = useNow(1000);
+  const progressie = useProgressie(sessie ? sessie.groepen.flatMap((g) => g.items.map((i) => i.oefeningId)) : [], sessie?.id);
 
   useEffect(() => {
     void leesActief().then(async (s) => {
@@ -78,9 +81,10 @@ export default function TrainingScreen() {
     const p = picker;
     setPicker(null);
     const v = (await vorigeSets([o.id]))[o.id];
+    const voorstel = (await voorstellenVoor([o.id]))[o.id];
     setVorige((x) => ({ ...x, [o.id]: v }));
-    if (p?.soort === 'vervangen') update((s) => vervangOefening(s, p.pos, o, v));
-    else update((s) => voegOefeningToe(s, o, v));
+    if (p?.soort === 'vervangen') update((s) => vervangOefening(s, p.pos, o, v, voorstel));
+    else update((s) => voegOefeningToe(s, o, v, voorstel));
   };
 
   const bewaar = async (g: AfsluitGegevens) => {
@@ -157,6 +161,7 @@ export default function TrainingScreen() {
               focus={sessie.focus?.groep === gi && sessie.focus.item === ii}
               oefening={perId.get(item.oefeningId)}
               icoon={oefeningIcoon(perId.get(item.oefeningId), materiaal)}
+              vandaag={vandaagTekst(progressie?.get(item.oefeningId)?.voorstel)}
               vorige={vorige[item.oefeningId]}
               update={update}
               onToggle={() => update((s) => wisselOpen(s, { groep: gi, item: ii }))}
@@ -207,4 +212,10 @@ export default function TrainingScreen() {
       {afsluiten && <FinishSheet sessie={sessie} onBewaar={(g) => void bewaar(g)} onSluit={() => setAfsluiten(false)} />}
     </section>
   );
+}
+
+function vandaagTekst(v: Voorstel | undefined): { tekst: string; uitleg: string } | undefined {
+  if (!v || v.type === 'geen') return undefined;
+  const tekst = voorstelTekst(v);
+  return tekst ? { tekst, uitleg: v.uitleg } : undefined;
 }

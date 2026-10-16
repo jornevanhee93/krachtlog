@@ -40,6 +40,12 @@ describe('grafiekdata', () => {
     expect(p[0].e1rm).toBe(epley(24, 8));
   });
 
+  it('een vest zonder lichaamsgewicht: wel topset, geen e1RM; met lichaamsgewicht wel', () => {
+    const g = [{ start: '2026-09-01', sets: [{ opwarm: false, extraKg: 10, reps: 6 }] }];
+    expect(punten(g)[0]).toMatchObject({ topset: 10, e1rm: undefined });
+    expect(punten(g, 75)[0]).toMatchObject({ topset: 85, e1rm: epley(85, 6) });
+  });
+
   it('zonder last: volume = reps, geen topset of e1RM', () => {
     const p = punten([{ start: '2026-09-01', sets: [{ opwarm: false, reps: 8 }, { opwarm: false, reps: 7 }] }]);
     expect(p[0]).toEqual({ datum: '2026-09-01', topset: undefined, volume: 15, e1rm: undefined });

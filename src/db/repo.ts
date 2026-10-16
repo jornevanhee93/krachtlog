@@ -1,6 +1,7 @@
 // Lezen en schrijven in de database. Geen domeinlogica: die zit in src/logic/.
 import { instellingen as instellingenSchema, type Instellingen, type LogSet, type Sessie } from '../schema';
-import type { ActiveSession } from '../logic/activeSession';
+import type { ActiveSession, Voorstellen } from '../logic/activeSession';
+import { maakVoorstel } from '../logic/progression';
 import { sessieNaarRecords, type Snapshot } from '../logic/backup';
 import type { ImportResultaat } from '../logic/importPlan';
 import { db as standaardDb, type EntryRecord, type KrachtlogDb } from './db';
@@ -99,6 +100,18 @@ export async function laatsteEntries(oefeningId: string, n: number, db: Krachtlo
 /** Alle keren dat een oefening gedaan werd, de oudste eerst. */
 export async function alleEntries(oefeningId: string, db: KrachtlogDb = standaardDb): Promise<EntryRecord[]> {
   return db.entries.where('[oefeningId+start]').between([oefeningId, ''], [oefeningId, '\uffff']).toArray();
+}
+
+/** Voorstellen voor de volgende keer, per oefening (op basis van alles wat gelogd is). */
+export async function voorstellenVoor(oefeningIds: string[], db: KrachtlogDb = standaardDb): Promise<Voorstellen> {
+  const [materiaal, inst] = await Promise.all([db.materiaal.toArray(), leesInstellingen(db)]);
+  const uit: Voorstellen = {};
+  for (const id of new Set(oefeningIds)) {
+    const oef = await db.oefeningen.get(id);
+    if (!oef) continue;
+    uit[id] = maakVoorstel({ oefening: oef, materiaal, filosofie: inst.filosofie }, await alleEntries(id, db));
+  }
+  return uit;
 }
 
 export async function pasImportToe(res: ImportResultaat, db: KrachtlogDb = standaardDb) {

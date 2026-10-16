@@ -65,6 +65,11 @@ a { color: var(--fg); }
 ul, ol { padding-left: 20px; }
 
 .muted { color: var(--muted); }
+h2.inline { display: inline; margin: 0; }
+details > summary { min-height: var(--tap); display: flex; align-items: center; gap: var(--s2); cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: '▸'; }
+details[open] > summary::before { content: '▾'; }
 .small { font-size: var(--fs-small); }
 .grow { flex: 1; min-width: 0; }
 .ok, .warn { font-weight: 700; }
@@ -362,6 +367,18 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--f
 .plain { list-style: none; padding: 0; }
 .plain li { min-height: var(--tap); display: flex; align-items: center; word-break: break-all; }
 .history-entry { margin-bottom: var(--s3); }
+
+/* Voorstel en grafieken */
+.voorstel-kop { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s2); margin-bottom: var(--s1); font-variant-numeric: tabular-nums; }
+.voorstel-type { font-size: var(--fs-small); font-weight: 700; border: 1px solid var(--fg); border-radius: 999px; padding: 0 var(--s2); }
+.charts { display: flex; flex-direction: column; gap: var(--s4); }
+.chart { margin: 0; color: var(--fg); }
+.chart figcaption { font-size: var(--fs-small); color: var(--muted); margin-bottom: var(--s1); }
+.chart .recharts-cartesian-grid line, .chart .recharts-cartesian-axis-line, .chart .recharts-cartesian-axis-tick-line { stroke: var(--line); }
+.chart-tip { background: var(--bg); border: var(--border-strong); border-radius: var(--radius); padding: var(--s1) var(--s2); font-size: var(--fs-small); font-variant-numeric: tabular-nums; }
+.legend { list-style: none; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s3); padding: 0; margin: var(--s2) 0 0; font-size: var(--fs-small); }
+.legend li { display: flex; align-items: center; gap: var(--s1); }
+.swatch { width: 12px; height: 12px; border-radius: 2px; background: var(--fg); }
 
 /* ---------- Training ---------- */
 .training.met-rust { padding-bottom: 110px; }

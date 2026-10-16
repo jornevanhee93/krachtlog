@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db } from '../db/db';
 import { metTijdslimiet } from '../db/tijdslimiet';
-import { leesSnapshot, pasImportToe, vervangAlles, wisAlles, zetLaatsteBackup } from '../db/repo';
+import { bewaarInstellingen, leesInstellingen, leesSnapshot, pasImportToe, vervangAlles, wisAlles, zetLaatsteBackup } from '../db/repo';
 import { nl } from '../i18n/nl';
 import { backupBestandsnaam, backupNaarSnapshot, maakBackup } from '../logic/backup';
 import { dagenGeleden, formatDatum, formatDatumTijd } from '../logic/format';
@@ -10,7 +10,9 @@ import { NIEUW, maakImportPlan, twijfelgevallen, voerImportUit, type ImportPlan,
 import { parseBestand, type Fout } from '../logic/parseFile';
 import { formatMb, requestPersistence, type PersistStatus } from '../logic/storage';
 import { persistenceStatus } from '../persistence';
-import type { BibliotheekBestand, LogsBestand } from '../schema';
+import { instellingen as instellingenSchema, type BibliotheekBestand, type Instellingen, type LogsBestand } from '../schema';
+import { NumberField, RangeField } from '../components/form';
+import { valideer } from '../logic/parseFile';
 import { deelJson, downloadJson, kanDelen, leesTekst } from '../ui/files';
 
 const t = nl.data;
@@ -20,6 +22,7 @@ export default function DataScreen() {
     <section className="screen">
       <h1>{t.title}</h1>
       <BackupCard />
+      <SettingsCard />
       <ImportCard />
       <RestoreCard />
       <StorageCard />
@@ -72,6 +75,91 @@ function BackupCard() {
       </div>
       {melding && <p className="ok">{melding}</p>}
     </div>
+  );
+}
+
+/** De bewerkbare standaarden uit de trainingsfilosofie (zie docs/trainingsfilosofie.md). */
+function SettingsCard() {
+  const opgeslagen = useLiveQuery(() => leesInstellingen(), []);
+  const [concept, setConcept] = useState<Instellingen | null>(null);
+  const [fouten, setFouten] = useState<Fout[]>([]);
+  const [melding, setMelding] = useState('');
+  const s = concept ?? opgeslagen;
+  if (!s) return null;
+  const f = s.filosofie;
+  const zet = (fn: (x: Instellingen) => Instellingen) => {
+    setMelding('');
+    setConcept(fn(structuredClone(s)));
+  };
+  const bewaar = async () => {
+    const res = valideer(instellingenSchema, concept);
+    if (!res.ok) return setFouten(res.fouten);
+    setFouten([]);
+    // Laatste back-up niet overschrijven met een oudere waarde.
+    const nu = await leesInstellingen();
+    await bewaarInstellingen({ ...res.data, laatsteBackup: nu.laatsteBackup });
+    setConcept(null);
+    setMelding(t.instellingenBewaard);
+  };
+  return (
+    <details className="card">
+      <summary>
+        <h2 className="inline">{t.instellingenTitel}</h2>
+      </summary>
+      <p className="muted small">{t.instellingenUitleg}</p>
+      <NumberField label={t.inst.lichaamsgewicht} value={s.lichaamsgewichtKg} onChange={(v) => zet((x) => ({ ...x, lichaamsgewichtKg: v }))} />
+      <div className="grid-2">
+        <NumberField
+          label={t.inst.ankerStilstand}
+          integer
+          value={f.profielen.anker.stagnatieSessies}
+          onChange={(v) => zet((x) => ((x.filosofie.profielen.anker.stagnatieSessies = v), x))}
+        />
+        <NumberField
+          label={t.inst.ankerLichter}
+          value={f.profielen.anker.stagnatiePercentage}
+          onChange={(v) => zet((x) => ((x.filosofie.profielen.anker.stagnatiePercentage = v), x))}
+        />
+        <NumberField
+          label={t.inst.overigStilstand}
+          integer
+          value={f.stagnatie.sessies}
+          onChange={(v) => zet((x) => ((x.filosofie.stagnatie.sessies = v ?? 3), x))}
+        />
+        <NumberField
+          label={t.inst.powerOpRij}
+          integer
+          value={f.profielen.power.sessiesOpRij}
+          onChange={(v) => zet((x) => ((x.filosofie.profielen.power.sessiesOpRij = v ?? 2), x))}
+        />
+        <NumberField
+          label={t.inst.minUren}
+          value={f.planning.minUrenTussenKracht}
+          onChange={(v) => zet((x) => ((x.filosofie.planning.minUrenTussenKracht = v ?? 48), x))}
+        />
+        <NumberField
+          label={t.inst.backupDagen}
+          integer
+          value={f.planning.backupHerinneringDagen}
+          onChange={(v) => zet((x) => ((x.filosofie.planning.backupHerinneringDagen = v ?? 7), x))}
+        />
+      </div>
+      <RangeField
+        label={t.inst.ankerWeken}
+        value={f.termijnen.ankerWeken}
+        onChange={(v) => zet((x) => ((x.filosofie.termijnen.ankerWeken = v ?? { min: 6, max: 12 }), x))}
+      />
+      <RangeField
+        label={t.inst.rotatieWeken}
+        value={f.termijnen.rotatieWeken}
+        onChange={(v) => zet((x) => ((x.filosofie.termijnen.rotatieWeken = v ?? { min: 2, max: 6 }), x))}
+      />
+      {fouten.length > 0 && <FoutLijst fouten={fouten} />}
+      <button className="btn btn-primary btn-block" disabled={!concept} onClick={() => void bewaar()}>
+        {nl.algemeen.bewaren}
+      </button>
+      {melding && <p className="ok">{melding}</p>}
+    </details>
   );
 }
 

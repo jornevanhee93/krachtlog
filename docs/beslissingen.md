@@ -12,3 +12,25 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Vraag:** oude vermeldingen van de notitie-app staan nog in de git-geschiedenis. Herschrijven?
 - **Keuze:** nee. De huidige bestanden zijn schoon; de geschiedenis herschrijven vraagt een force-push op `main` (risico voor de deploy en bestaande clones).
 - **Veranderen:** kan later met `git filter-repo` door de eigenaar zelf, als hij dat wil.
+
+## Progressie (fase 2)
+- **Vraag:** welke regel geldt als een oefening een profiel heeft én een eigen klimregel?
+- **Keuze:** een eigen klimregel (iets anders dan de standaard "RIR, 1 sessie") gaat voor; anders gelden de profielstandaarden uit Instellingen.
+- **Veranderen:** `regelsVoor` in `src/logic/progression.ts`.
+
+- **Vraag:** wat doet de app bij stilstand?
+- **Keuze:** anker (en oefeningen zonder profiel): lichter (in modus last x% lichter, in een ladder één trede terug). Andere profielen: voorstel om te wisselen binnen het patroon. Een eigen `stagnatie` bij de oefening gaat voor. "Stilstand" = de laatste N keer op dezelfde trede/last, nooit gehaald, en geen beter resultaat (totaal reps, duur of afstand) dan de eerste van die N.
+- **Veranderen:** `isGestagneerd` en `regelsVoor` in `src/logic/progression.ts`; N en % in Data → Instellingen.
+
+- **Vraag:** wanneer telt power als "strak"?
+- **Keuze:** alle werksets met kwaliteit *Makkelijk*, zoveel keer op rij als Instellingen zegt (standaard 2). RIR telt niet bij power.
+
+- **Vraag:** carry en isometrisch?
+- **Keuze:** carry: geen Gevecht (houding) → bovenkant van het afstandsbereik in alle sets → zwaarder. Isometrisch: bovenkant van het duurbereik in alle sets (RIR 0 telt niet: nooit tot falen) → volgende trede (hefboom) of zwaarder.
+
+- **Vraag:** vult de app het voorstel ook al in bij de start van een training?
+- **Keuze:** ja, maar alleen bij klimmen of lichter (nieuwe trede/last, reps naar het doel). Bij herhalen blijven de waarden van de vorige keer staan, met het doel als tekst op de kaart.
+- **Veranderen:** `pasVoorstelToe` in `src/logic/activeSession.ts`.
+
+- **Vraag:** e1RM bij een gewichtsvest?
+- **Keuze:** alleen als je lichaamsgewicht is ingevuld (Data → Instellingen); dan telt lichaamsgewicht + vest. Anders geen e1RM-grafiek.
