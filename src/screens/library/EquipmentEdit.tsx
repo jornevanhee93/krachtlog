@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { Field, Fouten, ListField, NumberField, Select, TextArea, TextField } from '../../components/form';
 import { db } from '../../db/db';
+import { useTerug } from '../../hooks/useTerug';
 import { nl } from '../../i18n/nl';
 import { formatGetal } from '../../logic/format';
 import { nieuwId } from '../../logic/ids';
@@ -46,7 +47,7 @@ function parseSchijven(tekst: string) {
 export default function EquipmentEdit() {
   const { id = 'nieuw' } = useParams();
   const nieuw = id === 'nieuw';
-  const navigate = useNavigate();
+  const terug = useTerug('/materiaal');
   const [m, setM] = useState<Materiaal | null>(nieuw ? { id: nieuwId('mat'), naam: '', soort: 'dumbbell' } : null);
   const [fouten, setFouten] = useState<Fout[]>([]);
   const [vastTekst, setVastTekst] = useState('');
@@ -70,14 +71,18 @@ export default function EquipmentEdit() {
   const bewaar = async () => {
     const res = valideer(materiaalSchema, m);
     if (!res.ok) return setFouten(res.fouten);
-    await db.materiaal.put(res.data);
-    navigate(-1);
+    try {
+      await db.materiaal.put(res.data);
+    } catch (e) {
+      return setFouten([{ pad: '', bericht: nl.algemeen.bewarenMislukt((e as Error).message) }]);
+    }
+    terug();
   };
 
   const verwijder = async () => {
     if (!window.confirm(t.verwijderVraag)) return;
     await db.materiaal.delete(m.id);
-    navigate(-1);
+    terug();
   };
 
   return (
@@ -141,7 +146,7 @@ export default function EquipmentEdit() {
       <TextArea label={t.notitie} value={m.notitie} onChange={(v) => zet({ notitie: v || undefined })} />
       <Fouten fouten={fouten} />
       <div className="row sticky-actions">
-        <button className="btn" onClick={() => navigate(-1)}>
+        <button className="btn" onClick={() => terug()}>
           {nl.algemeen.annuleren}
         </button>
         <button className="btn btn-primary grow" onClick={() => void bewaar()}>

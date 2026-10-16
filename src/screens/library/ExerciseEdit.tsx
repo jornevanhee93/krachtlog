@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import {
   Checkbox,
   Chips,
@@ -16,6 +16,7 @@ import {
   TextField,
 } from '../../components/form';
 import { db } from '../../db/db';
+import { useTerug } from '../../hooks/useTerug';
 import { nl } from '../../i18n/nl';
 import { nieuweOefeningConcept } from '../../logic/exerciseDraft';
 import { nieuwId } from '../../logic/ids';
@@ -29,7 +30,7 @@ const PROFIELEN = ['anker', 'opbouw', 'power', 'carry', 'isometrisch'] as const;
 export default function ExerciseEdit() {
   const { id = 'nieuw' } = useParams();
   const nieuw = id === 'nieuw';
-  const navigate = useNavigate();
+  const terug = useTerug('/oefeningen');
   const materiaal = useLiveQuery(() => db.materiaal.orderBy('naam').toArray(), []);
   // Een nieuwe oefening is eerst een concept; valideren gebeurt pas bij Opslaan.
   const [o, setO] = useState<Oefening | null>(() => (nieuw ? nieuweOefeningConcept(nieuwId('oef')) : null));
@@ -51,8 +52,12 @@ export default function ExerciseEdit() {
   const bewaar = async () => {
     const res = valideer(oefeningSchema, o);
     if (!res.ok) return setFouten(res.fouten);
-    await db.oefeningen.put(res.data);
-    navigate(-1);
+    try {
+      await db.oefeningen.put(res.data);
+    } catch (e) {
+      return setFouten([{ pad: '', bericht: nl.algemeen.bewarenMislukt((e as Error).message) }]);
+    }
+    terug();
   };
 
   const verwijder = async () => {
@@ -63,7 +68,7 @@ export default function ExerciseEdit() {
     if (inSessies + inSjablonen > 0) return window.alert(nl.bibliotheek.inGebruik(inSessies + inSjablonen));
     if (!window.confirm(t.verwijderVraag)) return;
     await db.oefeningen.delete(o.id);
-    navigate(-1);
+    terug();
   };
 
   return (
@@ -117,7 +122,7 @@ export default function ExerciseEdit() {
 
       <Fouten fouten={fouten.map((f) => (f.pad === 'naam' ? { pad: '', bericht: t.naamVerplicht } : f))} />
       <div className="row sticky-actions">
-        <button className="btn" onClick={() => navigate(-1)}>
+        <button className="btn" onClick={() => terug()}>
           {nl.algemeen.annuleren}
         </button>
         <button className="btn btn-primary grow" onClick={() => void bewaar()}>

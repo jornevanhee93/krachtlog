@@ -135,12 +135,12 @@ p { margin: 0 0 12px; }
   font-weight: 700;
 }
 
-/* Melding (update / offline klaar) boven de onderbalk */
+/* Melding (update / offline klaar) bovenaan, zodat ze nooit knoppen onderaan bedekt */
 .toast {
   position: fixed;
   left: var(--gap);
   right: var(--gap);
-  bottom: calc(var(--nav-height) + var(--gap) + env(safe-area-inset-bottom));
+  top: calc(var(--gap) + env(safe-area-inset-top));
   max-width: 608px;
   margin: 0 auto;
   background: var(--surface);
@@ -425,3 +425,4 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
 .field-fout input, .field-fout textarea { border-color: var(--danger); }
 .field-melding { color: var(--danger); font-weight: 600; }
 .error-text { white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.db-fout { border: 2px solid var(--danger); border-radius: var(--radius); padding: var(--gap); margin-bottom: var(--gap); background: var(--surface); }

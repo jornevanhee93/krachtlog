@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import BottomNav from './components/BottomNav';
+import DbStatus from './components/DbStatus';
 import ErrorBoundary from './components/ErrorBoundary';
 import UpdatePrompt from './components/UpdatePrompt';
 import DataScreen from './screens/DataScreen';
@@ -19,6 +20,7 @@ export default function App() {
   return (
     <div className="app">
       <main className="app-main">
+        <DbStatus />
         <ErrorBoundary resetKey={pathname}>
           <Routes>
             <Route path="/" element={<TodayScreen />} />

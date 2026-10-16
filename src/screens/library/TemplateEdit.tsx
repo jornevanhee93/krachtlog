@@ -1,9 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import ExercisePicker from '../../components/ExercisePicker';
 import { Fouten, ListField, NumberField, RangeField, Select, TextArea, TextField } from '../../components/form';
 import { db } from '../../db/db';
+import { useTerug } from '../../hooks/useTerug';
 import { nl } from '../../i18n/nl';
 import { nieuwId } from '../../logic/ids';
 import { valideer, type Fout } from '../../logic/parseFile';
@@ -21,7 +22,7 @@ function verplaats<T>(lijst: T[], i: number, d: number): T[] {
 export default function TemplateEdit() {
   const { id = 'nieuw' } = useParams();
   const nieuw = id === 'nieuw';
-  const navigate = useNavigate();
+  const terug = useTerug('/sjablonen');
   const oefeningen = useLiveQuery(() => db.oefeningen.toArray(), []);
   const namen = new Map((oefeningen ?? []).map((o) => [o.id, o.naam]));
   const [s, setS] = useState<Sjabloon | null>(
@@ -48,14 +49,18 @@ export default function TemplateEdit() {
     if (s.groepen.some((g) => g.items.length === 0)) return setFouten([{ pad: '', bericht: t.groepLeeg }]);
     const res = valideer(sjabloonSchema, s);
     if (!res.ok) return setFouten(res.fouten);
-    await db.sjablonen.put(res.data);
-    navigate(-1);
+    try {
+      await db.sjablonen.put(res.data);
+    } catch (e) {
+      return setFouten([{ pad: '', bericht: nl.algemeen.bewarenMislukt((e as Error).message) }]);
+    }
+    terug();
   };
 
   const verwijder = async () => {
     if (!window.confirm(t.verwijderVraag)) return;
     await db.sjablonen.delete(s.id);
-    navigate(-1);
+    terug();
   };
 
   const volgendLabel = String.fromCharCode(65 + s.groepen.length);
@@ -157,7 +162,7 @@ export default function TemplateEdit() {
 
       <Fouten fouten={fouten} />
       <div className="row sticky-actions">
-        <button className="btn" onClick={() => navigate(-1)}>
+        <button className="btn" onClick={() => terug()}>
           {nl.algemeen.annuleren}
         </button>
         <button className="btn btn-primary grow" onClick={() => void bewaar()}>
