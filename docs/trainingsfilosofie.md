@@ -2,7 +2,7 @@
 
 Dit document beschrijft de principes achter de app. De app codeert ze niet hard waar dat niet nodig is: de getallen hieronder (termijnen, RIR-vloeren, stagnatiedrempels) zijn **standaardwaarden** die in de app als bewerkbare data staan. Pas je hier iets aan, dan pas je het ook in de app aan (Instellingen → Filosofie, vanaf fase 2).
 
-Bron: de projectbeschrijving + de regels op de notitie-app-pagina *Progressive overload* (notitie-app), stand 16 okt 2026.
+Bron: de projectbeschrijving en de eigen progressieregels van de gebruiker, stand 16 okt 2026.
 
 ## Uitgangspunten
 - **Geïnspireerd op StrongFit (Julien Pineau).** Herhaling is een feature, en variatie zit eerder in de belasting dan in de oefeningskeuze. Dit is een coachingsmodel, geen peer-reviewed onderzoek.
@@ -12,7 +12,7 @@ Bron: de projectbeschrijving + de regels op de notitie-app-pagina *Progressive o
   - Rotatie-oefeningen: 2–6 weken.
   - Microblokken van 4–6 weken, met 20–40% rotatie op de blokgrenzen.
 - **Autoregulatie via RIR** (reps in reserve: hoeveel je er nog bij had gekund).
-- **Hybride atleet.** de gebruiker is ook trailloper, dus het volume voor het onderlichaam blijft conservatief (stimulus-to-fatigue). Lopen zit niet in versie 1, maar het datamodel laat het later toe.
+- **Hybride atleet.** De gebruiker loopt ook, dus het volume voor het onderlichaam blijft conservatief (stimulus-to-fatigue). Lopen zit niet in versie 1, maar het datamodel laat het later toe.
 - **Evidence-based, maar plezier telt mee.** Er is plaats voor fun-oefeningen en finishers, en de plezierscore is zichtbaar in de historiek.
 
 ## Progressie
@@ -35,7 +35,7 @@ Bron: de projectbeschrijving + de regels op de notitie-app-pagina *Progressive o
 ### RIR-vloeren (standaard)
 - Onderlichaam nooit onder RIR 2.
 - Bovenlichaam RIR 2; alleen in een intensiveringsfase naar 1–2.
-- Copenhagen, kuiten, hip flexor: RIR 3 / 2–3.
+- Kleine stabiliserende oefeningen (adductoren, kuiten, heupbuigers): RIR 3 / 2–3.
 
 ### Wisselen (niet-ankers, binnen hetzelfde patroon)
 - Bij 3 sessies stilstand.
