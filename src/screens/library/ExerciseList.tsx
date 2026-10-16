@@ -108,7 +108,7 @@ export default function ExerciseList() {
         <ExerciseOverview
           oefeningId={info}
           onSluit={() => setInfo(null)}
-          onBewerk={() => navigate(`/oefeningen/${encodeURIComponent(info)}`)}
+          onBewerk={() => navigate(`/oefeningen/${encodeURIComponent(info)}`, { replace: true })}
         />
       )}
     </section>

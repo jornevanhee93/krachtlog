@@ -38,6 +38,29 @@ export default function ExerciseOverview(props: {
   const [veeg, setVeeg] = useState(0);
   const startY = useRef<number | null>(null);
 
+  // De terugknop (of -veeg) van Android sluit het paneel in plaats van het scherm te verlaten.
+  const sluitRef = useRef(props.onSluit);
+  sluitRef.current = props.onSluit;
+  const viaGeschiedenis = useRef(false);
+  useEffect(() => {
+    window.history.pushState(window.history.state, '');
+    viaGeschiedenis.current = true;
+    const opTerug = () => {
+      viaGeschiedenis.current = false;
+      sluitRef.current();
+    };
+    window.addEventListener('popstate', opTerug);
+    return () => window.removeEventListener('popstate', opTerug);
+  }, []);
+  const sluit = () => {
+    if (viaGeschiedenis.current) window.history.back();
+    else props.onSluit();
+  };
+  const bewerk = () => {
+    viaGeschiedenis.current = false;
+    props.onBewerk();
+  };
+
   // Het scherm eronder mag niet mee scrollen; bij het sluiten sta je terug op dezelfde plek.
   useEffect(() => {
     const vorige = document.body.style.overflow;
@@ -52,7 +75,7 @@ export default function ExerciseOverview(props: {
   const naam = oefening?.naam ?? nl.algemeen.onbekendeOefening;
 
   return (
-    <div className="panel-backdrop" onClick={props.onSluit}>
+    <div className="panel-backdrop" onClick={sluit}>
       <div
         className="panel"
         role="dialog"
@@ -65,7 +88,7 @@ export default function ExerciseOverview(props: {
           onTouchStart={(e) => (startY.current = e.touches[0].clientY)}
           onTouchMove={(e) => startY.current !== null && setVeeg(Math.max(0, e.touches[0].clientY - startY.current))}
           onTouchEnd={() => {
-            if (veeg > VEEG_DREMPEL) props.onSluit();
+            if (veeg > VEEG_DREMPEL) sluit();
             startY.current = null;
             setVeeg(0);
           }}
@@ -75,7 +98,7 @@ export default function ExerciseOverview(props: {
             <ExerciseIcon icoon={oefeningIcoon(oefening, materiaal)} size={32} />
             <h2 className="grow">{naam}</h2>
             {props.kop}
-            <button className="btn btn-small" onClick={props.onSluit} aria-label={nl.algemeen.sluiten}>
+            <button className="btn btn-small" onClick={sluit} aria-label={nl.algemeen.sluiten}>
               ✕
             </button>
           </div>
@@ -173,7 +196,7 @@ export default function ExerciseOverview(props: {
           </section>
 
           {oefening && (
-            <button className="btn btn-block" onClick={props.onBewerk}>
+            <button className="btn btn-block" onClick={bewerk}>
               {nl.algemeen.bewerken}
             </button>
           )}

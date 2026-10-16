@@ -207,7 +207,7 @@ export default function TrainingScreen() {
           oefeningId={info}
           kop={<span className="clock">{formatKlok(verstreken)}</span>}
           onSluit={() => setInfo(null)}
-          onBewerk={() => navigate(`/oefeningen/${encodeURIComponent(info)}`)}
+          onBewerk={() => navigate(`/oefeningen/${encodeURIComponent(info)}`, { replace: true })}
         />
       )}
       {afsluiten && <FinishSheet sessie={sessie} onBewaar={(g) => void bewaar(g)} onSluit={() => setAfsluiten(false)} />}

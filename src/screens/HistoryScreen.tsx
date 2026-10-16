@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router';
 import { db } from '../db/db';
+import { leesGepland } from '../db/repo';
 import { nl } from '../i18n/nl';
 import { formatDatumTijd } from '../logic/format';
 
@@ -24,7 +25,9 @@ export default function HistoryScreen() {
     await db.entries.each((e) => map.set(e.sessieId, (map.get(e.sessieId) ?? 0) + 1));
     return map;
   }, []);
+  const gepland = useLiveQuery(() => leesGepland(), []);
   const sjabNaam = new Map((sjablonen ?? []).map((s) => [s.id, s.naam]));
+  const planNaam = new Map((gepland ?? []).map((g) => [g.key, g.sessie.naam]));
 
   return (
     <section className="screen">
@@ -37,7 +40,7 @@ export default function HistoryScreen() {
               <strong>{formatDatumTijd(s.start)}</strong>
               <small className="muted">
                 {[
-                  s.sjabloonId ? sjabNaam.get(s.sjabloonId) : undefined,
+                  s.sjabloonId ? sjabNaam.get(s.sjabloonId) : s.planningId ? planNaam.get(s.planningId) : undefined,
                   aantallen ? nl.bibliotheek.oefeningenTeller(aantallen.get(s.id) ?? 0) : undefined,
                   s.duurMin !== undefined ? t.minuten(s.duurMin) : undefined,
                   s.rpe !== undefined ? t.rpe(s.rpe) : undefined,

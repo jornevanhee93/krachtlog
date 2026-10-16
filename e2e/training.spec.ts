@@ -68,3 +68,12 @@ test('overzichtspaneel vanuit de oefeningenlijst, met knop Bewerken', async ({ p
   await paneel.getByRole('button', { name: 'Bewerken' }).click();
   await expect(page).toHaveURL(/#\/oefeningen\/oef-pull-up/);
 });
+
+test('de terugknop sluit het overzichtspaneel en blijft in de training', async ({ page }) => {
+  await page.getByRole('button', { name: 'Overzicht: Pull-up' }).click();
+  await expect(page.getByRole('dialog', { name: /Pull-up/ })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('dialog', { name: /Pull-up/ })).toHaveCount(0);
+  await expect(page).toHaveURL(/#\/training/);
+  await expect(page.getByRole('button', { name: 'Overzicht: Pull-up' })).toBeVisible();
+});
