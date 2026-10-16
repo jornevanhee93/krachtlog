@@ -11,6 +11,13 @@ export const profiel = z.enum(['anker', 'opbouw', 'power', 'carry', 'isometrisch
   error: 'kies uit anker, opbouw, power, carry, isometrisch',
 });
 
+/** Icoon van een oefening. Zonder keuze volgt het uit het eerste materiaal (geen materiaal = lichaamsgewicht). */
+export const ICONEN = [
+  'lichaamsgewicht', 'zandzak', 'kettlebell', 'dumbbell', 'stang', 'vest', 'macebell', 'box', 'elastiek', 'sled',
+] as const;
+export const icoon = z.enum(ICONEN, { error: `kies uit ${ICONEN.join(', ')}` });
+export type Icoon = z.infer<typeof icoon>;
+
 export const trede = z.strictObject({
   /** Korte naam van de trede, uniek binnen de ladder, bv. "Vest 10 kg". */
   label: z.string().trim().min(1, 'label ontbreekt'),
@@ -114,6 +121,8 @@ export const oefening = z.strictObject({
   /** Vrije labels, bv. "fun", "finisher". */
   tags: tekstLijst,
   progressie: progressie.optional(),
+  /** Eigen icoon (sinds schemaVersie 2); weglaten = automatisch uit het materiaal. */
+  icoon: icoon.optional(),
   gearchiveerd: z.boolean().default(false),
 });
 export type Oefening = z.infer<typeof oefening>;

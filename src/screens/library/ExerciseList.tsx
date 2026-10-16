@@ -1,9 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import ExerciseIcon from '../../components/ExerciseIcon';
 import { Checkbox } from '../../components/form';
 import { db } from '../../db/db';
 import { nl } from '../../i18n/nl';
+import { oefeningIcoon } from '../../logic/icon';
 import { normaliseer } from '../../logic/matching';
 import LibraryTabs from './LibraryTabs';
 
@@ -22,6 +24,7 @@ export default function ExerciseList() {
   const [filter, setFilterState] = useState(leesFilter);
   const [archief, setArchief] = useState(false);
   const oefeningen = useLiveQuery(() => db.oefeningen.orderBy('naam').toArray(), []);
+  const materiaal = useLiveQuery(() => db.materiaal.toArray(), []) ?? [];
 
   const setFilter = (f: { zoek: string; patroon: string }) => {
     setFilterState(f);
@@ -54,7 +57,10 @@ export default function ExerciseList() {
       />
       {patronen.length > 0 && (
         <div className="chips">
-          <button className={!filter.patroon ? 'chip active' : 'chip'} onClick={() => setFilter({ ...filter, patroon: '' })}>
+          <button
+            className={!filter.patroon ? 'chip active' : 'chip'}
+            onClick={() => setFilter({ ...filter, patroon: '' })}
+          >
             {t.alle}
           </button>
           {patronen.map((p) => (
@@ -75,16 +81,19 @@ export default function ExerciseList() {
       <ul className="list">
         {lijst.map((o) => (
           <li key={o.id}>
-            <Link to={`/oefeningen/${encodeURIComponent(o.id)}`} className="list-item">
-              <strong>
-                {o.naam}
-                {o.gearchiveerd && <small className="muted"> · {t.gearchiveerd}</small>}
-              </strong>
-              <small className="muted">
-                {[o.patronen.join(', '), o.progressie?.modus === 'ladder' ? t.ladder(o.progressie.treden.length) : '']
-                  .filter(Boolean)
-                  .join(' · ')}
-              </small>
+            <Link to={`/oefeningen/${encodeURIComponent(o.id)}`} className="list-item with-icon">
+              <ExerciseIcon icoon={oefeningIcoon(o, materiaal)} />
+              <span className="grow">
+                <strong>
+                  {o.naam}
+                  {o.gearchiveerd && <small className="muted"> · {t.gearchiveerd}</small>}
+                </strong>
+                <small className="muted">
+                  {[o.patronen.join(', '), o.progressie?.modus === 'ladder' ? t.ladder(o.progressie.treden.length) : '']
+                    .filter(Boolean)
+                    .join(' · ')}
+                </small>
+              </span>
             </Link>
           </li>
         ))}

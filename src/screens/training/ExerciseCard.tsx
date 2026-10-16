@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import ExerciseIcon from '../../components/ExerciseIcon';
 import { nl } from '../../i18n/nl';
 import {
   setKlaar,
@@ -13,7 +14,7 @@ import {
   type ActiveSession,
   type Focus,
 } from '../../logic/activeSession';
-import type { LogSet, Oefening } from '../../schema';
+import type { Icoon, LogSet, Oefening } from '../../schema';
 import { ontgrendelGeluid } from '../../ui/feedback';
 import { doelTekst, setTekst } from '../../ui/setText';
 import SetEditor from './SetEditor';
@@ -26,6 +27,7 @@ export default function ExerciseCard(props: {
   pos: Focus;
   focus: boolean;
   oefening: Oefening | undefined;
+  icoon: Icoon;
   vorige: LogSet[] | undefined;
   update: (fn: (s: ActiveSession) => ActiveSession) => void;
   onFocus: () => void;
@@ -54,6 +56,7 @@ export default function ExerciseCard(props: {
   return (
     <div ref={ref} className={`card exercise-card ${focus ? 'focus' : ''}`}>
       <button className="exercise-head" onClick={props.onFocus} aria-expanded={focus}>
+        <ExerciseIcon icoon={props.icoon} />
         <span className="grow">
           <strong>{oefening?.naam ?? nl.algemeen.onbekendeOefening}</strong>
           {doel && <small className="muted"> · {doel}</small>}

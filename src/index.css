@@ -220,6 +220,27 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--f
   text-decoration: none;
 }
 .list-item strong { font-weight: 600; }
+.list-item.with-icon { flex-direction: row; align-items: center; gap: 14px; }
+.list-item.with-icon .grow { display: flex; flex-direction: column; gap: 2px; }
+.ex-icon { flex: none; }
+
+/* Icoonkiezer */
+.icon-picker { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s1); }
+.icon-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: var(--fs-small);
+}
+.icon-choice.auto { grid-column: 1 / -1; justify-content: flex-start; padding: 0 var(--s3); }
+.icon-choice.active { background: var(--fg); border-color: var(--fg); color: var(--bg); }
 .list-item.big { min-height: 68px; justify-content: center; }
 .list-item:disabled { opacity: 0.5; }
 .stars { letter-spacing: 1px; }

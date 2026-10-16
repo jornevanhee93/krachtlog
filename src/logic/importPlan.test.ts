@@ -16,7 +16,7 @@ const bestaand: Bestaand = {
 };
 
 const bib = bibliotheekBestand.parse({
-  schemaVersie: 1,
+  schemaVersie: 2,
   soort: 'bibliotheek',
   materiaal: [
     { id: 'vest', naam: 'gewichtsvest', soort: 'vest' },
@@ -83,7 +83,7 @@ describe('import van een bibliotheek', () => {
   });
 
   it('geeft een nieuw id als het id al bezet is', () => {
-    const botsing = bibliotheekBestand.parse({ schemaVersie: 1, soort: 'bibliotheek', oefeningen: [{ id: 'o1', naam: 'Farmer carry' }] });
+    const botsing = bibliotheekBestand.parse({ schemaVersie: 2, soort: 'bibliotheek', oefeningen: [{ id: 'o1', naam: 'Farmer carry' }] });
     const res = voerImportUit(maakImportPlan(botsing, bestaand), {}, bestaand);
     expect(res.oefeningen[0].id).not.toBe('o1');
     expect(res.oefeningen[0].id).toMatch(/^oef-/);
@@ -93,7 +93,7 @@ describe('import van een bibliotheek', () => {
 describe('import van logs', () => {
   it('koppelt de oefeningen en slaat dubbele sessies over', () => {
     const logs = logsBestand.parse({
-      schemaVersie: 1,
+      schemaVersie: 2,
       soort: 'logs',
       oefeningen: [{ id: 'x', naam: 'pull-up' }],
       sessies: [

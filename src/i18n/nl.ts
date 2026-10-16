@@ -1,5 +1,5 @@
 // Alle UI-teksten van de app, centraal op één plek.
-import type { GroepType, Kwaliteit } from '../schema';
+import type { GroepType, Icoon, Kwaliteit } from '../schema';
 
 export const nl = {
   appName: 'Emerge',
@@ -113,6 +113,20 @@ export const nl = {
     omhoog: 'Omhoog',
     omlaag: 'Omlaag',
     vorigeKeer: 'Laatste keer',
+    icoon: 'Icoon',
+    icoonAuto: (naam: string) => `Automatisch (${naam})`,
+    iconen: {
+      lichaamsgewicht: 'Lichaamsgewicht',
+      zandzak: 'Zandzak',
+      kettlebell: 'Kettlebell',
+      dumbbell: 'Dumbbell',
+      stang: 'Stang',
+      vest: 'Vest',
+      macebell: 'Macebell',
+      box: 'Box',
+      elastiek: 'Elastiek',
+      sled: 'Sled',
+    } satisfies Record<Icoon, string>,
     nooitGedaan: 'Nog niet gelogd.',
   },
   metingen: {

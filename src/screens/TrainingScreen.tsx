@@ -17,6 +17,7 @@ import {
   type Focus,
 } from '../logic/activeSession';
 import { formatKlok } from '../logic/format';
+import { oefeningIcoon } from '../logic/icon';
 import type { LogSet, Oefening } from '../schema';
 import ExerciseCard from './training/ExerciseCard';
 import FinishSheet, { type AfsluitGegevens } from './training/FinishSheet';
@@ -35,6 +36,7 @@ export default function TrainingScreen() {
   const [picker, setPicker] = useState<Picker | null>(null);
   const [afsluiten, setAfsluiten] = useState(false);
   const oefeningen = useLiveQuery(() => db.oefeningen.toArray(), []);
+  const materiaal = useLiveQuery(() => db.materiaal.toArray(), []) ?? [];
   const perId = new Map((oefeningen ?? []).map((o) => [o.id, o]));
   const schermAan = useWakeLock(Boolean(sessie));
   const nu = useNow(1000);
@@ -150,6 +152,7 @@ export default function TrainingScreen() {
               pos={{ groep: gi, item: ii }}
               focus={sessie.focus?.groep === gi && sessie.focus.item === ii}
               oefening={perId.get(item.oefeningId)}
+              icoon={oefeningIcoon(perId.get(item.oefeningId), materiaal)}
               vorige={vorige[item.oefeningId]}
               update={update}
               onFocus={() => update((s) => ({ ...s, focus: { groep: gi, item: ii } }))}

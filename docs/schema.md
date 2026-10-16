@@ -1,4 +1,4 @@
-# JSON-schema v1
+# JSON-schema v2
 
 Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-schema's in `src/schema/` zijn de bron; dit document legt ze uit. Voorbeelden (met verzonnen data) staan in `docs/voorbeelden/`:
 
@@ -8,7 +8,7 @@ Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-sc
 
 ## Algemene regels
 
-- Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `1`) en **`soort`**: `"backup"`, `"bibliotheek"` of `"logs"`.
+- Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `2`; bestanden met versie `1` worden nog altijd aanvaard en automatisch omgezet) en **`soort`**: `"backup"`, `"bibliotheek"` of `"logs"`.
 - Optioneel: `gemaaktOp` (datum+tijd, bv. `"2026-10-16T20:00:00Z"`) en `bron` (vrije tekst, bv. `"export notitie-app 16 okt"`).
 - **Veldnamen zijn exact.** Een onbekend veld (bv. een tikfout als `repbereik`) geeft een fout en wordt dus niet stil genegeerd.
 - Velden die hier "optioneel" heten mag je weglaten. Velden met een standaardwaarde krijgen die als je ze weglaat.
@@ -63,6 +63,7 @@ In een `logs`-bestand moet elke oefening waarnaar een sessie verwijst ook in `oe
 | `notities` | tekst | optioneel |
 | `videolinks` | links (https://…) | `[]` |
 | `progressie` | object (zie hieronder) | optioneel |
+| `icoon` | `lichaamsgewicht` · `zandzak` · `kettlebell` · `dumbbell` · `stang` · `vest` · `macebell` · `box` · `elastiek` · `sled` (sinds v2). Weglaten = automatisch: het icoon van het eerste materiaal; geen materiaal (of `overig`) = `lichaamsgewicht` | optioneel |
 | `gearchiveerd` | true/false | `false` |
 
 ### progressie
@@ -246,5 +247,6 @@ Tellen begint bij 0: `oefeningen[1]` is de tweede oefening.
 | versie | wijziging |
 |---|---|
 | 1 | eerste versie: backup, bibliotheek, logs |
+| 2 | oefeningen: optioneel veld `icoon`. Een v1-bestand is ongewijzigd geldig. |
 
 Wijzigt het schema, dan gaat `schemaVersie` omhoog en zet de app oudere bestanden automatisch om (`src/schema/migrate.ts`). Een bestand met een hogere versie dan de app kent, wordt geweigerd.

@@ -10,7 +10,8 @@
     "module": "esnext",
     "types": [
       "node",
-      "vite/client"
+      "vite/client",
+      "vite-plugin-pwa/react"
     ],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -29,6 +30,7 @@
     "src/**/*.test.ts",
     "src/**/*.test.tsx",
     "src/test",
+    "src/globals.d.ts",
     "e2e",
     "playwright.config.ts"
   ]

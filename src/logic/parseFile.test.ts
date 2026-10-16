@@ -29,7 +29,7 @@ describe('voorbeeldbestanden in docs/voorbeelden', () => {
   });
 
   it('vult de filosofie-standaarden aan in een back-up', () => {
-    const res = parseObject({ schemaVersie: 1, soort: 'backup' });
+    const res = parseObject({ schemaVersie: 2, soort: 'backup' });
     if (!res.ok || res.soort !== 'backup') throw new Error('ongeldig');
     expect(res.bestand.instellingen.filosofie.stagnatie.sessies).toBe(3);
     expect(res.bestand.instellingen.filosofie.planning.minUrenTussenKracht).toBe(48);
@@ -45,7 +45,7 @@ describe('foutmeldingen', () => {
   });
 
   it('meldt een onbekende of ontbrekende soort', () => {
-    expect(fouten({ schemaVersie: 1, soort: 'iets' })[0]).toMatchObject({ pad: 'soort' });
+    expect(fouten({ schemaVersie: 2, soort: 'iets' })[0]).toMatchObject({ pad: 'soort' });
     expect(fouten({ schemaVersie: 1 })[0]).toMatchObject({ pad: 'soort' });
   });
 
@@ -55,7 +55,7 @@ describe('foutmeldingen', () => {
 
   it('geeft het pad met de naam van de oefening', () => {
     const f = fouten({
-      schemaVersie: 1,
+      schemaVersie: 2,
       soort: 'bibliotheek',
       oefeningen: [
         { id: 'a', naam: 'Squat' },
@@ -68,14 +68,14 @@ describe('foutmeldingen', () => {
   });
 
   it('meldt een ontbrekend verplicht veld en een onbekend veld', () => {
-    const f = fouten({ schemaVersie: 1, soort: 'bibliotheek', oefeningen: [{ id: 'a', repbereik: 5 }] });
+    const f = fouten({ schemaVersie: 2, soort: 'bibliotheek', oefeningen: [{ id: 'a', repbereik: 5 }] });
     expect(f).toContainEqual({ pad: 'oefeningen[0] (a).naam', bericht: 'ontbreekt (verplicht veld)' });
     expect(f.some((x) => x.bericht.includes('"repbereik"'))).toBe(true);
   });
 
   it('meldt een verwijzing naar een onbekende oefening', () => {
     const f = fouten({
-      schemaVersie: 1,
+      schemaVersie: 2,
       soort: 'logs',
       oefeningen: [{ id: 'a', naam: 'Squat' }],
       sessies: [{ id: 's1', start: '2026-09-01', oefeningen: [{ oefeningId: 'x', volgorde: 0 }] }],
@@ -87,7 +87,7 @@ describe('foutmeldingen', () => {
 
   it('controleert de ladder: treden nodig, labels uniek, huidige trede bestaat', () => {
     const f = fouten({
-      schemaVersie: 1,
+      schemaVersie: 2,
       soort: 'bibliotheek',
       oefeningen: [
         { id: 'a', naam: 'A', progressie: { modus: 'ladder' } },
@@ -107,7 +107,7 @@ describe('foutmeldingen', () => {
 
   it('meldt dubbele ids en een ongeldige datum', () => {
     const f = fouten({
-      schemaVersie: 1,
+      schemaVersie: 2,
       soort: 'logs',
       sessies: [
         { id: 's', start: '29-10-2026' },
@@ -119,7 +119,7 @@ describe('foutmeldingen', () => {
 
   it('geeft Nederlandse meldingen voor fout type en enum', () => {
     const f = fouten({
-      schemaVersie: 1,
+      schemaVersie: 2,
       soort: 'logs',
       sessies: [{ id: 's', start: '2026-10-29', plezier: 7, oefeningen: [{ oefeningId: 'a', volgorde: 0, sets: [{ kwaliteit: 'zwaar', reps: '8' }] }] }],
       oefeningen: [{ id: 'a', naam: 'A' }],

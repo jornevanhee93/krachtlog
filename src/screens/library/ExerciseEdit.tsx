@@ -19,10 +19,12 @@ import { db } from '../../db/db';
 import { metTijdslimiet } from '../../db/tijdslimiet';
 import { useTerug } from '../../hooks/useTerug';
 import { nl } from '../../i18n/nl';
+import ExerciseIcon from '../../components/ExerciseIcon';
 import { nieuweOefeningConcept } from '../../logic/exerciseDraft';
+import { automatischIcoon } from '../../logic/icon';
 import { nieuwId } from '../../logic/ids';
 import { valideer, type Fout } from '../../logic/parseFile';
-import { oefening as oefeningSchema, progressie as progressieSchema, type Oefening, type Progressie, type Trede } from '../../schema';
+import { ICONEN, oefening as oefeningSchema, progressie as progressieSchema, type Oefening, type Progressie, type Trede } from '../../schema';
 
 const t = nl.oefening;
 const METINGEN = ['gewicht', 'extraLast', 'variant', 'reps', 'tijd', 'afstand'] as const;
@@ -101,6 +103,12 @@ export default function ExerciseEdit() {
           />
         </Field>
       )}
+
+      <IcoonKiezer
+        waarde={o.icoon}
+        automatisch={automatischIcoon(o, materiaal ?? [])}
+        onChange={(icoon) => zet({ icoon })}
+      />
 
       <ProgressieEditor waarde={o.progressie} onChange={(progressie) => zet({ progressie })} />
 
@@ -265,5 +273,38 @@ function ProgressieEditor({ waarde, onChange }: { waarde: Progressie | undefined
         {t.progressieWeg}
       </button>
     </div>
+  );
+}
+
+function IcoonKiezer(props: { waarde: Oefening['icoon']; automatisch: (typeof ICONEN)[number]; onChange: (v: Oefening['icoon']) => void }) {
+  return (
+    <Field label={t.icoon}>
+      <div className="icon-picker" role="radiogroup" aria-label={t.icoon}>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={!props.waarde}
+          className={!props.waarde ? 'icon-choice auto active' : 'icon-choice auto'}
+          onClick={() => props.onChange(undefined)}
+        >
+          <ExerciseIcon icoon={props.automatisch} />
+          <span>{t.icoonAuto(t.iconen[props.automatisch])}</span>
+        </button>
+        {ICONEN.map((i) => (
+          <button
+            key={i}
+            type="button"
+            role="radio"
+            aria-checked={props.waarde === i}
+            aria-label={t.iconen[i]}
+            title={t.iconen[i]}
+            className={props.waarde === i ? 'icon-choice active' : 'icon-choice'}
+            onClick={() => props.onChange(i)}
+          >
+            <ExerciseIcon icoon={i} />
+          </button>
+        ))}
+      </div>
+    </Field>
   );
 }

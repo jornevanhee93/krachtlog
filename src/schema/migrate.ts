@@ -3,9 +3,12 @@ import { SCHEMA_VERSIE } from './files';
 /**
  * Migraties van oudere schemaversies naar de huidige.
  * migraties[n] zet een bestand van versie n om naar versie n + 1.
- * Versie 1 is de eerste, dus er zijn nog geen migraties.
+ * Een migratie verandert alleen wat nodig is; alle bestaande gegevens blijven behouden.
  */
-const migraties: Record<number, (bestand: Record<string, unknown>) => Record<string, unknown>> = {};
+const migraties: Record<number, (bestand: Record<string, unknown>) => Record<string, unknown>> = {
+  // 1 → 2: oefeningen kregen een optioneel veld "icoon". Een v1-bestand is dus al geldig in v2.
+  1: (b) => b,
+};
 
 export type MigratieResultaat =
   | { ok: true; bestand: Record<string, unknown> }
