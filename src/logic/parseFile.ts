@@ -121,3 +121,13 @@ function formatBericht(issue: z.core.$ZodIssue, root: unknown): string {
   }
   return issue.message;
 }
+
+/** Valideert één object (bv. een oefening uit een formulier) en geeft de fouten in dezelfde vorm. */
+export function valideer<T>(schema: z.ZodType<T>, data: unknown): { ok: true; data: T } | { ok: false; fouten: Fout[] } {
+  const res = schema.safeParse(data);
+  if (res.success) return { ok: true, data: res.data };
+  return {
+    ok: false,
+    fouten: res.error.issues.map((i) => ({ pad: formatPad(i.path, data), bericht: formatBericht(i, data) })),
+  };
+}

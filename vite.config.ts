@@ -37,6 +37,10 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // Eén bundel is prima voor een offline-app.
+    chunkSizeWarningLimit: 800,
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
