@@ -12,6 +12,9 @@ import ExerciseList from './screens/library/ExerciseList';
 import TemplateEdit from './screens/library/TemplateEdit';
 import TemplateList from './screens/library/TemplateList';
 import SessionDetail from './screens/SessionDetail';
+import PlannedSession from './screens/program/PlannedSession';
+import ProgramDetail from './screens/program/ProgramDetail';
+import ProgramList from './screens/program/ProgramList';
 import TodayScreen from './screens/TodayScreen';
 import TrainingScreen from './screens/TrainingScreen';
 
@@ -34,6 +37,9 @@ export default function App() {
             <Route path="/historiek" element={<HistoryScreen />} />
             <Route path="/historiek/:id" element={<SessionDetail />} />
             <Route path="/data" element={<DataScreen />} />
+            <Route path="/programmas" element={<ProgramList />} />
+            <Route path="/programmas/:id" element={<ProgramDetail />} />
+            <Route path="/gepland/:key" element={<PlannedSession />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>

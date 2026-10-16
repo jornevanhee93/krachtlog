@@ -68,7 +68,10 @@ export default function ExerciseEdit() {
     const inSjablonen = (await db.sjablonen.toArray()).filter((s) =>
       s.groepen.some((g) => g.items.some((i) => i.oefeningId === o.id)),
     ).length;
-    if (inSessies + inSjablonen > 0) return window.alert(nl.bibliotheek.inGebruik(inSessies + inSjablonen));
+    const inProgrammas = (await db.programmas.toArray()).filter((p) =>
+      p.blokken.some((b) => b.weken.some((w) => w.sessies.some((se) => se.groepen.some((g) => g.items.some((i) => i.oefeningId === o.id))))),
+    ).length;
+    if (inSessies + inSjablonen + inProgrammas > 0) return window.alert(nl.bibliotheek.inGebruik(inSessies + inSjablonen + inProgrammas));
     if (!window.confirm(t.verwijderVraag)) return;
     await db.oefeningen.delete(o.id);
     terug();

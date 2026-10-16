@@ -264,3 +264,24 @@ export function termijnen(gepland: GeplandeSessie[], filosofie: Filosofie, vanda
   }
   return uit;
 }
+
+// ---------- Een geplande sessie aanpassen (alleen voor die ene keer) ----------
+
+/** Haalt een oefening weg; een lege groep verdwijnt mee. */
+export function verwijderItem(groepen: SjabloonGroep[], gi: number, ii: number): SjabloonGroep[] {
+  return groepen
+    .map((g, i) => (i === gi ? { ...g, items: g.items.filter((_, j) => j !== ii) } : g))
+    .filter((g) => g.items.length > 0);
+}
+
+/** Vervangt een oefening; sets, reps, RIR, rust en rol blijven, een voorgeschreven last niet. */
+export function vervangItem(groepen: SjabloonGroep[], gi: number, ii: number, oefeningId: string): SjabloonGroep[] {
+  return groepen.map((g, i) =>
+    i === gi ? { ...g, items: g.items.map((it, j) => (j === ii ? { ...it, oefeningId, last: undefined } : it)) } : g,
+  );
+}
+
+/** Voegt een oefening toe als nieuwe groep achteraan. */
+export function voegItemToe(groepen: SjabloonGroep[], oefeningId: string): SjabloonGroep[] {
+  return [...groepen, { type: 'enkel', rondes: 1, items: [{ oefeningId }] }];
+}

@@ -247,6 +247,11 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--f
 .icon-choice.auto { grid-column: 1 / -1; justify-content: flex-start; padding: 0 var(--s3); }
 .icon-choice.active { background: var(--fg); border-color: var(--fg); color: var(--bg); }
 .list-item.big { min-height: 68px; justify-content: center; }
+.status-teken { width: 24px; text-align: center; font-weight: 700; flex: none; }
+.planned-item { padding-bottom: var(--s2); }
+.week h3 { color: var(--muted); font-weight: 600; font-size: var(--fs-small); }
+.row-with-action { display: flex; align-items: center; gap: var(--s2); }
+.row-with-action .list-item { flex: 1; min-width: 0; }
 .list-item:disabled { opacity: 0.5; }
 .stars { letter-spacing: 1px; }
 

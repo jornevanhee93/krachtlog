@@ -1,14 +1,15 @@
-# JSON-schema v2
+# JSON-schema v3
 
 Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-schema's in `src/schema/` zijn de bron; dit document legt ze uit. Voorbeelden (met verzonnen data) staan in `docs/voorbeelden/`:
 
 - [`bibliotheek.json`](voorbeelden/bibliotheek.json): materiaal, oefeningen met ladders, en een sjabloon met superset, circuit en EMOM
 - [`logs.json`](voorbeelden/logs.json): gelogde sessies, met opwarmsets, links/rechts en een EMOM
+- [`programma.json`](voorbeelden/programma.json): een programma met 2 blokken, herhaalde weken en een deloadweek
 - [`backup.json`](voorbeelden/backup.json): een volledige back-up
 
 ## Algemene regels
 
-- Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `2`; bestanden met versie `1` worden nog altijd aanvaard en automatisch omgezet) en **`soort`**: `"backup"`, `"bibliotheek"` of `"logs"`.
+- Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `3`; bestanden met versie `1` of `2` worden nog altijd aanvaard en automatisch omgezet) en **`soort`**: `"backup"`, `"bibliotheek"`, `"logs"` of `"programma"`.
 - Optioneel: `gemaaktOp` (datum+tijd, bv. `"2026-10-16T20:00:00Z"`) en `bron` (vrije tekst, bv. `"export notitie-app 16 okt"`).
 - **Veldnamen zijn exact.** Een onbekend veld (bv. een tikfout als `repbereik`) geeft een fout en wordt dus niet stil genegeerd.
 - Velden die hier "optioneel" heten mag je weglaten. Velden met een standaardwaarde krijgen die als je ze weglaat.
@@ -26,9 +27,10 @@ Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-sc
 |---|---|---|
 | `bibliotheek` | `materiaal[]`, `oefeningen[]`, `sjablonen[]` (alle drie optioneel, standaard `[]`) | Je bibliotheek importeren of aanvullen |
 | `logs` | `oefeningen[]`, `sessies[]` | Gelogde sessies importeren |
-| `backup` | `instellingen`, `materiaal[]`, `oefeningen[]`, `sjablonen[]`, `sessies[]` | Volledige back-up en herstel |
+| `programma` | `oefeningen[]`, `programma` | Een programma importeren |
+| `backup` | `instellingen`, `materiaal[]`, `oefeningen[]`, `sjablonen[]`, `sessies[]`, `programmas[]`, `planning[]` | Volledige back-up en herstel |
 
-In een `logs`-bestand moet elke oefening waarnaar een sessie verwijst ook in `oefeningen` staan. Daar volstaat `id` en `naam` (eventueel `aliassen` en `unilateraal`); de app koppelt ze bij import aan de bibliotheek (zie *Koppelen bij import*).
+In een `logs`- of `programma`-bestand moet elke oefening waarnaar een sessie verwijst ook in `oefeningen` staan. Daar volstaat `id` en `naam` (eventueel `aliassen` en `unilateraal`); de app koppelt ze bij import aan de bibliotheek (zie *Koppelen bij import*).
 
 ## materiaal
 
@@ -178,6 +180,7 @@ Een **item**:
 | `plezier` | geheel getal 1–5 | optioneel |
 | `notitie` | tekst | optioneel |
 | `sjabloonId` | id van het sjabloon (alleen gecontroleerd in een back-up) | optioneel |
+| `planningId` | de geplande sessie uit een programma waaruit deze sessie gestart werd (sinds v3) | optioneel |
 | `bron` | bv. `"notities"` | optioneel |
 | `oefeningen` | sessie-oefening[] | `[]` |
 
@@ -209,6 +212,56 @@ Een **set** (alle velden optioneel; vul in wat je weet):
 | `notitie` | tekst |
 
 Een AMRAP leg je vast als sets met `ronde`; het aantal rondes is de hoogste `ronde`, een onvolledige laatste ronde heeft gewoon minder reps.
+
+## programma (sinds v3)
+
+Een programma bestaat uit **blokken → weken → sessies op vaste weekdagen**. Een sessie heeft dezelfde `groepen` als een sjabloon (met per item `sets`, `repBereik`, `doelRIR`, `rustSec`, `rol` en `notitie`).
+
+| veld | type | |
+|---|---|---|
+| `id` | tekst | verplicht |
+| `naam` | tekst; een programma met dezelfde naam wordt bij import vervangen (wat je al deed blijft bewaard) | verplicht |
+| `startDatum` | datum, bv. `"2026-10-26"`. Week 1 is de week (ma–zo) waarin deze dag valt; sessies vóór de startdatum vallen weg | verplicht |
+| `notitie` | tekst | optioneel |
+| `blokken` | blok[] (minstens één) | verplicht |
+
+Een **blok**: `naam` (verplicht), `notitie`, `weken` (week[], minstens één).
+
+Een **week**:
+
+| veld | type | |
+|---|---|---|
+| `label` | tekst, bv. `"Deload"` | optioneel |
+| `herhaal` | hoeveel keer deze week na elkaar komt | `1` |
+| `notitie` | tekst | optioneel |
+| `sessies` | sessie[] | `[]` |
+
+Een **sessie** in een week:
+
+| veld | type | |
+|---|---|---|
+| `naam` | tekst, bv. `"Sessie A"` | verplicht |
+| `weekdag` | `ma` · `di` · `wo` · `do` · `vr` · `za` · `zo` | verplicht |
+| `tijd` | uur, bv. `"18:30"` (voor de 48u-waarschuwing) | optioneel |
+| `notitie` | tekst | optioneel |
+| `opwarming` | tekst[] | `[]` |
+| `groepen` | groep[] zoals bij sjablonen (minstens één) | verplicht |
+
+**Hoe de app het plan gebruikt.** De doelen volgen uit wat je de vorige keer echt deed (en het voorstel), niet uit het plan; het plan geeft de structuur (welke oefeningen, sets, bereik, RIR, rust). Een gemiste sessie (tot 14 dagen terug) kun je **inhalen** of **overslaan**; de rest van de planning blijft op zijn dag. De app waarschuwt als twee krachtsessies minder dan 48 uur (instelbaar) uit elkaar liggen, en als een `anker` (6–12 weken) of `rotatie` (2–6 weken) langer in het programma staat dan zijn termijn.
+
+### planning (alleen in een back-up)
+
+De toestand van geplande sessies waar iets mee gebeurd is:
+
+| veld | type | |
+|---|---|---|
+| `id` | `"<programmaId>:<week>:<sessie>"` (week vanaf 1, sessie vanaf 0 binnen de week) | verplicht |
+| `programmaId` | id uit `programmas` | verplicht |
+| `datum` | de oorspronkelijke datum | verplicht |
+| `status` | `gepland` · `gedaan` · `overgeslagen` · `ingehaald` | verplicht |
+| `sessieId` | de gelogde sessie | optioneel |
+| `op` | wanneer ingehaald | optioneel |
+| `aanpassing` | `{ "groepen": [...] }`: aangepaste oefeningen voor deze ene sessie | optioneel |
 
 ## instellingen (alleen in een back-up)
 
@@ -248,5 +301,6 @@ Tellen begint bij 0: `oefeningen[1]` is de tweede oefening.
 |---|---|
 | 1 | eerste versie: backup, bibliotheek, logs |
 | 2 | oefeningen: optioneel veld `icoon`. Een v1-bestand is ongewijzigd geldig. |
+| 3 | nieuwe soort `programma`; in een back-up `programmas` en `planning` (standaard leeg); sessies: optioneel `planningId`. Een v2-bestand is ongewijzigd geldig. |
 
 Wijzigt het schema, dan gaat `schemaVersie` omhoog en zet de app oudere bestanden automatisch om (`src/schema/migrate.ts`). Een bestand met een hogere versie dan de app kent, wordt geweigerd.

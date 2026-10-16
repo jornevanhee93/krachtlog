@@ -34,3 +34,21 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 
 - **Vraag:** e1RM bij een gewichtsvest?
 - **Keuze:** alleen als je lichaamsgewicht is ingevuld (Data → Instellingen); dan telt lichaamsgewicht + vest. Anders geen e1RM-grafiek.
+
+## Programma's (fase 3)
+- **Vraag:** hoe ver terug vraagt de app naar gemiste sessies?
+- **Keuze:** 14 dagen. Oudere niet-gedane sessies tellen als verlopen (geen vraag meer), zodat het Vandaag-scherm niet volloopt.
+- **Veranderen:** `GEMIST_VENSTER_DAGEN` in `src/logic/planning.ts`.
+
+- **Vraag:** wanneer begint week 1?
+- **Keuze:** de week (maandag–zondag) van de startdatum; sessies vóór de startdatum vallen weg.
+
+- **Vraag:** hoe rekent de 48u-waarschuwing zonder uur?
+- **Keuze:** een geplande sessie zonder `tijd` krijgt hetzelfde uur als het moment van inhalen. Gelogde loopsessies tellen niet. De drempel staat in Instellingen.
+- **Veranderen:** `botsingen48u` in `src/logic/planning.ts`.
+
+- **Vraag:** de termijn van een anker/rotatie: waarop meet je?
+- **Keuze:** per programma, van de eerste tot de laatste week waarin de oefening met die rol gepland staat (overgeslagen sessies tellen niet). Het programmascherm waarschuwt als het plan te lang is; Vandaag waarschuwt als het nu al te lang loopt.
+
+- **Vraag:** een programma opnieuw importeren?
+- **Keuze:** zelfde naam = vervangen met hetzelfde id; de status van geplande sessies (gedaan, overgeslagen, aanpassingen) blijft gekoppeld via "<programma>:<week>:<sessie>". Verandert de structuur van het programma, dan kan een status bij een andere sessie terechtkomen.

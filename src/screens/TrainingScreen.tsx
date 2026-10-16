@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router';
 import ExerciseOverview from '../components/ExerciseOverview';
 import ExercisePicker from '../components/ExercisePicker';
 import { db } from '../db/db';
-import { bewaarActief, bewaarSessie, leesActief, voorstellenVoor, vorigeSets, wisActief } from '../db/repo';
+import { bewaarActief, bewaarSessie, leesActief, markeerGepland, voorstellenVoor, vorigeSets, wisActief } from '../db/repo';
 import { useProgressie } from '../hooks/useProgressie';
 import { voorstelTekst, type Voorstel } from '../logic/progression';
 import { useNow } from '../hooks/useNow';
@@ -97,6 +97,7 @@ export default function TrainingScreen() {
       return navigate('/');
     }
     await bewaarSessie(gelogd);
+    if (s.planningId) await markeerGepland(s.planningId, gelogd.id, new Date(einde));
     if (g.sjabloonNaam) await db.sjablonen.put(naarSjabloon(s, g.sjabloonNaam));
     await wisActief();
     navigate(`/historiek/${encodeURIComponent(gelogd.id)}`, { replace: true });

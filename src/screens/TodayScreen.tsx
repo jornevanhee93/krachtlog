@@ -1,40 +1,37 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { db } from '../db/db';
-import { bewaarActief, leesActief, leesInstellingen, voorstellenVoor, vorigeSets } from '../db/repo';
+import { leesActief, leesGepland, leesInstellingen, zetPlanStatus } from '../db/repo';
+import { useStartTraining } from '../hooks/useStartTraining';
 import { nl } from '../i18n/nl';
-import { startSessie } from '../logic/activeSession';
-import { dagenGeleden, formatDatumTijd } from '../logic/format';
-import type { Sjabloon } from '../schema';
+import { dagenGeleden, formatDatum, formatDatumTijd } from '../logic/format';
+import { lokaleDatum, overslaan, overzicht, termijnen, type GeplandeSessie } from '../logic/planning';
 
 const t = nl.today;
 
 export default function TodayScreen() {
-  const navigate = useNavigate();
   const actief = useLiveQuery(() => leesActief(), []);
   const sjablonen = useLiveQuery(() => db.sjablonen.orderBy('naam').toArray(), []);
   const instellingen = useLiveQuery(() => leesInstellingen(), []);
-  const [bezig, setBezig] = useState(false);
+  const gepland = useLiveQuery(() => leesGepland(), []);
+  const oefeningen = useLiveQuery(() => db.oefeningen.toArray(), []);
+  const { start, startGepland, bezig } = useStartTraining();
+  const vandaag = lokaleDatum(new Date());
+  const plan = gepland ? overzicht(gepland, vandaag) : undefined;
+  const naam = new Map((oefeningen ?? []).map((o) => [o.id, o.naam]));
+  const teLang =
+    gepland && instellingen ? termijnen(gepland, instellingen.filosofie, vandaag).filter((x) => x.nuTeLang) : [];
 
-  const start = async (sjabloon: Sjabloon | undefined) => {
-    if (bezig) return;
-    setBezig(true);
-    try {
-      if (await leesActief()) return window.alert(t.actiefBezig);
-      const ids = sjabloon ? sjabloon.groepen.flatMap((g) => g.items.map((i) => i.oefeningId)) : [];
-      const s = startSessie(sjabloon, await db.oefeningen.toArray(), await vorigeSets(ids), new Date(), await voorstellenVoor(ids));
-      await bewaarActief(s);
-      navigate('/training');
-    } finally {
-      setBezig(false);
-    }
+  const sla = async (g: GeplandeSessie) => {
+    if (!window.confirm(t.overslaanVraag(g.sessie.naam, formatDatum(g.datum)))) return;
+    await zetPlanStatus(overslaan(g, await db.planning.get(g.key)));
   };
 
   const laatste = instellingen?.laatsteBackup;
   const herinnerNa = instellingen?.filosofie.planning.backupHerinneringDagen ?? 7;
   const oud = laatste ? dagenGeleden(laatste) : null;
   const toonHerinnering = instellingen && (oud === null || oud >= herinnerNa);
+  const heeftPlan = Boolean(gepland && gepland.length > 0);
 
   return (
     <section className="screen">
@@ -50,6 +47,50 @@ export default function TodayScreen() {
         </Link>
       ) : (
         <>
+          {plan && plan.gemist.length > 0 && (
+            <>
+              <h2>{t.gemistTitel}</h2>
+              {plan.gemist.map((g) => (
+                <div key={g.key} className="card warn-card" data-testid="gemist">
+                  <p>
+                    {t.gemist(g.sessie.naam, formatDatum(g.datum))}
+                    <br />
+                    <span className="small muted">{g.programmaNaam}</span>
+                  </p>
+                  <div className="row">
+                    <button className="btn btn-primary grow" disabled={bezig} onClick={() => void startGepland(g)}>
+                      {t.inhalen}
+                    </button>
+                    <button className="btn grow" onClick={() => void sla(g)}>
+                      {t.overslaan}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {plan && plan.vandaag.length > 0 && (
+            <>
+              <h2>{t.geplandVandaag}</h2>
+              <ul className="list">
+                {plan.vandaag.map((g) => (
+                  <li key={g.key} className="row-with-action">
+                    <button className="list-item big" disabled={bezig} onClick={() => void startGepland(g)}>
+                      <strong>▶ {g.sessie.naam}</strong>
+                      <small className="muted">
+                        {[g.programmaNaam, g.tijd, g.aangepast ? t.aangepast : ''].filter(Boolean).join(' · ')}
+                      </small>
+                    </button>
+                    <Link className="btn btn-small" to={`/gepland/${encodeURIComponent(g.key)}`}>
+                      {t.aanpassen}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
           <h2>{t.startTitel}</h2>
           <ul className="list">
             {sjablonen?.map((s) => (
@@ -69,9 +110,23 @@ export default function TodayScreen() {
               </button>
             </li>
           </ul>
-          {sjablonen && sjablonen.length === 0 && <p className="muted">{t.geenSjablonen}</p>}
+          {sjablonen && sjablonen.length === 0 && !heeftPlan && <p className="muted">{t.geenSjablonen}</p>}
         </>
       )}
+
+      {plan?.volgende && (
+        <p>
+          <Link to={`/gepland/${encodeURIComponent(plan.volgende.key)}`} className="muted">
+            {t.volgende(plan.volgende.sessie.naam, formatDatum(plan.volgende.datum))}
+          </Link>
+        </p>
+      )}
+
+      {teLang.map((x) => (
+        <p key={`${x.oefeningId}-${x.rol}`} className="warn">
+          {t.termijnTeLang(naam.get(x.oefeningId) ?? x.oefeningId, nl.sjabloon.rollen[x.rol], x.wekenTotNu, x.min, x.max)}
+        </p>
+      ))}
 
       {toonHerinnering && (
         <div className="card warn-card">
@@ -81,6 +136,10 @@ export default function TodayScreen() {
           </Link>
         </div>
       )}
+
+      <Link to="/programmas" className="btn btn-block">
+        {t.programmas}
+      </Link>
     </section>
   );
 }

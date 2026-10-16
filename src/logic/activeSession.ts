@@ -61,6 +61,8 @@ export interface ActiveSession {
   start: string;
   sjabloonId?: string;
   sjabloonNaam?: string;
+  /** De geplande sessie uit een programma, als de training daaruit gestart werd. */
+  planningId?: string;
   opwarming: string[];
   groepen: ActiveGroup[];
   focus: Focus | null;
@@ -499,6 +501,7 @@ export function naarSessie(s: ActiveSession, a: Afsluiting): Sessie {
     plezier: a.plezier,
     notitie: a.notitie?.trim() || undefined,
     sjabloonId: s.sjabloonId,
+    planningId: s.planningId,
     oefeningen,
   });
 }

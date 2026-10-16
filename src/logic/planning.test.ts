@@ -12,6 +12,9 @@ import {
   planProgramma,
   statusNaAfsluiten,
   termijnen,
+  vervangItem,
+  verwijderItem,
+  voegItemToe,
   weekdagNummer,
 } from './planning';
 
@@ -205,5 +208,19 @@ describe('termijnen van ankers en rotaties', () => {
   it('oefeningen zonder rol tellen niet', () => {
     const p = prog({ blokken: [{ naam: 'X', weken: [{ sessies: [{ naam: 'A', weekdag: 'ma', groepen: [{ items: [item('x')] }] }] }] }] });
     expect(termijnen(planProgramma(p), filosofie, '2026-10-26')).toEqual([]);
+  });
+});
+
+describe('een geplande sessie aanpassen', () => {
+  const groepen = planProgramma(prog())[0].sessie.groepen;
+
+  it('verwijderen, vervangen en toevoegen', () => {
+    expect(verwijderItem(groepen, 0, 0)[0].items.map((i) => i.oefeningId)).toEqual(['row']);
+    expect(verwijderItem(verwijderItem(groepen, 0, 0), 0, 0)).toEqual([]);
+    const v = vervangItem(groepen, 0, 1, 'pullup');
+    expect(v[0].items[1]).toMatchObject({ oefeningId: 'pullup', sets: 3, rol: 'rotatie' });
+    expect(voegItemToe(groepen, 'plank').at(-1)).toEqual({ type: 'enkel', rondes: 1, items: [{ oefeningId: 'plank' }] });
+    // Het origineel blijft ongewijzigd.
+    expect(groepen[0].items.map((i) => i.oefeningId)).toEqual(['squat', 'row']);
   });
 });

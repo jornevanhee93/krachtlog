@@ -1,4 +1,4 @@
-lock: 2026-10-16T21:35:59Z run-a1
+lock: 2026-10-16T21:41:08Z run-a1
 
 # Voortgang nachtbouw
 
@@ -11,7 +11,7 @@ Afgevinkt = klaar en getest (met commit).
 - [x] 3. UX-stap 5: training als accordeon — open/dicht per kaart, auto-volgende, opwarmsets inklapbaar, klok sticky (e2e/training.spec.ts)
 - [x] 4. UX-stap 6: overzichtspaneel — vanuit training (naam/icoon) en oefeningenlijst, veeg/knop sluit; grafieken en voorstel volgen in item 5
 - [x] 5. Fase 2: progressie — src/logic/loadCalc.ts, progression.ts, charts.ts (+ tests); voorstel en grafieken in het paneel; 'Vandaag' per oefening in de training; voorstel ingevuld bij de start; Instellingen-kaart op Data
-- [ ] 6. Fase 3: programma's
+- [x] 6. Fase 3: programma's — schema v3 + migratie, Dexie v2 (upgradetest), planningslogica + tests, import (bestand/plakken), Vandaag (gemist: inhalen/overslaan, 48u), programmaschermen, geplande sessie aanpassen, termijnwaarschuwingen (e2e/programma.spec.ts)
 - [ ] 7. Fase 4: export, back-upherinnering, kleine UX
 - [ ] 8. Eindtest en testschema
 

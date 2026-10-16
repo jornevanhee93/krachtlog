@@ -1,7 +1,8 @@
 // Lezen en schrijven in de database. Geen domeinlogica: die zit in src/logic/.
-import { instellingen as instellingenSchema, type Instellingen, type LogSet, type Sessie } from '../schema';
-import type { ActiveSession, Voorstellen } from '../logic/activeSession';
+import { instellingen as instellingenSchema, type Instellingen, type LogSet, type PlanStatus, type Sessie, type Sjabloon } from '../schema';
+import { startSessie, type ActiveSession, type Voorstellen } from '../logic/activeSession';
 import { maakVoorstel } from '../logic/progression';
+import { planAlles, statusNaAfsluiten, type GeplandeSessie } from '../logic/planning';
 import { sessieNaarRecords, type Snapshot } from '../logic/backup';
 import type { ImportResultaat } from '../logic/importPlan';
 import { db as standaardDb, type EntryRecord, type KrachtlogDb } from './db';
@@ -118,6 +119,43 @@ export async function voorstellenVoor(oefeningIds: string[], db: KrachtlogDb = s
     uit[id] = maakVoorstel({ oefening: oef, materiaal, filosofie: inst.filosofie }, await alleEntries(id, db));
   }
   return uit;
+}
+
+/**
+ * Start een training uit een sjabloon (of leeg), met de waarden van de vorige keer en de voorstellen.
+ * Bij een geplande sessie: zonder sjabloon-id, met de verwijzing naar de planning.
+ */
+export async function startTraining(sjabloon: Sjabloon | undefined, gepland?: GeplandeSessie, db: KrachtlogDb = standaardDb) {
+  const ids = sjabloon ? sjabloon.groepen.flatMap((g) => g.items.map((i) => i.oefeningId)) : [];
+  let s = startSessie(sjabloon, await db.oefeningen.toArray(), await vorigeSets(ids, db), new Date(), await voorstellenVoor(ids, db));
+  if (gepland) s = { ...s, sjabloonId: undefined, sjabloonNaam: gepland.sessie.naam, planningId: gepland.key };
+  await bewaarActief(s, db);
+  return s;
+}
+
+/** Alle geplande sessies van alle programma's, met hun status. */
+export async function leesGepland(db: KrachtlogDb = standaardDb): Promise<GeplandeSessie[]> {
+  const [programmas, statussen] = await Promise.all([db.programmas.toArray(), db.planning.toArray()]);
+  return planAlles(programmas, statussen);
+}
+
+export async function zetPlanStatus(st: PlanStatus, db: KrachtlogDb = standaardDb) {
+  await db.planning.put(st);
+}
+
+/** Na het afsluiten van een training uit het plan: de geplande sessie op gedaan of ingehaald zetten. */
+export async function markeerGepland(planningId: string, sessieId: string, einde: Date, db: KrachtlogDb = standaardDb) {
+  const g = (await leesGepland(db)).find((x) => x.key === planningId);
+  if (!g) return;
+  await db.planning.put(statusNaAfsluiten(g, sessieId, einde, await db.planning.get(planningId)));
+}
+
+/** Verwijdert een programma met de status van zijn geplande sessies. Gelogde sessies blijven. */
+export async function verwijderProgramma(id: string, db: KrachtlogDb = standaardDb) {
+  await db.transaction('rw', [db.programmas, db.planning], async () => {
+    await db.planning.where('programmaId').equals(id).delete();
+    await db.programmas.delete(id);
+  });
 }
 
 export async function pasImportToe(res: ImportResultaat, db: KrachtlogDb = standaardDb) {
