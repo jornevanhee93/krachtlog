@@ -1,0 +1,29 @@
+{
+  "name": "krachtlog",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run icons && vite",
+    "build": "npm run icons && tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "icons": "node scripts/make-icons.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "react-router": "7.18.4"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "6.0.3",
+    "vite": "8.3.4",
+    "vite-plugin-pwa": "2.0.0",
+    "vitest": "4.1.12",
+    "workbox-window": "7.4.1"
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dev-dist/
+*.local
+.DS_Store
+*.log
+coverage/
+.vite/
+# Trainingsdata hoort nooit in de repo
+*.backup.json
+krachtlog-*.json
+# Iconen worden bij elke build gemaakt door scripts/make-icons.mjs
+public/*.png
+public/favicon.svg

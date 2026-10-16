@@ -1,0 +1,153 @@
+/* Kleuren en maten als variabelen; donkere modus volgt de instelling van het toestel. */
+:root {
+  --bg: #f6f7f6;
+  --surface: #ffffff;
+  --text: #1b1f1d;
+  --muted: #5d6662;
+  --border: #d9dedb;
+  --primary: #1f6f5c;
+  --primary-text: #ffffff;
+  --ok: #1f7a3a;
+  --warn: #9a5b00;
+  --danger: #b3261e;
+
+  --tap: 48px;           /* minimale knopgrootte */
+  --radius: 12px;
+  --gap: 16px;
+  --nav-height: 64px;
+
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121514;
+    --surface: #1c201e;
+    --text: #e8ece9;
+    --muted: #a3ada8;
+    --border: #2f3532;
+    --primary: #4fb79a;
+    --primary-text: #0b1a15;
+    --ok: #6fd08c;
+    --warn: #f0b45a;
+    --danger: #f2817a;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+h1 { font-size: 1.6rem; margin: 0 0 var(--gap); }
+h2 { font-size: 1.15rem; margin: 0 0 8px; }
+p { margin: 0 0 12px; }
+
+.app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  padding: var(--gap);
+  padding-top: calc(var(--gap) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--nav-height) + var(--gap) + env(safe-area-inset-bottom));
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.muted { color: var(--muted); }
+.small { font-size: 0.9rem; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+  margin-bottom: var(--gap);
+}
+
+.status { font-weight: 600; }
+.status-persisted { color: var(--ok); }
+.status-notPersisted { color: var(--warn); }
+.status-unsupported { color: var(--danger); }
+
+/* Knoppen: altijd minstens 48px hoog en breed */
+.btn {
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+/* Onderbalk */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 10;
+}
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--tap);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+.bottom-nav-item.active {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* Melding (update / offline klaar) boven de onderbalk */
+.toast {
+  position: fixed;
+  left: var(--gap);
+  right: var(--gap);
+  bottom: calc(var(--nav-height) + var(--gap) + env(safe-area-inset-bottom));
+  max-width: 608px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+}
+.toast-actions { display: flex; gap: 8px; flex-wrap: wrap; }
