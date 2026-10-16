@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db } from '../db/db';
-import { leesSnapshot, pasImportToe, vervangAlles, zetLaatsteBackup } from '../db/repo';
+import { leesSnapshot, pasImportToe, vervangAlles, wisAlles, zetLaatsteBackup } from '../db/repo';
 import { nl } from '../i18n/nl';
 import { backupBestandsnaam, backupNaarSnapshot, maakBackup } from '../logic/backup';
 import { dagenGeleden, formatDatum, formatDatumTijd } from '../logic/format';
@@ -22,6 +22,7 @@ export default function DataScreen() {
       <ImportCard />
       <RestoreCard />
       <StorageCard />
+      <WipeCard />
     </section>
   );
 }
@@ -341,6 +342,26 @@ function StorageCard() {
           {t.retry}
         </button>
       )}
+    </div>
+  );
+}
+
+function WipeCard() {
+  const [melding, setMelding] = useState('');
+  const wis = async () => {
+    setMelding('');
+    if (!window.confirm(t.wisVraag)) return;
+    await wisAlles();
+    setMelding(t.wisKlaar);
+  };
+  return (
+    <div className="card">
+      <h2>{t.wisTitel}</h2>
+      <p className="muted">{t.wisUitleg}</p>
+      <button className="btn btn-danger btn-block" onClick={() => void wis()}>
+        {t.wisKnop}
+      </button>
+      {melding && <p className="ok">{melding}</p>}
     </div>
   );
 }

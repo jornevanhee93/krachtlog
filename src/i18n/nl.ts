@@ -323,6 +323,11 @@ export const nl = {
     usage: (usedMb: string, quotaMb: string) => `Gebruikt: ${usedMb} MB van ongeveer ${quotaMb} MB`,
     retry: 'Opnieuw aanvragen',
     leesFout: 'Kon het bestand niet lezen.',
+    wisTitel: 'Alles wissen',
+    wisUitleg: 'Wist alle oefeningen, sjablonen, materiaal, sessies en instellingen op dit toestel. Maak eerst een back-up.',
+    wisKnop: 'Alles wissen',
+    wisVraag: 'Echt alles wissen op dit toestel? Dit kan niet ongedaan gemaakt worden.',
+    wisKlaar: 'Alles is gewist.',
   },
   pwa: {
     updateAvailable: 'Er is een nieuwe versie van Krachtlog.',

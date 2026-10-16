@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it } from 'vitest';
 import { KrachtlogDb } from '../db/db';
-import { bewaarSessie, leesSnapshot, vervangAlles, vorigeSets } from '../db/repo';
+import { bewaarActief, bewaarSessie, leesActief, leesSnapshot, vervangAlles, vorigeSets, wisAlles } from '../db/repo';
 import type { BackupBestand } from '../schema';
 import { backupBestandsnaam, backupNaarSnapshot, maakBackup } from './backup';
 import { parseBestand } from './parseFile';
@@ -49,6 +49,17 @@ describe('back-up → herstel (round-trip)', () => {
     await vervangAlles(backupNaarSnapshot(parseBackup(tekst)), db);
     const snap = await leesSnapshot(db);
     expect(snap.sessies.map((s) => s.id)).toEqual(['ses-2026-09-03']);
+  });
+
+  it('alles wissen maakt de database leeg, ook de lopende sessie', async () => {
+    nieuweDb();
+    await vervangAlles(backupNaarSnapshot(parseBackup(tekst)), db);
+    await bewaarActief({ id: 'x', start: '2026-10-29T18:00:00Z', opwarming: [], groepen: [], focus: null }, db);
+    await wisAlles(db);
+    const snap = await leesSnapshot(db);
+    expect([snap.materiaal, snap.oefeningen, snap.sjablonen, snap.sessies, snap.entries].map((x) => x.length)).toEqual([0, 0, 0, 0, 0]);
+    expect(snap.instellingen.laatsteBackup).toBeUndefined();
+    expect(await leesActief(db)).toBeUndefined();
   });
 
   it('vindt de sets van de laatste keer per oefening', async () => {

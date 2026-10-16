@@ -50,6 +50,13 @@ export async function vervangAlles(snap: Snapshot, db: KrachtlogDb = standaardDb
   });
 }
 
+/** Wist alles op dit toestel, ook de lopende sessie en de instellingen. */
+export async function wisAlles(db: KrachtlogDb = standaardDb) {
+  await db.transaction('rw', db.tables, async () => {
+    await Promise.all(db.tables.map((t) => t.clear()));
+  });
+}
+
 export async function bewaarSessie(sessie: Sessie, db: KrachtlogDb = standaardDb) {
   const r = sessieNaarRecords(sessie);
   await db.transaction('rw', [db.sessies, db.entries], async () => {
