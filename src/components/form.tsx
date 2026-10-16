@@ -2,14 +2,19 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { nl } from '../i18n/nl';
 import { formatGetal } from '../logic/format';
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({ label, hint, fout, children }: { label: string; hint?: string; fout?: string; children: ReactNode }) {
   return (
-    <label className="field">
+    <label className={fout ? 'field field-fout' : 'field'}>
       <span>
         {label}
         {hint && <small className="muted"> ({hint})</small>}
       </span>
       {children}
+      {fout && (
+        <small className="field-melding" role="alert">
+          {fout}
+        </small>
+      )}
     </label>
   );
 }
@@ -21,11 +26,13 @@ export function TextField(props: {
   hint?: string;
   placeholder?: string;
   autoFocus?: boolean;
+  fout?: string;
 }) {
   return (
-    <Field label={props.label} hint={props.hint}>
+    <Field label={props.label} hint={props.hint} fout={props.fout}>
       <input
         type="text"
+        aria-invalid={props.fout ? true : undefined}
         value={props.value ?? ''}
         placeholder={props.placeholder}
         autoFocus={props.autoFocus}

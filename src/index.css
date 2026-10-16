@@ -420,3 +420,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
 .segmented.big button { min-width: 0; padding: 0 2px; }
 .segmented.wrap { flex-wrap: wrap; }
 .segmented.wrap button { flex: 1 0 18%; }
+
+/* Foutmelding bij een veld en het foutscherm */
+.field-fout input, .field-fout textarea { border-color: var(--danger); }
+.field-melding { color: var(--danger); font-weight: 600; }
+.error-text { white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }

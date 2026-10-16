@@ -2,7 +2,9 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { db } from '../db/db';
 import { nl } from '../i18n/nl';
+import { nieuweOefeningConcept } from '../logic/exerciseDraft';
 import { nieuwId } from '../logic/ids';
+import { valideer } from '../logic/parseFile';
 import { normaliseer } from '../logic/matching';
 import { oefening, type Oefening } from '../schema';
 
@@ -17,9 +19,10 @@ export default function ExercisePicker(props: { titel: string; onKies: (o: Oefen
   const bestaatExact = (alle ?? []).some((o) => normaliseer(o.naam) === q);
 
   const maakNieuw = async () => {
-    const o = oefening.parse({ id: nieuwId('oef'), naam: zoek.trim() });
-    await db.oefeningen.put(o);
-    props.onKies(o);
+    const res = valideer(oefening, nieuweOefeningConcept(nieuwId('oef'), zoek));
+    if (!res.ok) return;
+    await db.oefeningen.put(res.data);
+    props.onKies(res.data);
   };
 
   return (

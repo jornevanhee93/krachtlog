@@ -17,6 +17,7 @@ import {
 } from '../../components/form';
 import { db } from '../../db/db';
 import { nl } from '../../i18n/nl';
+import { nieuweOefeningConcept } from '../../logic/exerciseDraft';
 import { nieuwId } from '../../logic/ids';
 import { valideer, type Fout } from '../../logic/parseFile';
 import { oefening as oefeningSchema, progressie as progressieSchema, type Oefening, type Progressie, type Trede } from '../../schema';
@@ -30,12 +31,14 @@ export default function ExerciseEdit() {
   const nieuw = id === 'nieuw';
   const navigate = useNavigate();
   const materiaal = useLiveQuery(() => db.materiaal.orderBy('naam').toArray(), []);
-  const [o, setO] = useState<Oefening | null>(nieuw ? oefeningSchema.parse({ id: nieuwId('oef'), naam: ' ' }) : null);
+  // Een nieuwe oefening is eerst een concept; valideren gebeurt pas bij Opslaan.
+  const [o, setO] = useState<Oefening | null>(() => (nieuw ? nieuweOefeningConcept(nieuwId('oef')) : null));
   const [fouten, setFouten] = useState<Fout[]>([]);
 
   useEffect(() => {
+    setFouten([]);
     if (nieuw) {
-      setO((x) => (x ? { ...x, naam: '' } : x));
+      setO((x) => (x && !x.naam ? x : nieuweOefeningConcept(nieuwId('oef'))));
       return;
     }
     void db.oefeningen.get(id).then((x) => setO(x ?? null));
@@ -66,7 +69,13 @@ export default function ExerciseEdit() {
   return (
     <section className="screen">
       <h1>{nieuw ? t.titelNieuw : t.titel}</h1>
-      <TextField label={t.naam} value={o.naam} onChange={(naam) => zet({ naam })} autoFocus={nieuw} />
+      <TextField
+        label={t.naam}
+        value={o.naam}
+        onChange={(naam) => zet({ naam })}
+        autoFocus={nieuw}
+        fout={fouten.some((f) => f.pad === 'naam') ? t.naamVerplicht : undefined}
+      />
       <ListField label={t.aliassen} value={o.aliassen} onChange={(aliassen) => zet({ aliassen })} />
       <ListField label={t.patronen} hint={t.patronenHint} value={o.patronen} onChange={(patronen) => zet({ patronen })} />
       <Field label={t.metingen}>
@@ -106,7 +115,7 @@ export default function ExerciseEdit() {
       <TextArea label={t.notities} value={o.notities} onChange={(v) => zet({ notities: v || undefined })} />
       <Checkbox label={t.gearchiveerd} checked={o.gearchiveerd} onChange={(gearchiveerd) => zet({ gearchiveerd })} />
 
-      <Fouten fouten={fouten} />
+      <Fouten fouten={fouten.map((f) => (f.pad === 'naam' ? { pad: '', bericht: t.naamVerplicht } : f))} />
       <div className="row sticky-actions">
         <button className="btn" onClick={() => navigate(-1)}>
           {nl.algemeen.annuleren}

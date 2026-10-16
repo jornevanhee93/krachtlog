@@ -20,6 +20,13 @@ export const nl = {
     optioneel: 'optioneel',
     onbekendeOefening: '(onbekende oefening)',
   },
+  fout: {
+    titel: 'Er ging iets mis',
+    uitleg: 'Dit scherm kon niet getoond worden. Je gegevens en een lopende training zijn bewaard.',
+    melding: 'Foutmelding',
+    naarVandaag: 'Terug naar Vandaag',
+    herladen: 'Herladen',
+  },
   nav: {
     today: 'Vandaag',
     exercises: 'Oefeningen',
