@@ -11,7 +11,7 @@ export const SCHEMA_VERSIE = 1;
 const kop = {
   schemaVersie: z.literal(SCHEMA_VERSIE, { error: `schemaVersie moet ${SCHEMA_VERSIE} zijn` }),
   gemaaktOp: isoDateTime.optional(),
-  /** Vrije omschrijving van de herkomst, bv. "notitie-app-export 16 okt". */
+  /** Vrije omschrijving van de herkomst, bv. "export notitie-app 16 okt". */
   bron: z.string().optional(),
 };
 

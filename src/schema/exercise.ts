@@ -47,7 +47,7 @@ export const progressie = z
     sets: positiveCount.optional(),
     /** De treden van laag naar hoog (verplicht bij modus "ladder"). */
     treden: z.array(trede).default([]),
-    /** Label van de trede waar je nu zit (bv. bij import uit notitie-app). */
+    /** Label van de trede waar je nu zit (bv. bij import uit je notities). */
     huidigeTrede: z.string().trim().min(1).optional(),
     /** Bij modus "last": de kleinste stap in kg, als die afwijkt van het materiaal. */
     kleinsteStapKg: z.number().positive().optional(),

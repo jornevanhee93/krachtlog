@@ -9,7 +9,7 @@ Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-sc
 ## Algemene regels
 
 - Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `1`) en **`soort`**: `"backup"`, `"bibliotheek"` of `"logs"`.
-- Optioneel: `gemaaktOp` (datum+tijd, bv. `"2026-10-16T20:00:00Z"`) en `bron` (vrije tekst, bv. `"notitie-app-export 16 okt"`).
+- Optioneel: `gemaaktOp` (datum+tijd, bv. `"2026-10-16T20:00:00Z"`) en `bron` (vrije tekst, bv. `"export notitie-app 16 okt"`).
 - **Veldnamen zijn exact.** Een onbekend veld (bv. een tikfout als `repbereik`) geeft een fout en wordt dus niet stil genegeerd.
 - Velden die hier "optioneel" heten mag je weglaten. Velden met een standaardwaarde krijgen die als je ze weglaat.
 - **Getallen** schrijf je zonder aanhalingstekens, met een punt als decimaalteken: `2.5`, niet `"2,5"`.
@@ -137,7 +137,7 @@ Een **lastspec** (alle velden optioneel):
 | `opwarming` | tekst[]: één regel per stap | `[]` |
 | `groepen` | groep[] (minstens één) | verplicht |
 
-Een **groep** (een "blok" in notitie-app, bv. A1/A2 als superset):
+Een **groep** (een "blok" in je notities, bv. A1/A2 als superset):
 
 | veld | type | |
 |---|---|---|
