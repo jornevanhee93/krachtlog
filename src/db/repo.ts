@@ -21,20 +21,24 @@ export async function zetLaatsteBackup(datum: Date, db: KrachtlogDb = standaardD
 }
 
 export async function leesSnapshot(db: KrachtlogDb = standaardDb): Promise<Snapshot> {
-  return db.transaction('r', [db.instellingen, db.materiaal, db.oefeningen, db.sjablonen, db.sessies, db.entries], async () => ({
+  return db.transaction('r', [db.instellingen, db.materiaal, db.oefeningen, db.sjablonen, db.sessies, db.entries, db.programmas, db.planning], async () => ({
     instellingen: await leesInstellingen(db),
     materiaal: await db.materiaal.toArray(),
     oefeningen: await db.oefeningen.toArray(),
     sjablonen: await db.sjablonen.toArray(),
     sessies: await db.sessies.toArray(),
     entries: await db.entries.toArray(),
+    programmas: await db.programmas.toArray(),
+    planning: await db.planning.toArray(),
   }));
 }
 
 /** Vervangt alles in de database door de snapshot (herstel van een back-up). De lopende sessie blijft staan. */
 export async function vervangAlles(snap: Snapshot, db: KrachtlogDb = standaardDb) {
-  await db.transaction('rw', [db.instellingen, db.materiaal, db.oefeningen, db.sjablonen, db.sessies, db.entries], async () => {
+  await db.transaction('rw', [db.instellingen, db.materiaal, db.oefeningen, db.sjablonen, db.sessies, db.entries, db.programmas, db.planning], async () => {
     await Promise.all([
+      db.programmas.clear(),
+      db.planning.clear(),
       db.instellingen.clear(),
       db.materiaal.clear(),
       db.oefeningen.clear(),
@@ -48,6 +52,8 @@ export async function vervangAlles(snap: Snapshot, db: KrachtlogDb = standaardDb
     await db.sjablonen.bulkPut(snap.sjablonen);
     await db.sessies.bulkPut(snap.sessies);
     await db.entries.bulkPut(snap.entries);
+    await db.programmas.bulkPut(snap.programmas);
+    await db.planning.bulkPut(snap.planning);
   });
 }
 
@@ -115,7 +121,8 @@ export async function voorstellenVoor(oefeningIds: string[], db: KrachtlogDb = s
 }
 
 export async function pasImportToe(res: ImportResultaat, db: KrachtlogDb = standaardDb) {
-  await db.transaction('rw', [db.materiaal, db.oefeningen, db.sjablonen, db.sessies, db.entries], async () => {
+  await db.transaction('rw', [db.materiaal, db.oefeningen, db.sjablonen, db.sessies, db.entries, db.programmas], async () => {
+    await db.programmas.bulkPut(res.programmas);
     await db.materiaal.bulkPut(res.materiaal);
     await db.oefeningen.bulkPut(res.oefeningen);
     await db.sjablonen.bulkPut(res.sjablonen);

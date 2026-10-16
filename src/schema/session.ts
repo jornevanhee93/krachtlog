@@ -52,6 +52,8 @@ export const sessie = z
     plezier: z.number().int().min(1, 'plezier gaat van 1 tot 5').max(5, 'plezier gaat van 1 tot 5').optional(),
     notitie: z.string().optional(),
     sjabloonId: id.optional(),
+    /** De geplande sessie uit een programma (sinds schemaVersie 3). */
+    planningId: z.string().trim().min(1).optional(),
     /** Waar de sessie vandaan komt, bv. "notities". */
     bron: z.string().optional(),
     oefeningen: z.array(sessieOefening).default([]),

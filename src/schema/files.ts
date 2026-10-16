@@ -2,11 +2,12 @@ import { z } from 'zod';
 import { isoDateTime } from './common';
 import { materiaal } from './equipment';
 import { oefening } from './exercise';
+import { planStatus, programma } from './program';
 import { sessie } from './session';
 import { instellingen } from './settings';
 import { sjabloon } from './template';
 
-export const SCHEMA_VERSIE = 2;
+export const SCHEMA_VERSIE = 3;
 
 const kop = {
   schemaVersie: z.literal(SCHEMA_VERSIE, { error: `schemaVersie moet ${SCHEMA_VERSIE} zijn` }),
@@ -41,6 +42,8 @@ type Inhoud = {
   oefeningen?: z.infer<typeof oefening>[];
   sjablonen?: z.infer<typeof sjabloon>[];
   sessies?: z.infer<typeof sessie>[];
+  programmas?: z.infer<typeof programma>[];
+  planning?: z.infer<typeof planStatus>[];
 };
 
 /** Controleert dat alle verwijzingen (oefeningId, materiaalId, sjabloonId) binnen het bestand bestaan. */
@@ -52,6 +55,8 @@ function checkReferences(file: Inhoud, ctx: Ctx) {
   checkUnique(ctx, file.oefeningen ?? [], 'oefeningen', 'oefening');
   checkUnique(ctx, file.sjablonen ?? [], 'sjablonen', 'sjabloon');
   checkUnique(ctx, file.sessies ?? [], 'sessies', 'sessie');
+  checkUnique(ctx, file.programmas ?? [], 'programmas', 'programma');
+  checkUnique(ctx, file.planning ?? [], 'planning', 'planning');
 
   const materiaalRefs: Ref[] = [];
   const oefeningRefs: Ref[] = [];
@@ -80,6 +85,28 @@ function checkReferences(file: Inhoud, ctx: Ctx) {
     s.oefeningen.forEach((e, j) => oefeningRefs.push({ pad: ['sessies', i, 'oefeningen', j, 'oefeningId'], id: e.oefeningId }));
   });
 
+  const groepRefs = (groepen: { items: { oefeningId: string; last?: { materiaalId?: string } }[] }[], pad: (string | number)[]) =>
+    groepen.forEach((g, j) =>
+      g.items.forEach((it, k) => {
+        oefeningRefs.push({ pad: [...pad, 'groepen', j, 'items', k, 'oefeningId'], id: it.oefeningId });
+        if (it.last?.materiaalId && file.materiaal) {
+          materiaalRefs.push({ pad: [...pad, 'groepen', j, 'items', k, 'last', 'materiaalId'], id: it.last.materiaalId });
+        }
+      }),
+    );
+  file.programmas?.forEach((p, i) =>
+    p.blokken.forEach((b, j) =>
+      b.weken.forEach((w, k) => w.sessies.forEach((s, l) => groepRefs(s.groepen, ['programmas', i, 'blokken', j, 'weken', k, 'sessies', l]))),
+    ),
+  );
+  const programmaIds = new Set((file.programmas ?? []).map((p) => p.id));
+  file.planning?.forEach((p, i) => {
+    if (!programmaIds.has(p.programmaId)) {
+      ctx.addIssue({ code: 'custom', path: ['planning', i, 'programmaId'], message: `programma "${p.programmaId}" bestaat niet in "programmas"` });
+    }
+    if (p.aanpassing) groepRefs(p.aanpassing.groepen, ['planning', i, 'aanpassing']);
+  });
+
   checkRefs(ctx, materiaalRefs, materiaalIds, 'materiaal', '"materiaal"');
   checkRefs(ctx, oefeningRefs, oefeningIds, 'oefening', '"oefeningen"');
   checkRefs(ctx, sjabloonRefs, sjabloonIds, 'sjabloon', '"sjablonen"');
@@ -95,6 +122,9 @@ export const backupBestand = z
     oefeningen: z.array(oefening).default([]),
     sjablonen: z.array(sjabloon).default([]),
     sessies: z.array(sessie).default([]),
+    /** Sinds schemaVersie 3. */
+    programmas: z.array(programma).default([]),
+    planning: z.array(planStatus).default([]),
   })
   .superRefine(checkReferences);
 export type BackupBestand = z.infer<typeof backupBestand>;
@@ -125,13 +155,28 @@ export const logsBestand = z
   .superRefine(checkReferences);
 export type LogsBestand = z.infer<typeof logsBestand>;
 
-export const SOORTEN = ['backup', 'bibliotheek', 'logs'] as const;
+/**
+ * Programma: één programma met blokken, weken en sessies. Net als bij logs staan de gebruikte oefeningen
+ * in "oefeningen" (minstens id en naam), zodat de app ze bij import kan koppelen.
+ */
+export const programmaBestand = z
+  .strictObject({
+    ...kop,
+    soort: z.literal('programma'),
+    oefeningen: z.array(oefening).default([]),
+    programma: programma,
+  })
+  .superRefine((f, ctx) => checkReferences({ oefeningen: f.oefeningen, programmas: [f.programma] }, ctx));
+export type ProgrammaBestand = z.infer<typeof programmaBestand>;
+
+export const SOORTEN = ['backup', 'bibliotheek', 'logs', 'programma'] as const;
 export type Soort = (typeof SOORTEN)[number];
 
 export const bestandSchemas = {
   backup: backupBestand,
   bibliotheek: bibliotheekBestand,
   logs: logsBestand,
+  programma: programmaBestand,
 } as const;
 
-export type Bestand = BackupBestand | BibliotheekBestand | LogsBestand;
+export type Bestand = BackupBestand | BibliotheekBestand | LogsBestand | ProgrammaBestand;

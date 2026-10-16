@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { nl as zodNl } from 'zod/v4/locales';
-import { SOORTEN, bestandSchemas, type BackupBestand, type BibliotheekBestand, type LogsBestand } from '../schema';
+import { SOORTEN, bestandSchemas, type BackupBestand, type BibliotheekBestand, type LogsBestand, type ProgrammaBestand } from '../schema';
 import { migreer } from '../schema/migrate';
 
 z.config(zodNl());
@@ -15,6 +15,7 @@ export type ParseResultaat =
   | { ok: true; soort: 'backup'; bestand: BackupBestand }
   | { ok: true; soort: 'bibliotheek'; bestand: BibliotheekBestand }
   | { ok: true; soort: 'logs'; bestand: LogsBestand }
+  | { ok: true; soort: 'programma'; bestand: ProgrammaBestand }
   | { ok: false; fouten: Fout[] };
 
 const MAX_FOUTEN = 50;
@@ -39,7 +40,7 @@ export function parseObject(ruw: unknown): ParseResultaat {
   if (typeof soort !== 'string' || !(SOORTEN as readonly string[]).includes(soort)) {
     return {
       ok: false,
-      fouten: [{ pad: 'soort', bericht: `moet "backup", "bibliotheek" of "logs" zijn (gevonden: ${JSON.stringify(soort)})` }],
+      fouten: [{ pad: 'soort', bericht: `moet "backup", "bibliotheek", "logs" of "programma" zijn (gevonden: ${JSON.stringify(soort)})` }],
     };
   }
   const gemigreerd = migreer(obj);

@@ -6,11 +6,11 @@ import { bewaarInstellingen, leesInstellingen, leesSnapshot, pasImportToe, verva
 import { nl } from '../i18n/nl';
 import { backupBestandsnaam, backupNaarSnapshot, maakBackup } from '../logic/backup';
 import { dagenGeleden, formatDatum, formatDatumTijd } from '../logic/format';
-import { NIEUW, maakImportPlan, twijfelgevallen, voerImportUit, type ImportPlan, type Keuzes } from '../logic/importPlan';
+import { NIEUW, maakImportPlan, type ImportBestand, twijfelgevallen, voerImportUit, type ImportPlan, type Keuzes } from '../logic/importPlan';
 import { parseBestand, type Fout } from '../logic/parseFile';
 import { formatMb, requestPersistence, type PersistStatus } from '../logic/storage';
 import { persistenceStatus } from '../persistence';
-import { instellingen as instellingenSchema, type BibliotheekBestand, type Instellingen, type LogsBestand } from '../schema';
+import { instellingen as instellingenSchema, type Instellingen } from '../schema';
 import { NumberField, RangeField } from '../components/form';
 import { valideer } from '../logic/parseFile';
 import { deelJson, downloadJson, kanDelen, leesTekst } from '../ui/files';
@@ -232,7 +232,7 @@ function RestoreCard() {
 type ImportStap =
   | { stap: 'invoer' }
   | { stap: 'fouten'; fouten: Fout[] }
-  | { stap: 'plan'; bestand: BibliotheekBestand | LogsBestand; plan: ImportPlan; keuzes: Keuzes }
+  | { stap: 'plan'; bestand: ImportBestand; plan: ImportPlan; keuzes: Keuzes }
   | { stap: 'klaar'; regels: string[] };
 
 function ImportCard() {
@@ -324,6 +324,7 @@ async function huidig() {
     oefeningen: await db.oefeningen.toArray(),
     sjablonen: await db.sjablonen.toArray(),
     sessieIds: (await db.sessies.toCollection().primaryKeys()) as string[],
+    programmas: await db.programmas.toArray(),
   };
 }
 

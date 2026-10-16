@@ -339,7 +339,7 @@ export const nl = {
       `Back-up van ${n.datum}: ${n.oefeningen} oefeningen, ${n.sjablonen} sjablonen, ${n.sessies} sessies. Alles op dit toestel vervangen?`,
     herstelKlaar: 'Back-up teruggezet.',
     importTitel: 'Importeren',
-    importUitleg: 'Een bibliotheek (materiaal, oefeningen, sjablonen) of logs toevoegen. Bestaande gegevens blijven staan.',
+    importUitleg: 'Een bibliotheek (materiaal, oefeningen, sjablonen), logs of een programma toevoegen. Bestaande gegevens blijven staan.',
     importKies: 'Kies bestand',
     importPlak: 'Of plak de JSON hier',
     importControleer: 'Controleren',
@@ -360,12 +360,17 @@ export const nl = {
       sjablonenVervangen: number;
       sessiesNieuw: number;
       sessiesDubbel: number;
+      programmasNieuw: number;
+      programmasVervangen: number;
     }) =>
       [
         s.materiaalNieuw || s.materiaalGekoppeld ? `Materiaal: ${s.materiaalNieuw} nieuw, ${s.materiaalGekoppeld} al aanwezig` : '',
         s.oefeningenNieuw || s.oefeningenGekoppeld ? `Oefeningen: ${s.oefeningenNieuw} nieuw, ${s.oefeningenGekoppeld} gekoppeld aan een bestaande` : '',
         s.sjablonenNieuw || s.sjablonenVervangen ? `Sjablonen: ${s.sjablonenNieuw} nieuw, ${s.sjablonenVervangen} vervangen (zelfde naam)` : '',
         s.sessiesNieuw || s.sessiesDubbel ? `Sessies: ${s.sessiesNieuw} nieuw, ${s.sessiesDubbel} overgeslagen (al aanwezig)` : '',
+        s.programmasNieuw || s.programmasVervangen
+          ? `Programma's: ${s.programmasNieuw} nieuw, ${s.programmasVervangen} vervangen (zelfde naam; wat je al deed blijft bewaard)`
+          : '',
       ].filter(Boolean),
     importNiets: 'Er is niets te importeren.',
     importStart: 'Importeren',

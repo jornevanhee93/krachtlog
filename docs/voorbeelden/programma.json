@@ -1,0 +1,113 @@
+{
+  "schemaVersie": 3,
+  "soort": "programma",
+  "gemaaktOp": "2026-10-16T20:00:00Z",
+  "bron": "verzonnen voorbeeld",
+  "oefeningen": [
+    { "id": "oef-pull-up", "naam": "Pull-up" },
+    { "id": "oef-sl-rdl", "naam": "Single-leg RDL", "aliassen": ["SL RDL"], "unilateraal": true },
+    { "id": "oef-box-jump", "naam": "Box jump" },
+    { "id": "oef-kb-swing", "naam": "Kettlebell swing" },
+    { "id": "oef-farmer", "naam": "Farmer carry" },
+    { "id": "oef-copenhagen", "naam": "Copenhagen plank", "unilateraal": true }
+  ],
+  "programma": {
+    "id": "prog-voorbeeld",
+    "naam": "Voorbeeldprogramma kracht",
+    "startDatum": "2026-10-26",
+    "notitie": "Verzonnen voorbeeld: 2 blokken, 2 sessies per week.",
+    "blokken": [
+      {
+        "naam": "Blok 1: opbouw",
+        "weken": [
+          {
+            "label": "Opbouw",
+            "herhaal": 3,
+            "sessies": [
+              {
+                "naam": "Sessie A",
+                "weekdag": "ma",
+                "tijd": "18:30",
+                "opwarming": ["5' fietsen", "2 × 5 lichte swings"],
+                "groepen": [
+                  {
+                    "label": "A",
+                    "type": "superset",
+                    "rondes": 3,
+                    "rustTussenOefeningenSec": 60,
+                    "rustTussenRondesSec": 120,
+                    "items": [
+                      { "oefeningId": "oef-pull-up", "repBereik": { "min": 5, "max": 8 }, "doelRIR": 2, "rol": "anker" },
+                      { "oefeningId": "oef-sl-rdl", "repBereik": { "min": 8, "max": 12 }, "doelRIR": 2, "rol": "rotatie", "notitie": "Zwakke kant eerst" }
+                    ]
+                  },
+                  {
+                    "label": "Finisher",
+                    "type": "emom",
+                    "duurSec": 360,
+                    "intervalSec": 60,
+                    "items": [{ "oefeningId": "oef-kb-swing", "repBereik": { "min": 12, "max": 12 } }]
+                  }
+                ]
+              },
+              {
+                "naam": "Sessie B",
+                "weekdag": "do",
+                "tijd": "18:30",
+                "groepen": [
+                  { "label": "A", "items": [{ "oefeningId": "oef-box-jump", "sets": 3, "repBereik": { "min": 3, "max": 3 }, "rustSec": 90, "rol": "anker" }] },
+                  {
+                    "label": "B",
+                    "type": "circuit",
+                    "rondes": 2,
+                    "items": [
+                      { "oefeningId": "oef-farmer", "rol": "rotatie" },
+                      { "oefeningId": "oef-copenhagen", "doelRIR": 3, "rol": "rotatie" }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "naam": "Blok 2: intensief",
+        "weken": [
+          {
+            "label": "Intensief",
+            "herhaal": 2,
+            "sessies": [
+              {
+                "naam": "Sessie A",
+                "weekdag": "ma",
+                "tijd": "18:30",
+                "groepen": [
+                  { "label": "A", "items": [{ "oefeningId": "oef-pull-up", "sets": 4, "repBereik": { "min": 4, "max": 6 }, "doelRIR": 1, "rustSec": 150, "rol": "anker" }] }
+                ]
+              },
+              {
+                "naam": "Sessie B",
+                "weekdag": "do",
+                "tijd": "18:30",
+                "groepen": [
+                  { "label": "A", "items": [{ "oefeningId": "oef-box-jump", "sets": 4, "repBereik": { "min": 3, "max": 3 }, "rol": "anker" }] }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "Deload",
+            "sessies": [
+              {
+                "naam": "Licht",
+                "weekdag": "wo",
+                "groepen": [{ "items": [{ "oefeningId": "oef-pull-up", "sets": 2, "repBereik": { "min": 5, "max": 5 }, "doelRIR": 3 }] }]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

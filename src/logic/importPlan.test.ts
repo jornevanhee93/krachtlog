@@ -1,6 +1,6 @@
 import type { z } from 'zod';
 import { describe, expect, it } from 'vitest';
-import { bibliotheekBestand, logsBestand, oefening } from '../schema';
+import { SCHEMA_VERSIE, bibliotheekBestand, logsBestand, oefening } from '../schema';
 import { maakImportPlan, twijfelgevallen, voerImportUit, type Bestaand } from './importPlan';
 
 const oef = (o: z.input<typeof oefening>) => oefening.parse(o);
@@ -16,7 +16,7 @@ const bestaand: Bestaand = {
 };
 
 const bib = bibliotheekBestand.parse({
-  schemaVersie: 2,
+  schemaVersie: SCHEMA_VERSIE,
   soort: 'bibliotheek',
   materiaal: [
     { id: 'vest', naam: 'gewichtsvest', soort: 'vest' },
@@ -83,7 +83,7 @@ describe('import van een bibliotheek', () => {
   });
 
   it('geeft een nieuw id als het id al bezet is', () => {
-    const botsing = bibliotheekBestand.parse({ schemaVersie: 2, soort: 'bibliotheek', oefeningen: [{ id: 'o1', naam: 'Farmer carry' }] });
+    const botsing = bibliotheekBestand.parse({ schemaVersie: SCHEMA_VERSIE, soort: 'bibliotheek', oefeningen: [{ id: 'o1', naam: 'Farmer carry' }] });
     const res = voerImportUit(maakImportPlan(botsing, bestaand), {}, bestaand);
     expect(res.oefeningen[0].id).not.toBe('o1');
     expect(res.oefeningen[0].id).toMatch(/^oef-/);
@@ -93,7 +93,7 @@ describe('import van een bibliotheek', () => {
 describe('import van logs', () => {
   it('koppelt de oefeningen en slaat dubbele sessies over', () => {
     const logs = logsBestand.parse({
-      schemaVersie: 2,
+      schemaVersie: SCHEMA_VERSIE,
       soort: 'logs',
       oefeningen: [{ id: 'x', naam: 'pull-up' }],
       sessies: [
@@ -105,5 +105,30 @@ describe('import van logs', () => {
     expect(res.samenvatting).toMatchObject({ sessiesNieuw: 1, sessiesDubbel: 1, oefeningenNieuw: 0, oefeningenGekoppeld: 1 });
     expect(res.sessies[0].oefeningen[0].oefeningId).toBe('o1');
     expect(res.sessies[0].sjabloonId).toBeUndefined();
+  });
+});
+
+describe('import van een programma', () => {
+  it('koppelt de oefeningen op naam en alias en vertaalt de ids in het programma', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { parseBestand } = await import('./parseFile');
+    const res = parseBestand(readFileSync(new URL('../../docs/voorbeelden/programma.json', import.meta.url), 'utf8'));
+    if (!res.ok || res.soort !== 'programma') throw new Error(JSON.stringify(res));
+    const bestaand = {
+      materiaal: [],
+      oefeningen: [oefening.parse({ id: 'mijn-pu', naam: 'Pull up' }), oefening.parse({ id: 'mijn-rdl', naam: 'Eenbenige RDL', aliassen: ['SL RDL'] })],
+      sjablonen: [],
+      sessieIds: [],
+      programmas: [],
+    };
+    const plan = maakImportPlan(res.bestand, bestaand);
+    const uit = voerImportUit(plan, {}, bestaand);
+    const items = uit.programmas[0].blokken[0].weken[0].sessies[0].groepen[0].items.map((i) => i.oefeningId);
+    expect(items).toEqual(['mijn-pu', 'mijn-rdl']);
+    expect(uit.samenvatting).toMatchObject({ programmasNieuw: 1, programmasVervangen: 0, oefeningenGekoppeld: 2, oefeningenNieuw: 4 });
+    // Opnieuw importeren met dezelfde naam vervangt het programma (zelfde id, zodat de status blijft).
+    const opnieuw = voerImportUit(maakImportPlan(res.bestand, { ...bestaand, programmas: uit.programmas }), {}, { ...bestaand, programmas: uit.programmas });
+    expect(opnieuw.programmas[0].id).toBe(uit.programmas[0].id);
+    expect(opnieuw.samenvatting.programmasVervangen).toBe(1);
   });
 });

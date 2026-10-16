@@ -32,6 +32,7 @@ export async function importeerVoorbeeld(naam: string) {
     oefeningen: await db.oefeningen.toArray(),
     sjablonen: await db.sjablonen.toArray(),
     sessieIds: (await db.sessies.toCollection().primaryKeys()) as string[],
+    programmas: await db.programmas.toArray(),
   };
   await pasImportToe(voerImportUit(maakImportPlan(res.bestand, bestaand), {}, bestaand));
 }

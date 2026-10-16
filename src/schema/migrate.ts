@@ -8,6 +8,9 @@ import { SCHEMA_VERSIE } from './files';
 const migraties: Record<number, (bestand: Record<string, unknown>) => Record<string, unknown>> = {
   // 1 → 2: oefeningen kregen een optioneel veld "icoon". Een v1-bestand is dus al geldig in v2.
   1: (b) => b,
+  // 2 → 3: programma's (nieuwe soort "programma"; in een back-up "programmas" en "planning", standaard leeg)
+  // en een optioneel "planningId" bij sessies. Een v2-bestand is dus al geldig in v3.
+  2: (b) => b,
 };
 
 export type MigratieResultaat =

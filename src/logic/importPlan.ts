@@ -1,5 +1,16 @@
 // Import van een bibliotheek- of logsbestand: koppelen aan wat er al is, ids vertalen.
-import type { BibliotheekBestand, LastSpec, LogsBestand, Materiaal, Oefening, Sessie, Sjabloon } from '../schema';
+import type {
+  BibliotheekBestand,
+  LastSpec,
+  LogsBestand,
+  Materiaal,
+  Oefening,
+  Programma,
+  ProgrammaBestand,
+  Sessie,
+  Sjabloon,
+  SjabloonGroep,
+} from '../schema';
 import { nieuwId } from './ids';
 import { normaliseer, zoekMatch, type Match } from './matching';
 
@@ -8,6 +19,8 @@ export interface Bestaand {
   oefeningen: Oefening[];
   sjablonen: Sjabloon[];
   sessieIds: string[];
+  /** Bestaande programma's (sinds fase 3; optioneel voor oudere aanroepen). */
+  programmas?: Programma[];
 }
 
 export interface ImportPlan {
@@ -15,13 +28,17 @@ export interface ImportPlan {
   oefeningen: { bron: Oefening; match: Match }[];
   sjablonen: { bron: Sjabloon; vervangtId?: string }[];
   sessies: { bron: Sessie; dubbel: boolean }[];
+  programmas: { bron: Programma; vervangtId?: string }[];
 }
 
 /** Per oefening uit het bestand: het id van de bestaande oefening, of "nieuw". */
 export type Keuzes = Record<string, string>;
 export const NIEUW = 'nieuw';
 
-export function maakImportPlan(bestand: BibliotheekBestand | LogsBestand, bestaand: Bestaand): ImportPlan {
+export type ImportBestand = BibliotheekBestand | LogsBestand | ProgrammaBestand;
+
+export function maakImportPlan(bestand: ImportBestand, bestaand: Bestaand): ImportPlan {
+  const programmas = 'programma' in bestand ? [bestand.programma] : [];
   const materiaal = 'materiaal' in bestand ? bestand.materiaal : [];
   const sjablonen = 'sjablonen' in bestand ? bestand.sjablonen : [];
   const sessies = 'sessies' in bestand ? bestand.sessies : [];
@@ -37,6 +54,10 @@ export function maakImportPlan(bestand: BibliotheekBestand | LogsBestand, bestaa
       vervangtId: bestaand.sjablonen.find((b) => normaliseer(b.naam) === normaliseer(s.naam))?.id,
     })),
     sessies: sessies.map((s) => ({ bron: s, dubbel: sessieIds.has(s.id) })),
+    programmas: programmas.map((p) => ({
+      bron: p,
+      vervangtId: (bestaand.programmas ?? []).find((b) => normaliseer(b.naam) === normaliseer(p.naam))?.id,
+    })),
   };
 }
 
@@ -51,6 +72,7 @@ export interface ImportResultaat {
   oefeningen: Oefening[];
   sjablonen: Sjabloon[];
   sessies: Sessie[];
+  programmas: Programma[];
   samenvatting: {
     materiaalNieuw: number;
     materiaalGekoppeld: number;
@@ -60,6 +82,8 @@ export interface ImportResultaat {
     sjablonenVervangen: number;
     sessiesNieuw: number;
     sessiesDubbel: number;
+    programmasNieuw: number;
+    programmasVervangen: number;
   };
 }
 
@@ -145,7 +169,21 @@ export function voerImportUit(plan: ImportPlan, keuzes: Keuzes, bestaand: Bestaa
       return s;
     });
 
+  // 5. Programma's: zelfde naam = vervangen (de status van geplande sessies blijft), anders nieuw.
+  const progBezet = new Set((bestaand.programmas ?? []).map((p) => p.id));
+  const mapGroepen = (groepen: SjabloonGroep[]) =>
+    groepen.map((g) => ({ ...g, items: g.items.map((it) => ({ ...it, oefeningId: mapOef(it.oefeningId), last: mapLast(it.last) })) }));
+  const programmas: Programma[] = plan.programmas.map(({ bron, vervangtId }) => ({
+    ...bron,
+    id: vervangtId ?? vrijId(bron.id, progBezet, 'prog'),
+    blokken: bron.blokken.map((b) => ({
+      ...b,
+      weken: b.weken.map((w) => ({ ...w, sessies: w.sessies.map((se) => ({ ...se, groepen: mapGroepen(se.groepen) })) })),
+    })),
+  }));
+
   return {
+    programmas,
     materiaal,
     oefeningen: [...nieuweOef, ...[...gewijzigd].map((id) => bijgewerkt.get(id)!)],
     sjablonen,
@@ -159,6 +197,8 @@ export function voerImportUit(plan: ImportPlan, keuzes: Keuzes, bestaand: Bestaa
       sjablonenVervangen: plan.sjablonen.filter((s) => s.vervangtId).length,
       sessiesNieuw: sessies.length,
       sessiesDubbel: plan.sessies.length - sessies.length,
+      programmasNieuw: plan.programmas.filter((p) => !p.vervangtId).length,
+      programmasVervangen: plan.programmas.filter((p) => p.vervangtId).length,
     },
   };
 }

@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Instellingen, LogSet, Materiaal, Oefening, Sessie, SessieOefening, Sjabloon } from '../schema';
+import type { Instellingen, LogSet, Materiaal, Oefening, PlanStatus, Programma, Sessie, SessieOefening, Sjabloon } from '../schema';
 import type { ActiveSession } from '../logic/activeSession';
 
 /** Een sessie zonder de oefeningen; die staan apart in "entries". */
@@ -32,6 +32,8 @@ export class KrachtlogDb extends Dexie {
   entries!: EntityTable<EntryRecord, 'id'>;
   instellingen!: EntityTable<SettingRecord, 'key'>;
   actief!: EntityTable<ActiveRecord, 'key'>;
+  programmas!: EntityTable<Programma, 'id'>;
+  planning!: EntityTable<PlanStatus, 'id'>;
 
   constructor(name = 'krachtlog') {
     super(name);
@@ -43,6 +45,11 @@ export class KrachtlogDb extends Dexie {
       entries: '&id, sessieId, oefeningId, [oefeningId+start]',
       instellingen: '&key',
       actief: '&key',
+    });
+    // Versie 2: programma's en de toestand van geplande sessies. De bestaande tabellen blijven ongewijzigd.
+    this.version(2).stores({
+      programmas: '&id, naam',
+      planning: '&id, programmaId, datum',
     });
   }
 }

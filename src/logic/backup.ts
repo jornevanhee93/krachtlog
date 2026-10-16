@@ -1,6 +1,16 @@
 // Omzetten tussen de inhoud van de database en een back-upbestand.
 import type { EntryRecord, SessieRecord } from '../db/db';
-import { SCHEMA_VERSIE, type BackupBestand, type Instellingen, type Materiaal, type Oefening, type Sessie, type Sjabloon } from '../schema';
+import {
+  SCHEMA_VERSIE,
+  type BackupBestand,
+  type Instellingen,
+  type Materiaal,
+  type Oefening,
+  type PlanStatus,
+  type Programma,
+  type Sessie,
+  type Sjabloon,
+} from '../schema';
 import { schoon } from './activeSession';
 
 /** Alles wat in de database staat (behalve de lopende sessie). */
@@ -11,6 +21,8 @@ export interface Snapshot {
   sjablonen: Sjabloon[];
   sessies: SessieRecord[];
   entries: EntryRecord[];
+  programmas: Programma[];
+  planning: PlanStatus[];
 }
 
 /** Een sessie met haar oefeningen omzetten naar records voor de tabellen sessies en entries. */
@@ -51,6 +63,8 @@ export function maakBackup(snap: Snapshot, nu: Date = new Date()): BackupBestand
     sessies: [...snap.sessies]
       .sort((a, b) => a.start.localeCompare(b.start))
       .map((s) => schoon(recordsNaarSessie(s, perSessie.get(s.id) ?? []))),
+    programmas: snap.programmas,
+    planning: snap.planning,
   };
 }
 
@@ -69,6 +83,8 @@ export function backupNaarSnapshot(b: BackupBestand): Snapshot {
     sjablonen: b.sjablonen,
     sessies,
     entries,
+    programmas: b.programmas,
+    planning: b.planning,
   };
 }
 
