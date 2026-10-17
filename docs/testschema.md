@@ -161,6 +161,7 @@ Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze
 9. ☐ **Power zonder RIR.** Open in een training een power-oefening (bv. Box jump): er zijn geen RIR-knoppen, wel **Makkelijk / Controle / Gevecht**.
 10. ☐ **Trede ingevuld.** Start een training met een ladderoefening waarvan de vorige sets geen trede hadden (bv. box jump uit een import). Het veld **Trede** staat op de trede van het voorstel (of de huidige trede), niet op "—".
 11. ☐ **Geen dubbele last.** Bij een ladder met treden als "24 kg" staat in het voorstel en bij de sets "24 kg × 6", niet meer "24 kg · 24 kg × 6". Treden met een eigen naam ("Vest 5") blijven zichtbaar.
+12. ☐ **Diagnose ververst.** Kijk bij **Data → Diagnose** naar de aantallen. Importeer iets (of zet een back-up terug): de aantallen veranderen meteen, zonder de app opnieuw te openen.
 
 ---
 

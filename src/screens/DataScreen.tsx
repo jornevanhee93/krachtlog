@@ -555,6 +555,9 @@ function WipeCard() {
 
 function DiagnoseCard() {
   const [regels, setRegels] = useState<string[]>([]);
+  // Verandert zodra een tabel wijzigt (importeren, alles wissen, herstellen): dan opnieuw tellen.
+  // Het tellen zelf blijft met een tijdslimiet, zodat een vastgelopen opslag gemeld wordt.
+  const versie = useLiveQuery(() => Promise.all(db.tables.map((tabel) => tabel.count())).then((n) => n.join(',')), []);
   useEffect(() => {
     void Promise.all(
       db.tables.map(async (tabel) => {
@@ -565,7 +568,7 @@ function DiagnoseCard() {
         }
       }),
     ).then(setRegels);
-  }, []);
+  }, [versie]);
   return (
     <div className="card">
       <h2>{t.diagnoseTitel}</h2>

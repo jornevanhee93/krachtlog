@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { leesInstellingen, zetLaatsteBackup } from '../db/repo';
-import { renderApp, zetTestOmgevingOp } from '../test/app';
+import { leesInstellingen, wisAlles, zetLaatsteBackup } from '../db/repo';
+import { importeerVoorbeeld, renderApp, zetTestOmgevingOp } from '../test/app';
 
 zetTestOmgevingOp();
 
@@ -30,3 +30,15 @@ describe('instellingen', () => {
     await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/minstens 1/));
   });
 });
+
+describe('diagnose', () => {
+  it('telt opnieuw na importeren en na alles wissen', async () => {
+    renderApp('/data');
+    await screen.findByText('oefeningen: 0');
+    await importeerVoorbeeld('bibliotheek.json');
+    await screen.findByText('oefeningen: 6');
+    await wisAlles();
+    await screen.findByText('oefeningen: 0');
+  });
+});
+
