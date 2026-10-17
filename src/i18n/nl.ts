@@ -303,6 +303,8 @@ export const nl = {
     setKlaar: 'Set klaar',
     snelKlaar: (samenvatting: string) => (samenvatting ? `Set klaar: ${samenvatting}` : 'Set klaar'),
     aanpassen: 'Aanpassen',
+    /** De snelle knop als de duur of afstand nog leeg is: hij logt dan niets en opent het invulblok. */
+    vulIn: (meting: 'tijd' | 'afstand') => (meting === 'tijd' ? 'Vul de duur in' : 'Vul de afstand in'),
     inklappen: 'Inklappen',
     huidigeSet: 'Nu',
     opwarmset: 'Opwarmset',

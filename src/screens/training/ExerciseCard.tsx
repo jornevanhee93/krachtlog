@@ -3,6 +3,7 @@ import ExerciseIcon from '../../components/ExerciseIcon';
 import { nl } from '../../i18n/nl';
 import {
   itemVoortgang,
+  ontbrekendeMeting,
   setKlaar,
   snelKlaar,
   snelleRir,
@@ -66,6 +67,8 @@ export default function ExerciseCard(props: {
   // Het invulblok staat dicht, tenzij je "Aanpassen" kiest of op een set tikt.
   const bewerk = gekozen !== null || aanpassen;
   const snel = !bewerk && volgende >= 0 ? item.sets[volgende] : undefined;
+  // Zonder duur of afstand logt de snelle knop niets (geen set van 0 s): hij opent het invulblok.
+  const ontbreekt = snel ? ontbrekendeMeting(snel, oefening) : undefined;
 
   useEffect(() => {
     if (focus) {
@@ -182,17 +185,23 @@ export default function ExerciseCard(props: {
                   ariaLabel={t.rir}
                 />
               )}
-              <button
-                type="button"
-                className="btn btn-primary btn-big btn-block snel-knop"
-                aria-label={t.snelKlaar(snelleTekst(snel, item.doel, oefening))}
-                onClick={() => {
-                  ontgrendelGeluid();
-                  update((x) => snelKlaar(x, pos, volgende, oefening));
-                }}
-              >
-                ✓ {snelleTekst(snel, item.doel, oefening) || t.setKlaar}
-              </button>
+              {ontbreekt ? (
+                <button type="button" className="btn btn-primary btn-big btn-block snel-knop" onClick={openAanpassen}>
+                  {t.vulIn(ontbreekt)}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-big btn-block snel-knop"
+                  aria-label={t.snelKlaar(snelleTekst(snel, item.doel, oefening))}
+                  onClick={() => {
+                    ontgrendelGeluid();
+                    update((x) => snelKlaar(x, pos, volgende, oefening));
+                  }}
+                >
+                  ✓ {snelleTekst(snel, item.doel, oefening) || t.setKlaar}
+                </button>
+              )}
             </div>
           )}
           <ol className="set-list">

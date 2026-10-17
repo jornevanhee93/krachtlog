@@ -104,7 +104,7 @@ test('2. tredelabel of last, niet allebei, als het label de last al volledig bes
           duurBereikSec: { min: 30, max: 45 },
           treden: [
             { label: '32 kg', last: { gewichtKg: 32 } },
-            { label: '32 kg + vest 10', last: { gewichtKg: 32, extraKg: 10, duurSec: 30 } },
+            { label: '32 kg + vest 10', last: { gewichtKg: 32, extraKg: 10 } },
           ],
           huidigeTrede: '32 kg + vest 10',
         },

@@ -157,16 +157,25 @@ export function kopieerWaarden(set: Partial<LogSet>): LogSet {
   return uit;
 }
 
-function huidigeTredeLast(oefening: Oefening | undefined): { trede?: string; last?: LastSpec } {
+function huidigeTredeLast(oefening: Oefening | undefined): { trede?: string; last?: LastSpec; duurBereikSec?: Bereik; afstandBereikM?: Bereik } {
   const p = oefening?.progressie;
   if (!p || p.modus !== 'ladder' || p.treden.length === 0) return {};
   const t = p.treden.find((x) => x.label.toLowerCase() === p.huidigeTrede?.toLowerCase()) ?? p.treden[0];
-  return { trede: t.label, last: t.last };
+  return { trede: t.label, last: t.last, duurBereikSec: t.duurBereikSec, afstandBereikM: t.afstandBereikM };
 }
 
-/** Startwaarden voor een set als er geen vorige keer is: uit het sjabloon of de ladder. */
+type Bereik = { min: number; max: number };
+
+/**
+ * Startwaarden voor een set als er geen vorige keer is: uit het sjabloon of de ladder.
+ * Duur en afstand zoals reps: een vaste waarde uit de last (sjabloon, dan trede), anders de onderkant van het
+ * bereik (van de trede, anders van de progressie). Is er nergens een bereik, dan blijven ze leeg: geen 0 s of 0 m.
+ */
 function startSet(doel: ItemDoel, oefening: Oefening | undefined): LogSet {
   const ladder = huidigeTredeLast(oefening);
+  const p = oefening?.progressie;
+  const duurStart = ladder.duurBereikSec?.min ?? p?.duurBereikSec?.min;
+  const afstandStart = ladder.afstandBereikM?.min ?? p?.afstandBereikM?.min;
   const last = { ...ladder.last, ...doel.last };
   const set: LogSet = { opwarm: false };
   if (ladder.trede) set.trede = ladder.trede;
@@ -187,9 +196,22 @@ function startSet(doel: ItemDoel, oefening: Oefening | undefined): LogSet {
     }
   }
   if (metingen.includes('gewicht') && set.gewichtKg === undefined) set.gewichtKg = 0;
-  if (metingen.includes('tijd') && set.duurSec === undefined && set.duurSecLinks === undefined) zetPerKant(set, 'duurSec', 0, oefening);
-  if (metingen.includes('afstand') && set.afstandM === undefined && set.afstandMLinks === undefined) zetPerKant(set, 'afstandM', 0, oefening);
+  if (metingen.includes('tijd') && last.duurSec === undefined && duurStart !== undefined) zetPerKant(set, 'duurSec', duurStart, oefening);
+  if (metingen.includes('afstand') && last.afstandM === undefined && afstandStart !== undefined) zetPerKant(set, 'afstandM', afstandStart, oefening);
   return set;
+}
+
+/**
+ * De meting die nog leeg is en die de snelle knop niet zelf mag invullen: tijd of afstand zonder waarde
+ * (geen vorige keer en geen bereik). Dan logt de knop niets en opent hij het invulblok.
+ */
+export function ontbrekendeMeting(set: LogSet, oefening: Oefening | undefined): 'tijd' | 'afstand' | undefined {
+  const metingen = oefening?.metingen ?? [];
+  if (metingen.includes('tijd') && set.duurSec === undefined && set.duurSecLinks === undefined && set.duurSecRechts === undefined) return 'tijd';
+  if (metingen.includes('afstand') && set.afstandM === undefined && set.afstandMLinks === undefined && set.afstandMRechts === undefined) {
+    return 'afstand';
+  }
+  return undefined;
 }
 
 /**
@@ -413,7 +435,7 @@ export function snelleSet<T extends LogSet>(set: T, doel: ItemDoel, oefening: Oe
 export function snelKlaar(s: ActiveSession, pos: Focus, setIndex: number, oefening: Oefening | undefined, nu: number = Date.now()): ActiveSession {
   const item = s.groepen[pos.groep]?.items[pos.item];
   const set = item?.sets[setIndex];
-  if (!item || !set || set.klaar) return s;
+  if (!item || !set || set.klaar || ontbrekendeMeting(set, oefening)) return s;
   const gevuld = snelleSet(set, item.doel, oefening);
   return setKlaar(updateSet(s, pos, setIndex, gevuld), pos, setIndex, nu);
 }

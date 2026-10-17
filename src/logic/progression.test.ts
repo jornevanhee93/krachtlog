@@ -228,6 +228,37 @@ describe('evaluatie', () => {
   });
 });
 
+describe('voorstel bij de start: tijd en afstand', () => {
+  const hold = (progressie: Record<string, unknown>) =>
+    oef({
+      id: 'sh',
+      naam: 'Suitcase hold',
+      metingen: ['gewicht', 'tijd'],
+      unilateraal: true,
+      progressie: { modus: 'ladder', profiel: 'isometrisch', treden: [{ label: '24 kg', last: { gewichtKg: 24 } }], ...progressie },
+    });
+  it('nog niet gelogd: de onderkant van het duurbereik, nooit 0 s', () => {
+    const v = voorstel(hold({ duurBereikSec: { min: 30, max: 45 } }), []);
+    expect(v).toMatchObject({ type: 'start', duurSec: 30 });
+    expect(voorstelTekst(v)).toBe('24 kg · 30 s');
+  });
+  it('het bereik van de trede gaat voor', () => {
+    const v = voorstel(hold({ duurBereikSec: { min: 30, max: 45 }, treden: [{ label: '24 kg', last: { gewichtKg: 24 }, duurBereikSec: { min: 20, max: 30 } }] }), []);
+    expect(voorstelTekst(v)).toBe('24 kg · 20 s');
+  });
+  it('zonder bereik: geen duur in de tekst', () => {
+    const v = voorstel(hold({}), []);
+    expect(v.duurSec).toBeUndefined();
+    expect(voorstelTekst(v)).toBe('24 kg');
+  });
+  it('carry: de onderkant van het afstandsbereik', () => {
+    const fc = oef({ id: 'fc', naam: 'Farmer carry', metingen: ['gewicht', 'afstand'], progressie: { modus: 'last', profiel: 'carry', afstandBereikM: { min: 20, max: 40 } } });
+    const v = voorstel(fc, []);
+    expect(v).toMatchObject({ type: 'start', afstandM: 20 });
+    expect(voorstelTekst(v)).toBe('20 m');
+  });
+});
+
 describe('voorstel: pull-up-ladder (BW → vest 5 → vest 10 → vest 10 + 3s → vest 15)', () => {
   it('nog niet gelogd: start op de huidige trede, onderaan', () => {
     const v = voorstel(pullUp, []);

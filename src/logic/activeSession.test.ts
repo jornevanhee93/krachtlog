@@ -7,6 +7,7 @@ import {
   itemVoortgang,
   naarSessie,
   naarSjabloon,
+  ontbrekendeMeting,
   pasVoorstelToe,
   setKlaar,
   snelKlaar,
@@ -411,9 +412,9 @@ describe('unilateraal met tijd: per kant', () => {
     unilateraal: true,
     progressie: { modus: 'ladder', profiel: 'isometrisch', duurBereikSec: { min: 20, max: 30 }, treden: [{ label: 'Kort' }, { label: 'Lang' }] },
   });
-  it('een nieuwe set krijgt links en rechts', () => {
+  it('een nieuwe set krijgt links en rechts, op de onderkant van het duurbereik', () => {
     const s = voegOefeningToe(startSessie(undefined, [plank], {}), plank, undefined);
-    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ duurSecLinks: 0, duurSecRechts: 0 });
+    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ duurSecLinks: 20, duurSecRechts: 20 });
     expect(s.groepen[0].items[0].sets[0].duurSec).toBeUndefined();
   });
   it('het voorstel vult beide kanten in', () => {
@@ -431,6 +432,99 @@ describe('unilateraal met tijd: per kant', () => {
   });
 });
 
+describe('tijd en afstand zonder vorige keer', () => {
+  const hold = (extra: Record<string, unknown> = {}, progressie: Record<string, unknown> = {}) =>
+    oef({
+      id: 'sh',
+      naam: 'Suitcase hold',
+      metingen: ['gewicht', 'tijd'],
+      ...extra,
+      progressie: {
+        modus: 'ladder',
+        profiel: 'isometrisch',
+        duurBereikSec: { min: 30, max: 45 },
+        treden: [{ label: '24 kg', last: { gewichtKg: 24 } }, { label: '32 kg', last: { gewichtKg: 32 }, duurBereikSec: { min: 20, max: 30 } }],
+        huidigeTrede: '24 kg',
+        ...progressie,
+      },
+    });
+  const eerste = (s: ActiveSession) => s.groepen[s.groepen.length - 1].items[0].sets[0];
+
+  it('toevoegen: start op de onderkant van het duurbereik van de progressie, niet op 0 s', () => {
+    const o = hold();
+    const s = voegOefeningToe(startSessie(undefined, [o], {}), o, undefined);
+    expect(eerste(s)).toMatchObject({ gewichtKg: 24, duurSec: 30 });
+  });
+
+  it('het duurbereik van de trede gaat voor', () => {
+    const o = hold({}, { huidigeTrede: '32 kg' });
+    const s = voegOefeningToe(startSessie(undefined, [o], {}), o, undefined);
+    expect(eerste(s)).toMatchObject({ gewichtKg: 32, duurSec: 20 });
+  });
+
+  it('een duur in de last (trede of sjabloon) gaat voor op het bereik', () => {
+    const o = hold({}, { treden: [{ label: '24 kg', last: { gewichtKg: 24, duurSec: 40 } }] });
+    expect(eerste(voegOefeningToe(startSessie(undefined, [o], {}), o, undefined)).duurSec).toBe(40);
+    const sj = sjabloon.parse({ id: 'sj', naam: 'Test', groepen: [{ items: [{ oefeningId: 'sh', last: { duurSec: 35 } }] }] });
+    expect(eerste(startSessie(sj, [o], {})).duurSec).toBe(35);
+  });
+
+  it('vanuit een sjabloon, ook unilateraal: links en rechts op de onderkant', () => {
+    const o = hold({ unilateraal: true });
+    const sj = sjabloon.parse({ id: 'sj', naam: 'Test', groepen: [{ items: [{ oefeningId: 'sh', sets: 2 }] }] });
+    const s = startSessie(sj, [o], {});
+    for (const set of s.groepen[0].items[0].sets) {
+      expect(set).toMatchObject({ duurSecLinks: 30, duurSecRechts: 30 });
+      expect(set.duurSec).toBeUndefined();
+    }
+  });
+
+  it('zonder progressie of bereik: de duur blijft leeg (geen 0 s)', () => {
+    const o = oef({ id: 'pl', naam: 'Plank', metingen: ['tijd'] });
+    const set = eerste(voegOefeningToe(startSessie(undefined, [o], {}), o, undefined));
+    expect(set.duurSec).toBeUndefined();
+    expect(set.duurSecLinks).toBeUndefined();
+    const uni = oef({ id: 'sp', naam: 'Side plank', metingen: ['tijd'], unilateraal: true, progressie: { modus: 'last' } });
+    const s2 = eerste(voegOefeningToe(startSessie(undefined, [uni], {}), uni, undefined));
+    expect(s2.duurSecLinks).toBeUndefined();
+    expect(s2.duurSecRechts).toBeUndefined();
+  });
+
+  it('carry: de onderkant van het afstandsbereik, anders leeg', () => {
+    const fc = oef({
+      id: 'fc',
+      naam: 'Farmer carry',
+      metingen: ['gewicht', 'afstand'],
+      progressie: { modus: 'last', profiel: 'carry', afstandBereikM: { min: 20, max: 40 } },
+    });
+    expect(eerste(voegOefeningToe(startSessie(undefined, [fc], {}), fc, undefined)).afstandM).toBe(20);
+    const kaal = oef({ id: 'fc2', naam: 'Sled', metingen: ['afstand'] });
+    expect(eerste(voegOefeningToe(startSessie(undefined, [kaal], {}), kaal, undefined)).afstandM).toBeUndefined();
+  });
+
+  it('vervangen tijdens de sessie: de vervanger start op zijn eigen onderkant', () => {
+    const o = hold();
+    const sj = sjabloon.parse({ id: 'sj', naam: 'Test', groepen: [{ items: [{ oefeningId: 'swing', sets: 3, repBereik: { min: 5, max: 5 } }] }] });
+    let s = startSessie(sj, [...oefeningen, o], {});
+    s = vervangOefening(s, { groep: 0, item: 0 }, o, undefined);
+    expect(s.groepen[0].items[0].sets).toHaveLength(3);
+    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ gewichtKg: 24, duurSec: 30 });
+  });
+
+  it('de snelle knop logt geen set zonder duur of afstand', () => {
+    const o = oef({ id: 'pl', naam: 'Plank', metingen: ['tijd'] });
+    const s = voegOefeningToe(startSessie(undefined, [o], {}), o, undefined);
+    const pos = { groep: 0, item: 0 };
+    expect(ontbrekendeMeting(eerste(s), o)).toBe('tijd');
+    expect(snelKlaar(s, pos, 0, o, T0)).toBe(s);
+    const gevuld = updateSet(s, pos, 0, { duurSec: 40 });
+    expect(ontbrekendeMeting(eerste(gevuld), o)).toBeUndefined();
+    expect(snelKlaar(gevuld, pos, 0, o, T0).groepen[0].items[0].sets[0]).toMatchObject({ klaar: true, duurSec: 40 });
+    const carry = oef({ id: 'sl', naam: 'Sled', metingen: ['afstand'], unilateraal: true });
+    expect(ontbrekendeMeting({ opwarm: false }, carry)).toBe('afstand');
+    expect(ontbrekendeMeting({ opwarm: false, afstandMLinks: 20 }, carry)).toBeUndefined();
+  });
+});
 
 describe('trede invullen als de vorige sets er geen hadden', () => {
   const bj = oefening.parse({
