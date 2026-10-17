@@ -197,6 +197,16 @@ Doe dit na een back-up. Wacht tot de app de nieuwe versie toont (melding "Nieuwe
 2. ☐ **Sjabloon na vervangen.** Doe hetzelfde, maar kies bij het afsluiten **Bewaar als sjabloon**. Open het nieuwe sjabloon bij **Oefeningen → Sjablonen**: bij de vervanger staat geen last of repbereik van de oude oefening (wel de rust).
 3. ☐ **Label of last, niet allebei.** Bij een oefening met een trede als "32 kg + vest 10" (bv. suitcase hold) toont de snelle knop **"✓ 32 kg +10 kg · 30 s"**, niet "32 kg + vest 10 · 32 kg +10 kg · 30 s". Ook in de setregels en het voorstel staat de last maar één keer. Een trede met extra info, zoals "Vest 10 + 3s excentrisch" of "Lange hefboom", blijft wel zichtbaar.
 
+## Fixronde 17 okt laat
+
+Doe dit na een back-up. Wacht tot de app de nieuwe versie toont (melding "Nieuwe versie" → tik erop, of sluit de app en open hem opnieuw). Gebruik een oefening die je nog nooit gelogd hebt (of maak een testoefening en verwijder die achteraf).
+
+1. ☐ **Hold zonder vorige keer.** Maak een oefening met metingen gewicht en tijd, een duurbereik van bv. 30–45 s en een trede zonder duur (bv. "24 kg"). Start een lege sessie en voeg ze toe. "Vandaag" toont **24 kg · 30 s** en de snelle knop **"✓ 24 kg · 30 s"**, niet 0 s. Is de oefening unilateraal, dan staat er **L30/R30 s**.
+2. ☐ **Eigen bereik van de trede.** Geef de trede een eigen duurbereik (bv. 20–30 s): de knop start dan op **20 s**.
+3. ☐ **Vanuit een sjabloon en bij vervangen.** Zet de oefening in een sjabloon (zonder duur bij het item) en start het: ook hier 30 s. Vervang tijdens een training een andere oefening door deze: de vervanger start op 30 s.
+4. ☐ **Carry.** Een carry met een afstandsbereik (bv. 20–40 m) en zonder vorige keer start op **20 m**.
+5. ☐ **Geen bereik.** Een oefening met tijd maar zonder duurbereik (bv. een plank zonder progressie): de grote knop toont **"Vul de duur in"**. Tik erop: het invulblok opent met een leeg veld "Tijd" en er is niets gelogd (0/3). Vul 40 in, tik **Inklappen**: de knop toont nu **"✓ 40 s"**.
+
 ---
 
 ## Bekende beperkingen
