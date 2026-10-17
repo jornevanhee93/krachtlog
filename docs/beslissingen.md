@@ -99,3 +99,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Vraag:** hoe filter je compact op patroon bij Oefeningen?
 - **Keuze:** één keuzelijst "Patroon" (standaard "Alle patronen") in plaats van een rij knoppen per patroon. Eén rij hoog, nooit breder dan het scherm, en de keuzelijst van Android is groot genoeg om met één hand te tikken.
 
+- **Vraag:** hoe voorkom je dat de onderbalk een knop bedekt bij automatisch scrollen?
+- **Keuze:** `scroll-padding-bottom` op de pagina (hoogte van de onderbalk + marge, en met de rustbalk erbij nog eens zoveel extra). De bestaande ruimte onder de inhoud blijft. Zo houdt de browser bij focus of automatisch scrollen altijd ruimte vrij.
+- **Veranderen:** bovenaan en bij "Training" in `src/index.css`.
+

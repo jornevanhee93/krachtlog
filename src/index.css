@@ -54,6 +54,11 @@
 /* ---------- Basis ---------- */
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
+/* Automatisch scrollen (focus, scrollIntoView) houdt ruimte vrij voor de onderbalk, zodat die nooit een knop bedekt. */
+html {
+  scroll-padding-top: var(--s3);
+  scroll-padding-bottom: calc(var(--nav-height) + var(--s3) + env(safe-area-inset-bottom));
+}
 body { margin: 0; background: var(--bg); color: var(--fg); }
 img, svg { max-width: 100%; }
 
@@ -387,6 +392,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--f
 
 /* ---------- Training ---------- */
 .training.met-rust { padding-bottom: 110px; }
+/* Met de rustbalk erbij: ook die ruimte vrijhouden bij automatisch scrollen. */
+html:has(.training.met-rust) { scroll-padding-bottom: calc(var(--nav-height) + 110px + env(safe-area-inset-bottom)); }
 .training-head {
   position: sticky;
   top: 0;

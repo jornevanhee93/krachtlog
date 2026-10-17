@@ -122,3 +122,16 @@ test('13. oefeningen: patroonfilter is één compacte keuzelijst', async ({ page
   await expect(page.locator('.list-item')).toHaveCount(1);
   await controleerScherm(page, 'fix13-patroon', info.project.name);
 });
+
+test('14. de onderbalk bedekt nooit een knop bij automatisch scrollen', async ({ page }) => {
+  await page.goto('#/data');
+  await sluitMeldingen(page);
+  await page.getByText('Instellingen', { exact: true }).click();
+  const knop = page.getByRole('button', { name: 'Bewaren', exact: true });
+  // Automatisch scrollen tot de knop onderaan in beeld komt (zoals bij focus of scrollIntoView).
+  await knop.evaluate((el) => el.scrollIntoView({ block: 'end' }));
+  await knop.evaluate((el) => el.scrollIntoView({ block: 'nearest' }));
+  const knopBox = await knop.boundingBox();
+  const navBox = await page.locator('.bottom-nav').boundingBox();
+  expect(knopBox && navBox && knopBox.y + knopBox.height).toBeLessThanOrEqual(navBox!.y);
+});

@@ -163,6 +163,7 @@ Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze
 11. ☐ **Geen dubbele last.** Bij een ladder met treden als "24 kg" staat in het voorstel en bij de sets "24 kg × 6", niet meer "24 kg · 24 kg × 6". Treden met een eigen naam ("Vest 5") blijven zichtbaar.
 12. ☐ **Diagnose ververst.** Kijk bij **Data → Diagnose** naar de aantallen. Importeer iets (of zet een back-up terug): de aantallen veranderen meteen, zonder de app opnieuw te openen.
 13. ☐ **Compacte patroonfilter.** **Oefeningen**: onder het zoekveld staat één keuzelijst **Patroon** (standaard "Alle patronen") in plaats van rijen knoppen. Kies een patroon: alleen die oefeningen blijven staan.
+14. ☐ **Onderbalk bedekt niets.** **Data → Instellingen** openklappen, een veld aanpassen: de knop **Bewaren** komt volledig boven de onderbalk in beeld (ook als het scherm vanzelf scrollt).
 
 ---
 
