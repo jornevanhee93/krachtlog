@@ -153,6 +153,7 @@ Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze
 1. ☐ **Vervangen houdt gedane sets.** Start een training, vink één set af van een oefening, tik **Vervangen** en kies een andere oefening. De eerste oefening blijft staan met "vervangen" en 1/1; de nieuwe staat eronder met de resterende sets. Sluit af: in de historiek staat de gedane set.
 2. ☐ **Gelijkaardige naam wordt gevraagd.** Importeer een bestand met een oefening die maar lijkt op een bestaande (of alleen een alias deelt). De app toont **"Is dit dezelfde oefening?"**; **Importeren** is grijs tot je *Koppelen* of *Nieuwe oefening* kiest. (Check ook bij Copenhagen dips → Bewerken of "Copenhagen plank" nog als alias staat; haal die weg als ze er niet hoort.)
 3. ☐ **Sjabloon bij het afsluiten.** Start vanuit een sjabloon, vink één set af, **Sessie afsluiten** → **Bewaar als sjabloon**. De naam staat op "… (aangepast)". Bewaar. Bij **Oefeningen → Sjablonen** staat het nieuwe sjabloon met evenveel groepen en oefeningen als het origineel. Typ je een bestaande naam, dan vraagt de app *Nieuw sjabloon* of *vervangen*.
+4. ☐ **Ladder zonder trede in de sets.** Open een oefening met een ladder waarvan de treden dezelfde last hebben (bv. tibialis BW 15 → BW 20 → BW 25, huidige trede BW 20) en waarvan de laatste sets geïmporteerd zijn zonder trede (20 en 20 reps). Het voorstel zegt **"klim naar BW 25"** (niet BW 20).
 
 ---
 

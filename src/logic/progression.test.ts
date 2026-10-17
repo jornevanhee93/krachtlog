@@ -397,3 +397,52 @@ describe('grensgevallen', () => {
     expect(voorstel(o, [sq(50, [5, 5, 5])]).type).toBe('alternatief');
   });
 });
+
+describe('sets zonder trede (bv. geïmporteerd)', () => {
+  const tibialis = oef({
+    id: 'tib',
+    naam: 'Tibialis raise',
+    metingen: ['variant', 'reps'],
+    progressie: {
+      modus: 'ladder',
+      profiel: 'opbouw',
+      doelRIR: 2,
+      sets: 2,
+      treden: [
+        { label: 'BW 15', last: { variant: 'BW' }, repBereik: { min: 15, max: 15 } },
+        { label: 'BW 20', last: { variant: 'BW' }, repBereik: { min: 20, max: 20 } },
+        { label: 'BW 25', last: { variant: 'BW' }, repBereik: { min: 25, max: 25 } },
+      ],
+      huidigeTrede: 'BW 20',
+    },
+  });
+
+  it('dezelfde last op meerdere treden: de huidige trede beslist, niet de onderste', () => {
+    const k = keer([set({ reps: 20, rir: 2 }), set({ reps: 20, rir: 2 })]);
+    expect(standVan(k.sets, tibialis).trede?.label).toBe('BW 20');
+    const v = voorstel(tibialis, [k]);
+    expect(v).toMatchObject({ type: 'klim', trede: 'BW 25' });
+    expect(v.uitleg).toMatch(/klim naar BW 25/);
+  });
+
+  it('ook met de variant ingevuld', () => {
+    const k = keer([set({ variant: 'BW', reps: 20, rir: 2 }), set({ variant: 'BW', reps: 20, rir: 2 })]);
+    expect(voorstel(tibialis, [k])).toMatchObject({ type: 'klim', trede: 'BW 25' });
+  });
+
+  it('een last die bij precies één trede past, gaat naar die trede', () => {
+    const k = keer([set({ extraKg: 10, reps: 8, rir: 2 }), set({ extraKg: 10, reps: 8, rir: 2 }), set({ extraKg: 10, reps: 8, rir: 2 })]);
+    expect(standVan(k.sets, pullUp).trede?.label).toBe('Vest 10');
+  });
+
+  it('past de last bij geen enkele trede, dan de huidige trede', () => {
+    const k = keer([set({ extraKg: 7.5, reps: 8, rir: 2 })]);
+    expect(standVan(k.sets, pullUp).trede?.label).toBe('Vest 5');
+  });
+
+  it('zonder huidige trede en zonder passende last: de onderste trede', () => {
+    const zonder = oef({ ...tibialis, progressie: { ...tibialis.progressie!, huidigeTrede: undefined } });
+    const k = keer([set({ reps: 15, rir: 2 })]);
+    expect(standVan(k.sets, zonder).trede?.label).toBe('BW 15');
+  });
+});

@@ -68,3 +68,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** de volledige structuur van de sessie zoals ze er bij het afsluiten uitziet: alle groepen (type, rondes, rust, duur) en alle oefeningen, ook die zonder gedane sets, met hun voorschrift (sets, repbereik, RIR, rust, rol, last, notitie). Een oefening die vervangen werd valt weg; de vervanger krijgt haar voorschrift. Bestaat de naam al, dan stelt de app een vrije naam voor ("Sessie A (aangepast)", daarna "(aangepast 2)" …). Typ je zelf een bestaande naam, dan kies je: als nieuw sjabloon (vrije naam, standaard) of het bestaande vervangen.
 - **Veranderen:** `naarSjabloon` en `vrijeSjabloonNaam` in `src/logic/activeSession.ts`; de keuze staat in `src/screens/training/FinishSheet.tsx`.
 
+- **Vraag:** op welke trede staat een set zonder `trede` (bv. geïmporteerd)?
+- **Keuze:** op de trede waarvan de last (gewicht, extra last, variant, tempo) overeenkomt. Passen er meerdere treden (bv. BW 15 → BW 20 → BW 25, allemaal lichaamsgewicht), dan de `huidigeTrede` als die erbij is, anders de laagste die past. Past er geen, dan de `huidigeTrede`; pas als die ontbreekt de onderste trede.
+- **Veranderen:** `tredeVanSet` in `src/logic/progression.ts`.
+

@@ -144,15 +144,29 @@ function zoekTrede(p: Progressie, label: string | undefined): number {
   return p.treden.findIndex((t) => t.label.toLowerCase() === label.toLowerCase());
 }
 
-/** Zoekt de trede die past bij de last van een set (als er geen tredelabel gelogd werd). */
-function tredeUitLast(p: Progressie, s: LogSet): number {
-  return p.treden.findIndex(
-    (t) =>
-      (t.last.gewichtKg ?? 0) === (s.gewichtKg ?? 0) &&
-      (t.last.extraKg ?? 0) === (s.extraKg ?? 0) &&
-      (!t.last.variant || !s.variant || t.last.variant.toLowerCase() === s.variant.toLowerCase()) &&
-      (!t.last.tempo || t.last.tempo === s.tempo),
+function lastPast(t: Trede, s: LogSet): boolean {
+  return (
+    (t.last.gewichtKg ?? 0) === (s.gewichtKg ?? 0) &&
+    (t.last.extraKg ?? 0) === (s.extraKg ?? 0) &&
+    (!t.last.variant || !s.variant || t.last.variant.toLowerCase() === s.variant.toLowerCase()) &&
+    (!t.last.tempo || t.last.tempo === s.tempo)
   );
+}
+
+/**
+ * De trede van een set. Met een gelogd tredelabel: die trede. Zonder label (bv. geïmporteerd):
+ * de trede waarvan de last (gewicht, extra last, variant, tempo) overeenkomt. Passen er meerdere
+ * (bv. BW 15 → BW 20 → BW 25, allemaal lichaamsgewicht), dan de huidige trede als die erbij is,
+ * anders de laagste die past. Past er geen, dan de huidige trede; pas daarna de onderste.
+ */
+export function tredeVanSet(p: Progressie, s: LogSet): number {
+  const label = zoekTrede(p, s.trede);
+  if (label >= 0) return label;
+  const huidig = zoekTrede(p, p.huidigeTrede);
+  const passend = p.treden.map((t, i) => (lastPast(t, s) ? i : -1)).filter((i) => i >= 0);
+  if (passend.length === 1) return passend[0];
+  if (passend.length > 1) return passend.includes(huidig) ? huidig : passend[0];
+  return huidig >= 0 ? huidig : p.treden.length ? 0 : -1;
 }
 
 /** De stand van één keer: de meest gebruikte trede of last in de werksets. */
@@ -161,10 +175,7 @@ export function standVan(sets: LogSet[], oef: Oefening): Stand {
   const werk = werkSets(sets);
   if (p?.modus === 'ladder') {
     const idx = meestVoorkomend(
-      werk.map((s) => {
-        const i = zoekTrede(p, s.trede);
-        return i >= 0 ? i : tredeUitLast(p, s);
-      }).filter((i) => i >= 0),
+      werk.map((s) => tredeVanSet(p, s)).filter((i) => i >= 0),
       (a, b) => a > b,
     );
     return idx === undefined ? {} : { trede: p.treden[idx], tredeIndex: idx };
