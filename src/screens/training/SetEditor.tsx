@@ -21,6 +21,8 @@ export default function SetEditor(props: {
   const { set, oefening, onChange } = props;
   const metingen = oefening?.metingen ?? ['gewicht', 'reps'];
   const treden = oefening?.progressie?.modus === 'ladder' ? oefening.progressie.treden : [];
+  // Power gaat nooit op RIR, alleen op kwaliteit (zie docs/trainingsfilosofie.md).
+  const power = oefening?.progressie?.profiel === 'power';
 
   const kiesTrede = (label: string) => {
     const trede = treden.find((x) => x.label === label);
@@ -89,10 +91,12 @@ export default function SetEditor(props: {
       </div>
       {!set.opwarm && (
         <>
-          <div className="field">
-            <span>{t.rir}</span>
-            <Segmented value={set.rir} options={RIR_OPTIES} allowNone onChange={(rir) => onChange({ rir })} ariaLabel={t.rir} className="big" />
-          </div>
+          {!power && (
+            <div className="field">
+              <span>{t.rir}</span>
+              <Segmented value={set.rir} options={RIR_OPTIES} allowNone onChange={(rir) => onChange({ rir })} ariaLabel={t.rir} className="big" />
+            </div>
+          )}
           <div className="field">
             <span>{t.kwaliteit}</span>
             <Segmented

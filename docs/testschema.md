@@ -158,6 +158,7 @@ Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze
 6. ☐ **Anker vast op de laagste trede.** Bij een anker met een last op de laagste trede (bv. kettlebell) die 3 keer zonder vooruitgang gelogd is, zegt het voorstel **"… op de laagste trede → 10% lichter (… kg)"** in plaats van "kies een alternatief".
 7. ☐ **Isometrisch klimmen.** Bij een isometrische oefening die de bovenkant van de duur haalde, zegt het voorstel "klim naar … , terug naar 20 s" (de onderkant). Start de training: het veld **Tijd (s)** staat op dezelfde waarde.
 8. ☐ **Tijd per kant.** Voeg in een training een unilaterale oefening met tijd toe (bv. Copenhagen plank): je ziet **Tijd links** en **Tijd rechts**. Vul 30 en 25 in, **Set klaar**, sluit af: in de historiek staat "L30/R25 s". Je bestaande data blijft staan (kijk even in Historiek).
+9. ☐ **Power zonder RIR.** Open in een training een power-oefening (bv. Box jump): er zijn geen RIR-knoppen, wel **Makkelijk / Controle / Gevecht**.
 
 ---
 
