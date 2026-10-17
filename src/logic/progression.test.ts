@@ -526,3 +526,25 @@ describe('stilstand op de laagste trede van een anker', () => {
     expect(v.type).toBe('alternatief');
   });
 });
+
+describe('na een klim: terug naar de onderkant van duur en afstand', () => {
+  it('isometrisch: klim naar de volgende hefboom, terug naar de onderkant van het duurbereik', () => {
+    const k = keer([30, 30].map((d) => set({ trede: 'Korte hefboom', duurSec: d, rirLinks: 3, rirRechts: 3 })));
+    const v = voorstel(plank, [k]);
+    expect(v).toMatchObject({ type: 'klim', trede: 'Lange hefboom', duurSec: 20 });
+    expect(v.uitleg).toMatch(/terug naar 20 s/);
+    expect(voorstelTekst(v)).toMatch(/20 s/);
+    expect(voorstelTekst(v)).not.toMatch(/30 s/);
+  });
+
+  it('carry: zwaarder, terug naar de onderkant van het afstandsbereik', () => {
+    const v = voorstel(carry, [keer([40, 40, 40].map((a) => set({ gewichtKg: 24, afstandM: a, kwaliteit: 'controle' })))]);
+    expect(v).toMatchObject({ type: 'klim', last: { gewichtKg: 28 }, afstandM: 20 });
+    expect(v.uitleg).toMatch(/terug naar 20 m/);
+  });
+
+  it('herhalen houdt de bovenkant als doel', () => {
+    const v = voorstel(plank, [keer([30, 25].map((d) => set({ trede: 'Korte hefboom', duurSec: d, rirLinks: 3, rirRechts: 3 })))]);
+    expect(v).toMatchObject({ type: 'herhaal', duurSec: 30 });
+  });
+});

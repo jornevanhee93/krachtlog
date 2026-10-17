@@ -297,3 +297,26 @@ describe('voorstel overnemen bij de start', () => {
     expect(set).toMatchObject({ gewichtKg: 20, repsLinks: 8, repsRechts: 8 });
   });
 });
+
+describe('voorstel invullen: duur en afstand', () => {
+  const plank = oefening.parse({
+    id: 'cp',
+    naam: 'Copenhagen plank',
+    metingen: ['tijd'],
+    progressie: {
+      modus: 'ladder',
+      profiel: 'isometrisch',
+      duurBereikSec: { min: 30, max: 45 },
+      treden: [{ label: 'Kort' }, { label: 'Lang' }],
+    },
+  });
+  it('de voorgevulde duur is dezelfde als in het voorstel (de onderkant na een klim)', () => {
+    const v: Voorstel = { type: 'klim', trede: 'Lang', last: {}, duurSec: 30, uitleg: 'klim naar Lang, terug naar 30 s', alternatieven: [] };
+    expect(pasVoorstelToe({ opwarm: false, trede: 'Kort', duurSec: 45 }, v, plank)).toMatchObject({ trede: 'Lang', duurSec: 30 });
+  });
+  it('carry: de afstand van het voorstel', () => {
+    const fc = oefening.parse({ id: 'fc', naam: 'Farmer carry', metingen: ['gewicht', 'afstand'] });
+    const v: Voorstel = { type: 'klim', last: { gewichtKg: 28 }, afstandM: 20, uitleg: '', alternatieven: [] };
+    expect(pasVoorstelToe({ opwarm: false, gewichtKg: 24, afstandM: 40 }, v, fc)).toMatchObject({ gewichtKg: 28, afstandM: 20 });
+  });
+});

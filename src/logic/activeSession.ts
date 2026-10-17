@@ -105,9 +105,9 @@ export function pasVoorstelToe(set: LogSet, v: Voorstel | undefined, oefening: O
       uit.reps = v.doelReps;
     }
   }
-  if (v.duurSec !== undefined && oefening?.metingen.includes('tijd') && v.type === 'klim' && v.trede) {
-    uit.duurSec = oefening.progressie?.duurBereikSec?.min ?? uit.duurSec;
-  }
+  // Duur en afstand zoals in het voorstel (na een klim of een stap lichter: de onderkant van het bereik).
+  if (v.duurSec !== undefined && oefening?.metingen.includes('tijd')) uit.duurSec = v.duurSec;
+  if (v.afstandM !== undefined && oefening?.metingen.includes('afstand')) uit.afstandM = v.afstandM;
   return schoon(uit);
 }
 

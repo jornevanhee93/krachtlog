@@ -80,3 +80,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** heeft die trede een last (gewicht of extra last) en laat het materiaal een lichtere last toe, dan stelt de app die voor met de lastcalculator: de zwaarste haalbare last op of onder −10% (het percentage uit Instellingen), anders de eerstvolgende lichtere. De trede blijft dezelfde, alleen de last zakt. Is er geen lichtere last (bv. lichaamsgewicht, of al de lichtste kettlebell), dan blijft het een alternatief. Let op: met vaste gewichten kan de stap groter zijn dan 10% (bv. 24 → 16 kg als er niets tussen ligt).
 - **Veranderen:** het stilstandsblok in `maakVoorstel` (`src/logic/progression.ts`).
 
+- **Vraag:** met welke duur of afstand start je na een klim (isometrisch, carry)?
+- **Keuze:** zoals bij reps: na een klim of een stap lichter terug naar de onderkant van het duur- of afstandsbereik (van de nieuwe trede als die een eigen bereik heeft). Het voorstel, de uitleg ("terug naar 30 s") en de voorgevulde set gebruiken dezelfde waarde. Bij herhalen blijft de bovenkant het doel.
+- **Veranderen:** `onderaan` in `src/logic/progression.ts` en `pasVoorstelToe` in `src/logic/activeSession.ts`.
+

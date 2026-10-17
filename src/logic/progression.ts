@@ -324,8 +324,10 @@ function lastVanStand(oef: Oefening, stand: Stand): LastSpec | undefined {
   return undefined;
 }
 
-function basis(oef: Oefening, p: Progressie, stand: Stand, regels: Regels): Omit<Voorstel, 'type' | 'uitleg' | 'alternatieven'> {
-  const v: Omit<Voorstel, 'type' | 'uitleg' | 'alternatieven'> = {
+type Basis = Omit<Voorstel, 'type' | 'uitleg' | 'alternatieven'>;
+
+function basis(oef: Oefening, p: Progressie, stand: Stand, regels: Regels): Basis {
+  const v: Basis = {
     trede: stand.trede?.label,
     last: lastVanStand(oef, stand),
     sets: p.sets,
@@ -338,6 +340,27 @@ function basis(oef: Oefening, p: Progressie, stand: Stand, regels: Regels): Omit
   const a = afstandBereik(p, stand);
   if (a) v.afstandM = a.max;
   return v;
+}
+
+/**
+ * Na een klim, een stap lichter of bij de start: terug naar de onderkant van het bereik (reps, duur en afstand),
+ * zodat de tekst en de voorinvulling in de training hetzelfde zeggen.
+ */
+function onderaan(p: Progressie, stand: Stand, v: Basis): Basis {
+  const uit: Basis = { ...v, doelReps: v.reps?.min };
+  const d = duurBereik(p, stand);
+  if (d) uit.duurSec = d.min;
+  const a = afstandBereik(p, stand);
+  if (a) uit.afstandM = a.min;
+  return uit;
+}
+
+/** ", terug naar 5 reps" / ", terug naar 20 s" / ", terug naar 30 m". */
+function terugTekst(v: Basis): string {
+  if (v.reps) return `, terug naar ${v.reps.min} reps`;
+  if (v.duurSec !== undefined) return `, terug naar ${formatGetal(v.duurSec)} s`;
+  if (v.afstandM !== undefined) return `, terug naar ${formatGetal(v.afstandM)} m`;
+  return '';
 }
 
 function kgTekst(n: number) {
@@ -403,11 +426,10 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
 
   if (gedaan.length === 0) {
     const stand = huidigeStand(oef, []);
-    const v = basis(oef, p, stand, regels);
+    const v = onderaan(p, stand, basis(oef, p, stand, regels));
     return {
       type: 'start',
       ...v,
-      doelReps: v.reps?.min,
       uitleg:
         p.modus === 'ladder'
           ? `Nog niet gelogd: start op ${stand.trede?.label ?? 'de eerste trede'}, onderaan het bereik.`
@@ -440,12 +462,11 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
       const volgende = p.treden[stand.tredeIndex + 1];
       if (volgende) {
         const nieuw = { trede: volgende, tredeIndex: stand.tredeIndex + 1 };
-        const nb = basis(oef, p, nieuw, regels);
+        const nb = onderaan(p, nieuw, basis(oef, p, nieuw, regels));
         return {
           type: 'klim',
           ...nb,
-          doelReps: nb.reps?.min,
-          uitleg: `${waarom} → klim naar ${volgende.label}${nb.reps ? `, terug naar ${nb.reps.min} reps` : ''}.`,
+          uitleg: `${waarom} → klim naar ${volgende.label}${terugTekst(nb)}.`,
           alternatieven: [],
         };
       }
@@ -466,12 +487,12 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
         if (p.profiel === 'opbouw' && stand.kg > 0 && stap / stand.kg > 0.1) {
           extra.push({ stap: 'reps', tekst: `De stap is groot (+${kgTekst(stap)}): verzamel eerst extra reps over de sets.` });
         }
+        const nb = onderaan(p, stand, v);
         return {
           type: 'klim',
-          ...v,
+          ...nb,
           last: { [lastVeld(oef)]: nieuw },
-          doelReps: v.reps?.min,
-          uitleg: `${waarom} → ${kgTekst(nieuw)} (+${kgTekst(stap)})${v.reps ? `, terug naar ${v.reps.min} reps` : ''}.`,
+          uitleg: `${waarom} → ${kgTekst(nieuw)} (+${kgTekst(stap)})${terugTekst(nb)}.`,
           alternatieven: extra,
         };
       }
@@ -512,9 +533,8 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
         if (kg < stand.kg) {
           return {
             type: 'lichter',
-            ...v,
+            ...onderaan(p, stand, v),
             last: { ...v.last, [lastVeld(oef)]: kg },
-            doelReps: v.reps?.min,
             uitleg: `${kop} → ${formatGetal(st.percentage)}% lichter (${kgTekst(kg)}) en opnieuw opbouwen.`,
             alternatieven: [],
           };
@@ -522,11 +542,11 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
       }
       if (stand.tredeIndex !== undefined && stand.tredeIndex > 0) {
         const vorige = p.treden[stand.tredeIndex - 1];
-        const nb = basis(oef, p, { trede: vorige, tredeIndex: stand.tredeIndex - 1 }, regels);
+        const terug = { trede: vorige, tredeIndex: stand.tredeIndex - 1 };
+        const nb = onderaan(p, terug, basis(oef, p, terug, regels));
         return {
           type: 'lichter',
           ...nb,
-          doelReps: nb.reps?.min,
           uitleg: `${kop} → een trede terug (${vorige.label}) en opnieuw opbouwen.`,
           alternatieven: [],
         };
@@ -543,9 +563,8 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
           if (kg < huidig && (lasten.length > 0 || p.kleinsteStapKg)) {
             return {
               type: 'lichter',
-              ...v,
+              ...onderaan(p, stand, v),
               last: { ...l, [veld]: kg },
-              doelReps: v.reps?.min,
               uitleg: `${kop} op de laagste trede → ${formatGetal(st.percentage)}% lichter (${veld === 'extraKg' ? '+' : ''}${kgTekst(kg)}) en opnieuw opbouwen.`,
               alternatieven: [],
             };
