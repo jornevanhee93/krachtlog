@@ -43,6 +43,7 @@ export default function TrainingScreen() {
   const [info, setInfo] = useState<string | null>(null);
   const oefeningen = useLiveQuery(() => db.oefeningen.toArray(), []);
   const materiaal = useLiveQuery(() => db.materiaal.toArray(), []) ?? [];
+  const sjablonen = useLiveQuery(() => db.sjablonen.toArray(), []) ?? [];
   const perId = new Map((oefeningen ?? []).map((o) => [o.id, o]));
   const schermAan = useWakeLock(Boolean(sessie));
   const nu = useNow(1000);
@@ -98,7 +99,10 @@ export default function TrainingScreen() {
     }
     await bewaarSessie(gelogd);
     if (s.planningId) await markeerGepland(s.planningId, gelogd.id, new Date(einde));
-    if (g.sjabloonNaam) await db.sjablonen.put(naarSjabloon(s, g.sjabloonNaam));
+    if (g.sjabloonNaam) {
+      const nieuw = naarSjabloon(s, g.sjabloonNaam);
+      await db.sjablonen.put(g.vervangSjabloonId ? { ...nieuw, id: g.vervangSjabloonId } : nieuw);
+    }
     await wisActief();
     navigate(`/historiek/${encodeURIComponent(gelogd.id)}`, { replace: true });
   };
@@ -210,7 +214,7 @@ export default function TrainingScreen() {
           onBewerk={() => navigate(`/oefeningen/${encodeURIComponent(info)}`, { replace: true })}
         />
       )}
-      {afsluiten && <FinishSheet sessie={sessie} onBewaar={(g) => void bewaar(g)} onSluit={() => setAfsluiten(false)} />}
+      {afsluiten && <FinishSheet sessie={sessie} sjablonen={sjablonen} onBewaar={(g) => void bewaar(g)} onSluit={() => setAfsluiten(false)} />}
     </section>
   );
 }

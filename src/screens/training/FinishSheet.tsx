@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Checkbox, Field, NumberInput, Segmented, TextField } from '../../components/form';
 import { nl } from '../../i18n/nl';
 import { formatDatum, minutenTussen } from '../../logic/format';
-import type { ActiveSession } from '../../logic/activeSession';
+import { vrijeSjabloonNaam, type ActiveSession } from '../../logic/activeSession';
+import { normaliseer } from '../../logic/matching';
+import type { Sjabloon } from '../../schema';
 
 const t = nl.afsluiten;
 
@@ -12,15 +14,34 @@ export interface AfsluitGegevens {
   plezier: number | undefined;
   notitie: string;
   sjabloonNaam: string | null;
+  /** Bestaand sjabloon met dezelfde naam dat bewust vervangen wordt. */
+  vervangSjabloonId?: string;
 }
 
-export default function FinishSheet(props: { sessie: ActiveSession; onBewaar: (g: AfsluitGegevens) => void; onSluit: () => void }) {
+export default function FinishSheet(props: {
+  sessie: ActiveSession;
+  sjablonen: Pick<Sjabloon, 'id' | 'naam'>[];
+  onBewaar: (g: AfsluitGegevens) => void;
+  onSluit: () => void;
+}) {
   const [duurMin, setDuurMin] = useState<number | undefined>(minutenTussen(props.sessie.start, new Date().toISOString()));
   const [rpe, setRpe] = useState<number | undefined>();
   const [plezier, setPlezier] = useState<number | undefined>();
   const [notitie, setNotitie] = useState('');
   const [alsSjabloon, setAlsSjabloon] = useState(false);
-  const [naam, setNaam] = useState(props.sessie.sjabloonNaam ?? t.standaardNaam(formatDatum(props.sessie.start)));
+  const bestaandeNamen = props.sjablonen.map((x) => x.naam);
+  // Een naam die al bestaat wordt nooit stil gedupliceerd: standaard een vrije naam, bv. "Sessie A (aangepast)".
+  const [naam, setNaam] = useState(() =>
+    vrijeSjabloonNaam(props.sessie.sjabloonNaam ?? t.standaardNaam(formatDatum(props.sessie.start)), bestaandeNamen),
+  );
+  const [vervangen, setVervangen] = useState(false);
+  const botsing = props.sjablonen.find((x) => normaliseer(x.naam) === normaliseer(naam));
+  const vrij = vrijeSjabloonNaam(naam, bestaandeNamen);
+  const bewaar = () => {
+    if (!alsSjabloon) return props.onBewaar({ duurMin, rpe, plezier, notitie, sjabloonNaam: null });
+    if (botsing && vervangen) return props.onBewaar({ duurMin, rpe, plezier, notitie, sjabloonNaam: naam, vervangSjabloonId: botsing.id });
+    props.onBewaar({ duurMin, rpe, plezier, notitie, sjabloonNaam: botsing ? vrij : naam });
+  };
 
   return (
     <div className="sheet" role="dialog" aria-label={t.titel}>
@@ -59,11 +80,20 @@ export default function FinishSheet(props: { sessie: ActiveSession; onBewaar: (g
       </label>
       <Checkbox label={t.alsSjabloon} checked={alsSjabloon} onChange={setAlsSjabloon} />
       {alsSjabloon && <TextField label={t.sjabloonNaam} value={naam} onChange={setNaam} />}
-      <button
-        className="btn btn-primary btn-block btn-big"
-        disabled={alsSjabloon && !naam.trim()}
-        onClick={() => props.onBewaar({ duurMin, rpe, plezier, notitie, sjabloonNaam: alsSjabloon ? naam : null })}
-      >
+      {alsSjabloon && botsing && (
+        <fieldset className="choice-group">
+          <legend className="warn">{t.naamBestaat}</legend>
+          <label className="radio">
+            <input type="radio" name="sjabloon-botsing" checked={!vervangen} onChange={() => setVervangen(false)} />
+            {t.alsNieuw(vrij)}
+          </label>
+          <label className="radio">
+            <input type="radio" name="sjabloon-botsing" checked={vervangen} onChange={() => setVervangen(true)} />
+            {t.vervangBestaand(botsing.naam)}
+          </label>
+        </fieldset>
+      )}
+      <button className="btn btn-primary btn-block btn-big" disabled={alsSjabloon && !naam.trim()} onClick={bewaar}>
         {t.bewaren}
       </button>
     </div>

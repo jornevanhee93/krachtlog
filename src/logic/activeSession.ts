@@ -11,6 +11,7 @@ import type {
   SjabloonItem,
 } from '../schema';
 import { nieuwId } from './ids';
+import { normaliseer } from './matching';
 import type { Voorstel } from './progression';
 
 export const STANDAARD_RUST_SEC = 90;
@@ -403,11 +404,6 @@ function eersteOpen(groepen: ActiveGroup[]): Focus | null {
   return null;
 }
 
-/** Hoe ver een item is in de groep: het aantal afgewerkte werksets. */
-function werkKlaar(item: ActiveItem) {
-  return item.sets.filter((x) => x.klaar && !x.opwarm).length;
-}
-
 /**
  * Markeert een set als klaar en bepaalt wat er daarna komt:
  * - enkel: rust, en dezelfde oefening blijft in beeld tot alle sets klaar zijn
@@ -530,33 +526,39 @@ export function naarSessie(s: ActiveSession, a: Afsluiting): Sessie {
   });
 }
 
-/** Maakt een sjabloon van wat je in deze sessie gedaan hebt. */
+/**
+ * Maakt een sjabloon van de sessie zoals ze er bij het afsluiten uitziet: alle groepen en oefeningen,
+ * ook die zonder gedane sets, met hun voorschrift. Een vervangen oefening valt weg; haar vervanger
+ * neemt het voorschrift over.
+ */
 export function naarSjabloon(s: ActiveSession, naam: string): Sjabloon {
   const groepen: SjabloonGroep[] = [];
   for (const g of s.groepen) {
-    const items: SjabloonItem[] = [];
-    for (const item of g.items) {
-      const werk = item.sets.filter((x) => x.klaar && !x.opwarm);
-      if (werk.length === 0) continue;
+    const actief = g.items.filter((item) => !item.vervangen);
+    const items: SjabloonItem[] = actief.map((item) => {
+      const werk = item.sets.filter((x) => !x.opwarm);
       const reps = werk
+        .filter((x) => x.klaar)
         .map((x) => x.reps ?? Math.min(x.repsLinks ?? Infinity, x.repsRechts ?? Infinity))
-        .filter((x) => Number.isFinite(x));
+        .filter((x) => Number.isFinite(x) && x > 0);
       const repBereik =
         item.doel.repBereik ?? (reps.length ? { min: Math.min(...reps), max: Math.max(...reps) } : undefined);
-      items.push(
-        schoon({
-          oefeningId: item.oefeningId,
-          sets: g.type === 'enkel' ? werk.length : undefined,
-          repBereik,
-          doelRIR: item.doel.doelRIR,
-          rustSec: item.doel.rustSec,
-          rol: item.doel.rol,
-          notitie: item.doel.notitie,
-        }),
-      );
-    }
+      return schoon({
+        oefeningId: item.oefeningId,
+        sets: g.type === 'enkel' ? (item.doel.sets ?? Math.max(1, werk.length)) : undefined,
+        repBereik,
+        doelRIR: item.doel.doelRIR,
+        rustSec: item.doel.rustSec,
+        rol: item.doel.rol,
+        last: item.doel.last,
+        notitie: item.doel.notitie,
+      });
+    });
     if (items.length === 0) continue;
-    const rondes = g.type === 'superset' || g.type === 'circuit' ? Math.max(...g.items.map(werkKlaar)) : g.rondes;
+    const rondes =
+      g.type === 'superset' || g.type === 'circuit'
+        ? Math.max(g.rondes, ...actief.map((it) => it.sets.filter((x) => !x.opwarm).length))
+        : g.rondes;
     groepen.push(
       schoon({
         label: g.label,
@@ -572,6 +574,20 @@ export function naarSjabloon(s: ActiveSession, naam: string): Sjabloon {
     );
   }
   return { id: nieuwId('sjab'), naam: naam.trim(), opwarming: s.opwarming, groepen };
+}
+
+/**
+ * Een naam voor een nieuw sjabloon die nog niet bestaat (hoofdletters en leestekens tellen niet):
+ * "Sessie A" → "Sessie A (aangepast)" → "Sessie A (aangepast 2)" …
+ */
+export function vrijeSjabloonNaam(naam: string, bestaande: string[]): string {
+  const bezet = new Set(bestaande.map(normaliseer));
+  const basis = naam.trim();
+  if (!bezet.has(normaliseer(basis))) return basis;
+  for (let i = 1; ; i++) {
+    const kandidaat = `${basis} (aangepast${i === 1 ? '' : ` ${i}`})`;
+    if (!bezet.has(normaliseer(kandidaat))) return kandidaat;
+  }
 }
 
 /** Haalt velden met de waarde undefined weg (netter in JSON en IndexedDB). */

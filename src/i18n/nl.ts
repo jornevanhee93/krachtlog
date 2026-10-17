@@ -346,6 +346,9 @@ export const nl = {
     notitie: 'Notitie',
     alsSjabloon: 'Bewaar als sjabloon',
     sjabloonNaam: 'Naam van het sjabloon',
+    naamBestaat: 'Er bestaat al een sjabloon met deze naam.',
+    alsNieuw: (naam: string) => `Nieuw sjabloon: "${naam}"`,
+    vervangBestaand: (naam: string) => `"${naam}" vervangen`,
     bewaren: 'Sessie bewaren',
     geenSets: 'Je hebt nog geen enkele set afgevinkt. Toch afsluiten? Er wordt dan niets bewaard.',
     bewaard: 'Sessie bewaard.',
@@ -392,7 +395,7 @@ export const nl = {
     koppelAan: (naam: string) => `Koppelen aan "${naam}"`,
     nieuweOefening: 'Nieuwe oefening',
     uitBestand: 'Uit het bestand',
-    twijfelOpen: (n: number) => (n === 1 ? '! Kies eerst bij 1 oefening: koppelen of nieuw.' : `! Kies eerst bij ${n} oefeningen: koppelen of nieuw.`),
+    twijfelOpen: (n: number) => (n === 1 ? 'Kies eerst bij 1 oefening: koppelen of nieuw.' : `Kies eerst bij ${n} oefeningen: koppelen of nieuw.`),
     samenvatting: 'Wat er gebeurt',
     samenvattingRegels: (s: {
       materiaalNieuw: number;

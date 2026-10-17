@@ -64,3 +64,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Veranderen:** `zoekMatch` in `src/logic/matching.ts`; de vraag staat in `ImportPlanView` in `src/screens/DataScreen.tsx`.
 - **Let op:** "Copenhagen plank" staat op je telefoon misschien nog als alias bij "Copenhagen dips". Haal die alias weg via Oefeningen → Copenhagen dips → Bewerken als ze er niet hoort.
 
+- **Vraag:** wat bewaart "Bewaar als sjabloon" bij het afsluiten, en onder welke naam?
+- **Keuze:** de volledige structuur van de sessie zoals ze er bij het afsluiten uitziet: alle groepen (type, rondes, rust, duur) en alle oefeningen, ook die zonder gedane sets, met hun voorschrift (sets, repbereik, RIR, rust, rol, last, notitie). Een oefening die vervangen werd valt weg; de vervanger krijgt haar voorschrift. Bestaat de naam al, dan stelt de app een vrije naam voor ("Sessie A (aangepast)", daarna "(aangepast 2)" …). Typ je zelf een bestaande naam, dan kies je: als nieuw sjabloon (vrije naam, standaard) of het bestaande vervangen.
+- **Veranderen:** `naarSjabloon` en `vrijeSjabloonNaam` in `src/logic/activeSession.ts`; de keuze staat in `src/screens/training/FinishSheet.tsx`.
+

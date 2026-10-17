@@ -16,6 +16,7 @@ import {
   voegOpwarmsetToe,
   volgendeSet,
   wisselOpen,
+  vrijeSjabloonNaam,
   type ActiveSession,
 } from './activeSession';
 import type { Voorstel } from './progression';
@@ -159,15 +160,38 @@ describe('afsluiten', () => {
     expect(sessie.oefeningen[0].sets[0]).not.toHaveProperty('klaar');
   });
 
-  it('maakt een sjabloon van de sessie', () => {
+  it('maakt een sjabloon van de volledige sessie, ook van oefeningen zonder gedane sets', () => {
     let s = startSessie(sjab, oefeningen, {});
     s = setKlaar(s, { groep: 1, item: 0 }, 0, T0);
     s = setKlaar(s, { groep: 1, item: 0 }, 1, T0);
     const nieuw = naarSjabloon(s, ' Mijn sessie ');
     expect(nieuw.naam).toBe('Mijn sessie');
-    expect(nieuw.groepen).toHaveLength(1);
-    expect(nieuw.groepen[0].items[0]).toMatchObject({ oefeningId: 'swing', sets: 2, rustSec: 60, repBereik: { min: 0, max: 0 } });
+    expect(nieuw.groepen.map((g) => [g.label, g.type, g.items.map((i) => i.oefeningId)])).toEqual([
+      ['A', 'superset', ['pu', 'rdl']],
+      ['B', 'enkel', ['swing']],
+      ['F', 'amrap', ['swing', 'pu']],
+    ]);
+    expect(nieuw.groepen[0]).toMatchObject({ rondes: 2, rustTussenOefeningenSec: 30, rustTussenRondesSec: 120 });
+    expect(nieuw.groepen[0].items[1]).toMatchObject({ repBereik: { min: 8, max: 12 } });
+    expect(nieuw.groepen[1].items[0]).toMatchObject({ oefeningId: 'swing', sets: 2, rustSec: 60, last: { gewichtKg: 16 } });
+    expect(nieuw.groepen[2]).toMatchObject({ duurSec: 300 });
+    expect(nieuw.opwarming).toEqual(s.opwarming);
     expect(sjabloon.safeParse(nieuw).success).toBe(true);
+  });
+
+  it('een vervangen oefening komt niet in het sjabloon; haar vervanger wel, met het oorspronkelijke voorschrift', () => {
+    let s = startSessie(sjab, oefeningen, {});
+    s = setKlaar(s, { groep: 1, item: 0 }, 0, T0);
+    s = vervangOefening(s, { groep: 1, item: 0 }, oefeningen[0], undefined);
+    const nieuw = naarSjabloon(s, 'X');
+    expect(nieuw.groepen[1].items).toHaveLength(1);
+    expect(nieuw.groepen[1].items[0]).toMatchObject({ oefeningId: 'pu', sets: 2, rustSec: 60 });
+  });
+
+  it('stelt een vrije naam voor als de naam van het sjabloon al bestaat', () => {
+    expect(vrijeSjabloonNaam('Sessie A', [])).toBe('Sessie A');
+    expect(vrijeSjabloonNaam('Sessie A', ['sessie a'])).toBe('Sessie A (aangepast)');
+    expect(vrijeSjabloonNaam('Sessie A', ['Sessie A', 'Sessie A (aangepast)'])).toBe('Sessie A (aangepast 2)');
   });
 
   it('vervangen houdt de gedane sets: de oude oefening blijft staan, de nieuwe krijgt de resterende sets', () => {

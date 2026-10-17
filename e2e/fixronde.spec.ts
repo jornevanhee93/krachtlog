@@ -68,3 +68,32 @@ test('2. programma-import: een gelijkaardige naam wordt gevraagd, niet stil geko
   await page.goto('#/oefeningen');
   await expect(page.locator('.list-item')).toHaveCount(2);
 });
+
+test('3. bewaar als sjabloon: volledige structuur en geen dubbele naam', async ({ page }, info) => {
+  await accepteerDialogen(page);
+  await importeer(page, voorbeeld('bibliotheek.json'));
+  await page.goto('#/');
+  await sluitMeldingen(page);
+  await page.getByRole('button', { name: /Voorbeeld sessie A/ }).click();
+  await expect(page).toHaveURL(/#\/training/);
+  await page.getByRole('button', { name: 'Set klaar' }).click();
+
+  await page.getByRole('button', { name: 'Sessie afsluiten' }).click();
+  await page.getByText('Bewaar als sjabloon').click();
+  const naam = page.getByRole('textbox', { name: 'Naam van het sjabloon' });
+  await expect(naam).toHaveValue('Voorbeeld sessie A (aangepast)');
+  // Typ je toch een bestaande naam, dan vraagt de app: nieuw of vervangen.
+  await naam.fill('Voorbeeld sessie A');
+  await expect(page.getByText('Er bestaat al een sjabloon met deze naam.')).toBeVisible();
+  await expect(page.getByLabel('Nieuw sjabloon: "Voorbeeld sessie A (aangepast)"')).toBeChecked();
+  await controleerScherm(page, 'fix3-sjabloon', info.project.name);
+  await page.getByRole('button', { name: 'Sessie bewaren' }).click();
+  await expect(page).toHaveURL(/#\/historiek\//);
+
+  await page.goto('#/sjablonen');
+  const rijen = page.locator('.list-item');
+  await expect(rijen).toHaveCount(2);
+  await expect(rijen.nth(0)).toContainText('Voorbeeld sessie A');
+  await expect(rijen.nth(1)).toContainText('Voorbeeld sessie A (aangepast)');
+  await expect(rijen.nth(1)).toContainText('4 groepen · 6 oefeningen');
+});
