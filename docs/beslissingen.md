@@ -72,3 +72,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** op de trede waarvan de last (gewicht, extra last, variant, tempo) overeenkomt. Passen er meerdere treden (bv. BW 15 → BW 20 → BW 25, allemaal lichaamsgewicht), dan de `huidigeTrede` als die erbij is, anders de laagste die past. Past er geen, dan de `huidigeTrede`; pas als die ontbreekt de onderste trede.
 - **Veranderen:** `tredeVanSet` in `src/logic/progression.ts`.
 
+- **Vraag:** welke alternatieven stelt de app voor als er geen gewone stap is?
+- **Keuze:** volgens het profiel. Power: complexiteit, volgende variant, zwaarder, pauze (nooit meer reps, trager tempo of een extra set). Carry: houding, afstand, last. Isometrisch: duur, hefboom, last. Anker/opbouw/geen profiel: de volgorde van de oefening plus reps, set, tempo, pauze, variant. "Meer reps boven het bereik" alleen als de bovenkant van het bereik al gehaald werd (niet bij stilstand onderaan, bv. vast op 6 bij 6–8). "Zwaarder" valt weg als het materiaal geen zwaardere stap heeft. Een eigen volgorde bij de oefening gaat voor de profielvolgorde.
+- **Veranderen:** `PROFIEL_STAPPEN` en `alternatieven` in `src/logic/progression.ts`.
+

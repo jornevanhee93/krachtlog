@@ -42,6 +42,9 @@ export const progressieStap = z.enum(PROGRESSIE_STAPPEN, {
 });
 export type ProgressieStap = z.infer<typeof progressieStap>;
 
+/** De standaardvolgorde waarin je progressie zoekt: eerst reps, dan last, pas als laatste een set. */
+export const STANDAARD_VOLGORDE = ['reps', 'last', 'sets'] as const;
+
 export const progressie = z
   .strictObject({
     /** ladder = expliciete treden; last = de treden volgen uit het materiaal. */
@@ -78,7 +81,7 @@ export const progressie = z
       })
       .optional(),
     /** In welke volgorde je progressie zoekt. */
-    volgorde: z.array(progressieStap).min(1).default(['reps', 'last', 'sets']),
+    volgorde: z.array(progressieStap).min(1).default([...STANDAARD_VOLGORDE]),
   })
   .superRefine((p, ctx) => {
     if (p.modus === 'ladder' && p.treden.length === 0) {

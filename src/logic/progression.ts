@@ -1,6 +1,6 @@
 // Progressie: de laatste sessie(s) evalueren tegen de ladder of de regel, en een voorstel maken.
 // Alles puur. De standaarden (profielen, stagnatie) komen uit de instellingen (filosofie).
-import type { Filosofie, LastSpec, LogSet, Materiaal, Oefening, Progressie, ProgressieStap, Trede } from '../schema';
+import { STANDAARD_VOLGORDE, type Filosofie, type LastSpec, type LogSet, type Materiaal, type Oefening, type Progressie, type ProgressieStap, type Trede } from '../schema';
 import { formatGetal } from './format';
 import { lastenVoor, lichter, volgendeLast } from './loadCalc';
 
@@ -273,9 +273,33 @@ export function evalueer(sets: LogSet[], oef: Oefening, regels: Regels, stand: S
 
 const ALTERNATIEF_VOLGORDE: ProgressieStap[] = ['reps', 'sets', 'tempo', 'pauze', 'variant'];
 
-function alternatieven(p: Progressie, stand: Stand, uitsluiten: ProgressieStap[] = ['last']): Alternatief[] {
-  const stappen = [...p.volgorde, ...ALTERNATIEF_VOLGORDE].filter(
-    (s, i, all) => all.indexOf(s) === i && !uitsluiten.includes(s),
+/** Welke alternatieven bij een profiel passen (zie docs/trainingsfilosofie.md). Geen profiel of anker/opbouw: de standaard. */
+const PROFIEL_STAPPEN: Partial<Record<NonNullable<Progressie['profiel']>, ProgressieStap[]>> = {
+  power: ['complexiteit', 'variant', 'last', 'pauze'],
+  carry: ['houding', 'afstand', 'last'],
+  isometrisch: ['duur', 'hefboom', 'last'],
+};
+
+/**
+ * Alternatieven als er geen gewone stap is. Ze volgen het profiel: power nooit meer reps of trager tempo,
+ * carry houding/afstand/last, isometrisch duur/hefboom/last. "Meer reps boven het bereik" alleen als de
+ * bovenkant al gehaald werd. "Zwaarder" valt weg als het materiaal geen zwaardere stap heeft.
+ */
+function alternatieven(
+  p: Progressie,
+  stand: Stand,
+  opties: { bovenkant: boolean; geenZwaarder?: boolean },
+): Alternatief[] {
+  const profiel = p.profiel ? PROFIEL_STAPPEN[p.profiel] : undefined;
+  const toegelaten = profiel ?? [...p.volgorde, ...ALTERNATIEF_VOLGORDE].filter((s) => s !== 'last');
+  // Een eigen volgorde bij de oefening gaat voor; de standaardvolgorde (reps → last → sets) niet bij een profiel.
+  const eigenVolgorde = profiel && p.volgorde.join() === STANDAARD_VOLGORDE.join() ? [] : p.volgorde;
+  const stappen = [...eigenVolgorde, ...toegelaten].filter(
+    (s, i, all) =>
+      all.indexOf(s) === i &&
+      toegelaten.includes(s) &&
+      !(s === 'last' && opties.geenZwaarder) &&
+      !(s === 'reps' && !opties.bovenkant),
   );
   const b = repBereik(p, stand);
   const tekst: Record<ProgressieStap, string> = {
@@ -337,6 +361,12 @@ function waaromNiet(ev: Evaluatie, oef: Oefening, p: Progressie, stand: Stand): 
   if (r.includes('kwaliteit')) return 'Nog niet alles Makkelijk: zelfde trede, focus op snel en strak.';
   if (r.includes('geenBereik')) return 'Geen bereik ingesteld: herhaal, of stel een bereik in bij de oefening.';
   return 'Herhaal.';
+}
+
+/** Haalde de laatste keer de bovenkant van het repbereik in alle sets (ook als iets anders ontbrak)? */
+function bovenkantGehaald(ev: Evaluatie, p: Progressie, stand: Stand): boolean {
+  const b = repBereik(p, stand);
+  return ev.gehaald || (b !== undefined && ev.minReps !== undefined && ev.minReps >= b.max);
 }
 
 /** Hoeveel keer op rij (vanaf de laatste) het criterium op dezelfde stand gehaald werd. */
@@ -423,7 +453,7 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
         type: 'alternatief',
         ...v,
         uitleg: `${waarom}, maar dit is de hoogste trede: kies een alternatief of voeg een trede toe.`,
-        alternatieven: alternatieven(p, stand),
+        alternatieven: alternatieven(p, stand, { bovenkant: true }),
       };
     }
 
@@ -449,7 +479,7 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
         type: 'alternatief',
         ...v,
         uitleg: `${waarom}, maar je materiaal heeft geen zwaardere stap: kies een alternatief.`,
-        alternatieven: alternatieven(p, stand),
+        alternatieven: alternatieven(p, stand, { bovenkant: true, geenZwaarder: true }),
       };
     }
 
@@ -457,7 +487,7 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
       type: 'alternatief',
       ...v,
       uitleg: `${waarom}. Geen last of trede bekend: kies zelf de volgende stap.`,
-      alternatieven: alternatieven(p, stand),
+      alternatieven: alternatieven(p, stand, { bovenkant: true }),
     };
   }
 
@@ -507,14 +537,14 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
         type: 'wissel',
         ...v,
         uitleg: `${kop} → wissel naar een andere oefening in hetzelfde patroon (de teller start opnieuw).`,
-        alternatieven: alternatieven(p, stand),
+        alternatieven: alternatieven(p, stand, { bovenkant: bovenkantGehaald(ev, p, stand) }),
       };
     }
     return {
       type: 'alternatief',
       ...v,
       uitleg: `${kop}: kies een alternatief.`,
-      alternatieven: alternatieven(p, stand),
+      alternatieven: alternatieven(p, stand, { bovenkant: bovenkantGehaald(ev, p, stand) }),
     };
   }
 

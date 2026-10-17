@@ -446,3 +446,43 @@ describe('sets zonder trede (bv. geïmporteerd)', () => {
     expect(standVan(k.sets, zonder).trede?.label).toBe('BW 15');
   });
 });
+
+describe('alternatieven volgen het profiel', () => {
+  const stappen = (v: { alternatieven: { stap: string }[] }) => v.alternatieven.map((a) => a.stap);
+
+  it('power: nooit meer reps of trager tempo; wel complexiteit/variant, zwaarder, pauze', () => {
+    const bj = (kw: LogSet['kwaliteit']) => keer([1, 2, 3].map(() => set({ trede: 'Hoog', reps: 3, kwaliteit: kw })));
+    const v = voorstel(boxJump, [bj('makkelijk'), bj('makkelijk')]);
+    expect(v.type).toBe('alternatief');
+    expect(stappen(v)).not.toContain('reps');
+    expect(stappen(v)).not.toContain('tempo');
+    expect(stappen(v)).not.toContain('sets');
+    expect(stappen(v)).toEqual(expect.arrayContaining(['complexiteit', 'variant', 'last', 'pauze']));
+  });
+
+  it('carry: houding, afstand en last (zonder zwaardere kettlebell: geen last)', () => {
+    const v = voorstel(carry, [keer([40, 40, 40].map((a) => set({ gewichtKg: 32, afstandM: a, kwaliteit: 'controle' })))]);
+    expect(v.type).toBe('alternatief');
+    expect(stappen(v)).toEqual(['houding', 'afstand']);
+  });
+
+  it('isometrisch: duur, hefboom en last', () => {
+    const v = voorstel(plank, [keer([30, 30].map((d) => set({ trede: 'Lange hefboom', duurSec: d, rirLinks: 3, rirRechts: 3 })))]);
+    expect(v.type).toBe('alternatief');
+    expect(stappen(v)).toEqual(['duur', 'hefboom', 'last']);
+  });
+
+  it('"meer reps boven het bereik" alleen als de bovenkant gehaald werd, niet bij stilstand onderaan', () => {
+    const o = oef({
+      id: 'gob',
+      naam: 'Goblet squat',
+      materiaalIds: ['kb'],
+      progressie: { modus: 'last', profiel: 'opbouw', repBereik: { min: 6, max: 8 }, doelRIR: 2, sets: 3, stagnatie: { sessies: 3, actie: 'alternatief' } },
+    });
+    const vast = () => keer([6, 6, 6].map((r) => set({ gewichtKg: 24, reps: r, rir: 2 })));
+    const v = voorstel(o, [vast(), vast(), vast()]);
+    expect(v.type).toBe('alternatief');
+    expect(stappen(v)).not.toContain('reps');
+    expect(v.alternatieven.map((a) => a.tekst).join(' ')).not.toMatch(/boven het bereik/);
+  });
+});
