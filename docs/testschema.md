@@ -145,6 +145,13 @@ Er is nog geen eigen programmabestand. Gebruik het voorbeeld en zet daarna je ba
 3. ☐ **Data** → **Alles wissen** → bevestig → "Alles is gewist." Oefeningen, historiek en programma's zijn leeg (dit is ook de **lege app**: Vandaag toont alleen "Lege sessie").
 4. ☐ **Back-up terugzetten** → kies je back-up → bevestig → "Back-up teruggezet." Alles staat er weer, ook programma's.
 
+
+## Fixronde 17 okt
+
+Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze na een back-up.
+
+1. ☐ **Vervangen houdt gedane sets.** Start een training, vink één set af van een oefening, tik **Vervangen** en kies een andere oefening. De eerste oefening blijft staan met "vervangen" en 1/1; de nieuwe staat eronder met de resterende sets. Sluit af: in de historiek staat de gedane set.
+
 ---
 
 ## Bekende beperkingen

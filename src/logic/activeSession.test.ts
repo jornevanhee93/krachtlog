@@ -10,6 +10,7 @@ import {
   pasVoorstelToe,
   setKlaar,
   startSessie,
+  vervangOefening,
   verwijderOefening,
   voegOefeningToe,
   voegOpwarmsetToe,
@@ -167,6 +168,40 @@ describe('afsluiten', () => {
     expect(nieuw.groepen).toHaveLength(1);
     expect(nieuw.groepen[0].items[0]).toMatchObject({ oefeningId: 'swing', sets: 2, rustSec: 60, repBereik: { min: 0, max: 0 } });
     expect(sjabloon.safeParse(nieuw).success).toBe(true);
+  });
+
+  it('vervangen houdt de gedane sets: de oude oefening blijft staan, de nieuwe krijgt de resterende sets', () => {
+    let s = startSessie(sjab, oefeningen, {}, new Date(T0));
+    s = setKlaar(s, { groep: 1, item: 0 }, 0, T0);
+    const pu = oefeningen[0];
+    const na = vervangOefening(s, { groep: 1, item: 0 }, pu, undefined);
+    const items = na.groepen[1].items;
+    expect(items.map((i) => i.oefeningId)).toEqual(['swing', 'pu']);
+    expect(items[0].sets).toHaveLength(1);
+    expect(items[0].sets[0].klaar).toBe(true);
+    expect(items[0].vervangen).toBe(true);
+    expect(items[1].sets).toHaveLength(1);
+    expect(items[1].sets.every((x) => !x.klaar)).toBe(true);
+    expect(na.focus).toEqual({ groep: 1, item: 1 });
+    // De gedane set van de oude oefening komt in de gelogde sessie.
+    const gelogd = naarSessie(na, { einde: '2026-10-29T19:00:00Z' });
+    expect(gelogd.oefeningen.map((o) => [o.oefeningId, o.sets.length])).toEqual([['swing', 1]]);
+  });
+
+  it('vervangen in een superset: de nieuwe oefening neemt de resterende rondes over', () => {
+    let s = startSessie(sjab, oefeningen, {}, new Date(T0));
+    s = setKlaar(s, { groep: 0, item: 0 }, 0, T0);
+    const na = vervangOefening(s, { groep: 0, item: 0 }, oefeningen[2], undefined);
+    const items = na.groepen[0].items;
+    expect(items.map((i) => i.oefeningId)).toEqual(['pu', 'swing', 'rdl']);
+    expect(items[1].sets.map((x) => x.ronde)).toEqual([2]);
+  });
+
+  it('vervangen zonder gedane sets vervangt gewoon', () => {
+    const s = startSessie(sjab, oefeningen, {}, new Date(T0));
+    const na = vervangOefening(s, { groep: 1, item: 0 }, oefeningen[0], undefined);
+    expect(na.groepen[1].items.map((i) => i.oefeningId)).toEqual(['pu']);
+    expect(na.groepen[1].items[0].sets).toHaveLength(2);
   });
 
   it('verwijdert een oefening en een lege groep', () => {

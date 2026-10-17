@@ -52,3 +52,9 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 
 - **Vraag:** een programma opnieuw importeren?
 - **Keuze:** zelfde naam = vervangen met hetzelfde id; de status van geplande sessies (gedaan, overgeslagen, aanpassingen) blijft gekoppeld via "<programma>:<week>:<sessie>". Verandert de structuur van het programma, dan kan een status bij een andere sessie terechtkomen.
+
+## Fixronde 17 okt
+- **Vraag:** wat gebeurt er met gedane sets als je tijdens de training een oefening vervangt?
+- **Keuze:** gedane sets gaan nooit verloren. Is er al een set afgevinkt, dan blijft de oude oefening staan (dicht, met het label "vervangen" en alleen haar gedane sets) en komt de nieuwe oefening er meteen achter met de resterende sets (in een superset: de resterende rondes). Zonder gedane sets wordt de oefening gewoon vervangen. Er komt geen extra vraag: dit is de veiligste en eenvoudigste optie.
+- **Veranderen:** `vervangOefening` in `src/logic/activeSession.ts`.
+

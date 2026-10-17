@@ -78,6 +78,7 @@ export default function ExerciseCard(props: {
         <button className="exercise-name" onClick={props.onInfo} aria-label={`${t.overzicht}: ${naam}`}>
           <ExerciseIcon icoon={props.icoon} />
           <strong>{naam}</strong>
+          {item.vervangen && <span className="muted small">{t.vervangenLabel}</span>}
         </button>
         <button
           className="exercise-toggle"

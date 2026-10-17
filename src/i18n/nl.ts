@@ -315,6 +315,7 @@ export const nl = {
     reps: 'reps',
     oefeningToevoegen: 'Oefening toevoegen',
     vervangen: 'Vervangen',
+    vervangenLabel: 'vervangen',
     verwijderen: 'Verwijderen',
     verwijderVraag: 'Deze oefening uit de sessie halen?',
     setVerwijderen: 'Set verwijderen',

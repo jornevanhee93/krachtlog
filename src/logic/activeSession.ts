@@ -36,6 +36,8 @@ export interface ActiveItem {
   doel: ItemDoel;
   sets: DraftSet[];
   notitie?: string;
+  /** Vervangen tijdens de training: de oefening blijft staan met alleen haar gedane sets. */
+  vervangen?: boolean;
 }
 
 export interface ActiveGroup {
@@ -269,7 +271,11 @@ export function voegOefeningToe(
   return { ...s, groepen, focus: { groep: groepen.length - 1, item: 0 } };
 }
 
-/** Vervangt een oefening; de sets die nog niet klaar zijn worden opnieuw gepland. */
+/**
+ * Vervangt een oefening. Gedane sets gaan nooit verloren: is er al een set afgevinkt, dan blijft de oude
+ * oefening staan met alleen haar gedane sets, en komt de nieuwe er meteen achter met de resterende werksets.
+ * Zonder gedane sets wordt de oefening gewoon vervangen.
+ */
 export function vervangOefening(
   s: ActiveSession,
   pos: Focus,
@@ -277,13 +283,31 @@ export function vervangOefening(
   vorige: LogSet[] | undefined,
   voorstel?: Voorstel,
 ): ActiveSession {
-  return updateItem(s, pos, (item, groep) => ({
-    ...item,
-    oefeningId: oefening.id,
-    sets: planSets(groep, item.doel, oefening, vorige, voorstel).map((set, i) =>
-      item.sets[i]?.ronde !== undefined ? { ...set, ronde: item.sets[i].ronde } : set,
-    ),
-  }));
+  const groep = s.groepen[pos.groep];
+  const item = groep?.items[pos.item];
+  if (!item) return s;
+  const gepland = planSets(groep, item.doel, oefening, vorige, voorstel);
+  const gedaan = item.sets.filter((x) => x.klaar);
+  if (gedaan.length === 0) {
+    return updateItem(s, pos, () => ({
+      ...item,
+      oefeningId: oefening.id,
+      sets: gepland.map((set, i) => (item.sets[i]?.ronde !== undefined ? { ...set, ronde: item.sets[i].ronde } : set)),
+    }));
+  }
+  const open = item.sets.filter((x) => !x.klaar && !x.opwarm);
+  const n = open.length || gepland.length;
+  const sets = Array.from({ length: n }, (_, i) => {
+    const set: DraftSet = { ...gepland[Math.min(i, gepland.length - 1)] };
+    if (open[i]?.ronde !== undefined) set.ronde = open[i].ronde;
+    return set;
+  });
+  const oud: ActiveItem = { ...item, sets: gedaan, vervangen: true };
+  const nieuw: ActiveItem = { key: nieuwId('itm'), oefeningId: oefening.id, doel: item.doel, sets };
+  const groepen = s.groepen.map((g, gi) =>
+    gi === pos.groep ? { ...g, items: g.items.flatMap((it, ii) => (ii === pos.item ? [oud, nieuw] : [it])) } : g,
+  );
+  return { ...s, groepen, focus: { groep: pos.groep, item: pos.item + 1 } };
 }
 
 /** Verwijdert een oefening; een lege groep verdwijnt mee. */
