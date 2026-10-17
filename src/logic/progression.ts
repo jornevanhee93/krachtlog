@@ -1,7 +1,7 @@
 // Progressie: de laatste sessie(s) evalueren tegen de ladder of de regel, en een voorstel maken.
 // Alles puur. De standaarden (profielen, stagnatie) komen uit de instellingen (filosofie).
 import { STANDAARD_VOLGORDE, type Filosofie, type LastSpec, type LogSet, type Materiaal, type Oefening, type Progressie, type ProgressieStap, type Trede } from '../schema';
-import { formatGetal } from './format';
+import { formatGetal, tredeVoegtToe } from './format';
 import { lastenVoor, lichter, volgendeLast } from './loadCalc';
 
 /** Eén keer dat de oefening gedaan werd (een entry uit de historiek). */
@@ -618,13 +618,14 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
 export function voorstelTekst(v: Voorstel): string {
   if (v.type === 'geen') return '';
   const delen: string[] = [];
-  if (v.trede) delen.push(v.trede);
   const l = v.last ?? {};
   const last: string[] = [];
   if (!v.trede && l.variant) last.push(l.variant);
   if (l.gewichtKg !== undefined && l.gewichtKg > 0) last.push(kgTekst(l.gewichtKg));
   if (l.extraKg !== undefined && l.extraKg > 0) last.push(`+${kgTekst(l.extraKg)}`);
   let hoofd = last.join(' ');
+  // Het tredelabel alleen als het iets toevoegt aan de last (niet "28 kg · 28 kg × 6").
+  if (v.trede && tredeVoegtToe(v.trede, hoofd)) delen.push(v.trede);
   const reps =
     v.doelReps !== undefined ? `${v.doelReps}` : v.reps ? (v.reps.min === v.reps.max ? `${v.reps.min}` : `${v.reps.min}–${v.reps.max}`) : '';
   if (reps) hoofd += `${hoofd ? ' × ' : ''}${reps}`;

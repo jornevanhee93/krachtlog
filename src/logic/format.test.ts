@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dagenGeleden, formatGetal, formatKlok, minutenTussen } from './format';
+import { dagenGeleden, formatGetal, formatKlok, minutenTussen, tredeVoegtToe } from './format';
 
 describe('format', () => {
   it('formatKlok', () => {
@@ -17,5 +17,19 @@ describe('format', () => {
   });
   it('minutenTussen', () => {
     expect(minutenTussen('2026-10-29T18:00:00Z', '2026-10-29T19:05:20Z')).toBe(65);
+  });
+});
+
+describe('tredeVoegtToe', () => {
+  it('een label dat alleen de last herhaalt voegt niets toe', () => {
+    expect(tredeVoegtToe('28 kg', '28 kg')).toBe(false);
+    expect(tredeVoegtToe('28kg', '28 kg')).toBe(false);
+    expect(tredeVoegtToe('+5 kg', '+5 kg')).toBe(false);
+    expect(tredeVoegtToe('2,5 kg', '2,5 kg')).toBe(false);
+  });
+  it('een label met meer informatie blijft', () => {
+    expect(tredeVoegtToe('Vest 5', '+5 kg')).toBe(true);
+    expect(tredeVoegtToe('KB 24', '24 kg')).toBe(true);
+    expect(tredeVoegtToe('BW', '')).toBe(true);
   });
 });

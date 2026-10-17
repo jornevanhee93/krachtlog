@@ -92,3 +92,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** de trede van het voorstel, anders de huidige trede van de oefening. Alleen het label (en de variant/het tempo als die nog leeg waren) wordt ingevuld; gewicht en reps van de vorige keer blijven staan.
 - **Veranderen:** `vulTrede` in `src/logic/activeSession.ts`.
 
+- **Vraag:** wanneer toont de app het tredelabel naast de last?
+- **Keuze:** alleen als het iets toevoegt: "24 kg" naast "24 kg × 6" valt weg, "Vest 5" naast "+5 kg × 7" blijft. Spaties, "kg", "+" en komma/punt tellen niet mee bij het vergelijken. De tekst voor een review (Logs exporteren) houdt het label wel, als kop tussen haken.
+- **Veranderen:** `tredeVoegtToe` in `src/logic/format.ts`.
+

@@ -40,3 +40,13 @@ export function formatGetal(n: number): string {
 export function minutenTussen(startIso: string, eindeIso: string): number {
   return Math.max(0, Math.round((alsDatum(eindeIso).getTime() - alsDatum(startIso).getTime()) / 60000));
 }
+
+/**
+ * Voegt een tredelabel iets toe aan de lasttekst? "28 kg" naast "28 kg" niet, "Vest 5" naast "+5 kg" wel.
+ * Spaties, "kg", "+" en komma/punt tellen niet mee.
+ */
+export function tredeVoegtToe(label: string, lastTekst: string): boolean {
+  const kern = (x: string) => x.toLowerCase().replace(/,/g, '.').replace(/kg|\+|\s/g, '');
+  const l = kern(label);
+  return l !== '' && l !== kern(lastTekst);
+}

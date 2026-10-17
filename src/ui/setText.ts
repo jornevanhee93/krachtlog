@@ -1,5 +1,5 @@
 import { nl } from '../i18n/nl';
-import { formatGetal } from '../logic/format';
+import { formatGetal, tredeVoegtToe } from '../logic/format';
 import type { ItemDoel } from '../logic/activeSession';
 import type { LogSet, Oefening } from '../schema';
 
@@ -10,12 +10,14 @@ function perKant(links: number | undefined, rechts: number | undefined): string 
 /** Korte tekst voor een set, bv. "Vest 5 · +5 kg × 7 · RIR 2 · Controle". */
 export function setTekst(s: LogSet): string {
   const delen: string[] = [];
-  if (s.trede) delen.push(s.trede);
-  else if (s.variant) delen.push(s.variant);
   const last: string[] = [];
   if (s.gewichtKg !== undefined && s.gewichtKg > 0) last.push(`${formatGetal(s.gewichtKg)} kg`);
   if (s.extraKg !== undefined && s.extraKg > 0) last.push(`+${formatGetal(s.extraKg)} kg`);
   let hoofd = last.join(' ');
+  // Het tredelabel alleen als het iets toevoegt aan de last (niet "28 kg · 28 kg × 6").
+  if (s.trede) {
+    if (tredeVoegtToe(s.trede, hoofd)) delen.push(s.trede);
+  } else if (s.variant) delen.push(s.variant);
   if (s.reps !== undefined) hoofd += `${hoofd ? ' × ' : ''}${s.reps}`;
   if (s.repsLinks !== undefined || s.repsRechts !== undefined) {
     hoofd += `${hoofd ? ' × ' : ''}L${s.repsLinks ?? '–'}/R${s.repsRechts ?? '–'}`;

@@ -160,6 +160,7 @@ Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze
 8. ☐ **Tijd per kant.** Voeg in een training een unilaterale oefening met tijd toe (bv. Copenhagen plank): je ziet **Tijd links** en **Tijd rechts**. Vul 30 en 25 in, **Set klaar**, sluit af: in de historiek staat "L30/R25 s". Je bestaande data blijft staan (kijk even in Historiek).
 9. ☐ **Power zonder RIR.** Open in een training een power-oefening (bv. Box jump): er zijn geen RIR-knoppen, wel **Makkelijk / Controle / Gevecht**.
 10. ☐ **Trede ingevuld.** Start een training met een ladderoefening waarvan de vorige sets geen trede hadden (bv. box jump uit een import). Het veld **Trede** staat op de trede van het voorstel (of de huidige trede), niet op "—".
+11. ☐ **Geen dubbele last.** Bij een ladder met treden als "24 kg" staat in het voorstel en bij de sets "24 kg × 6", niet meer "24 kg · 24 kg × 6". Treden met een eigen naam ("Vest 5") blijven zichtbaar.
 
 ---
 

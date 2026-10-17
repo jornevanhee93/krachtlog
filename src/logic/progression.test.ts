@@ -564,3 +564,13 @@ describe('unilateraal met tijd of afstand: de zwakke kant beslist', () => {
   });
 });
 
+
+describe('voorstelTekst zonder dubbele last', () => {
+  it('een tredelabel dat de last herhaalt, staat er maar één keer', () => {
+    const v = voorstel(squatLadder, [sq(80, [8, 8, 8])]);
+    expect(voorstelTekst(v)).toBe('90 kg × 5 · RIR 2');
+  });
+  it('een label met extra informatie blijft', () => {
+    expect(voorstelTekst(voorstel(pullUp, [pu('BW', 0, [8, 8, 8])]))).toMatch(/^Vest 5 · \+5 kg × 5/);
+  });
+});
