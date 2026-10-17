@@ -9,6 +9,10 @@ import {
   naarSjabloon,
   pasVoorstelToe,
   setKlaar,
+  snelKlaar,
+  snelleRir,
+  snelleSet,
+  updateSet,
   startSessie,
   vervangOefening,
   verwijderOefening,
@@ -379,5 +383,54 @@ describe('trede invullen als de vorige sets er geen hadden', () => {
     const v: Voorstel = { type: 'herhaal', trede: 'Box 40', uitleg: '', alternatieven: [] };
     const s = voegOefeningToe(startSessie(undefined, [bj], {}), bj, [{ opwarm: false, trede: 'Box 50', reps: 3 }], v);
     expect(s.groepen[0].items[0].sets[0].trede).toBe('Box 50');
+  });
+});
+
+describe('snelle knop', () => {
+  const squat = oef({ id: 'sq', naam: 'Squat', progressie: { modus: 'last', profiel: 'anker', doelRIR: 2 } });
+  const boxJump = oef({ id: 'bj', naam: 'Box jump', metingen: ['variant', 'reps'], progressie: { modus: 'ladder', profiel: 'power', treden: [{ label: 'Box 50' }] } });
+
+  it('stelt de doel-RIR voor: eerst het sjabloon, dan de oefening; de ingevulde RIR gaat voor', () => {
+    const set = { opwarm: false, reps: 5 };
+    expect(snelleRir(set, {}, squat)).toBe(2);
+    expect(snelleRir(set, { doelRIR: 3 }, squat)).toBe(3);
+    expect(snelleRir({ ...set, rir: 1 }, { doelRIR: 3 }, squat)).toBe(1);
+    expect(snelleRir(set, {}, oefeningen[2])).toBeUndefined();
+  });
+
+  it('geen RIR bij power en opwarmsets', () => {
+    expect(snelleRir({ opwarm: false, reps: 3 }, { doelRIR: 2 }, boxJump)).toBeUndefined();
+    expect(snelleRir({ opwarm: true, reps: 3 }, { doelRIR: 2 }, squat)).toBeUndefined();
+    expect(snelleSet({ opwarm: true, reps: 3 }, { doelRIR: 2 }, squat)).toEqual({ opwarm: true, reps: 3 });
+  });
+
+  it('laat een RIR per kant staan', () => {
+    const set = { opwarm: false, rirLinks: 1, rirRechts: 2 };
+    expect(snelleSet(set, { doelRIR: 2 }, squat)).toBe(set);
+  });
+
+  it('één tik vinkt de set af met de voorgestelde RIR, en springt in de superset door', () => {
+    let s = startSessie(sjab, oefeningen, {});
+    s = snelKlaar(s, { groep: 0, item: 0 }, 0, undefined, T0);
+    expect(s.groepen[0].items[0].sets[0].klaar).toBe(true);
+    expect(s.focus).toEqual({ groep: 0, item: 1 });
+    expect(s.rust).toEqual({ eindigtOp: T0 + 30_000, duurSec: 30 });
+  });
+
+  it('bewaart een aangepaste RIR', () => {
+    let s: ActiveSession = { ...startSessie(sjab, [...oefeningen, squat], {}), focus: { groep: 1, item: 0 } };
+    s = snelKlaar(s, { groep: 1, item: 0 }, 0, squat, T0);
+    expect(s.groepen[1].items[0].sets[0].rir).toBe(2);
+    s = updateSet(s, { groep: 1, item: 0 }, 1, { rir: 4 });
+    s = snelKlaar(s, { groep: 1, item: 0 }, 1, squat, T0);
+    expect(s.groepen[1].items[0].sets[1]).toMatchObject({ klaar: true, rir: 4 });
+    const gelogd = naarSessie(s, { einde: '2026-10-29T19:00:00Z', duurMin: 60 });
+    expect(gelogd.oefeningen[0].sets.map((x) => x.rir)).toEqual([2, 4]);
+  });
+
+  it('doet niets met een set die al klaar is', () => {
+    let s = startSessie(sjab, oefeningen, {});
+    s = snelKlaar(s, { groep: 0, item: 0 }, 0, undefined, T0);
+    expect(snelKlaar(s, { groep: 0, item: 0 }, 0, undefined, T0 + 5)).toBe(s);
   });
 });

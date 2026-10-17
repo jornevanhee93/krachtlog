@@ -4,27 +4,38 @@ import { nl } from '../../i18n/nl';
 import {
   itemVoortgang,
   setKlaar,
+  snelKlaar,
+  snelleRir,
   updateItem,
   updateSet,
   verwijderSet,
   voegOpwarmsetToe,
   voegSetToe,
   volgendeSet,
+  zonderRir,
   type ActiveGroup,
   type ActiveItem,
   type ActiveSession,
   type Focus,
 } from '../../logic/activeSession';
-import type { Icoon, LogSet, Oefening } from '../../schema';
+import type { Icoon, Kwaliteit, LogSet, Oefening } from '../../schema';
+import { Segmented } from '../../components/form';
 import { ontgrendelGeluid } from '../../ui/feedback';
-import { doelTekst, setTekst } from '../../ui/setText';
+import { doelTekst, setTekst, snelleTekst } from '../../ui/setText';
 import SetEditor from './SetEditor';
 
 const t = nl.training;
+const RIR_OPTIES = [0, 1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) }));
+const KWALITEIT_OPTIES = (['makkelijk', 'controle', 'gevecht'] as Kwaliteit[]).map((k) => ({
+  value: k,
+  label: t.kwaliteiten[k],
+}));
 
 /**
  * Eén oefening in de training, als accordeonkaart.
- * Dicht: icoon, naam, voortgang en de laatste set. Open: de sets, alleen de huidige set met invoer.
+ * Dicht: icoon, naam, voortgang en de laatste set.
+ * Open: bovenaan de snelle knop voor de huidige set (één tik = "Set klaar" met de voorgevulde waarden), met RIR en kwaliteit
+ * erboven. "Aanpassen" of een tik op een set opent het volledige invulblok.
  * Tik op het icoon of de naam opent het overzichtspaneel; tik op de rest klapt de kaart open of dicht.
  */
 export default function ExerciseCard(props: {
@@ -48,13 +59,31 @@ export default function ExerciseCard(props: {
   const [gekozen, setGekozen] = useState<number | null>(null);
   const [notitieOpen, setNotitieOpen] = useState(Boolean(item.notitie));
   const [opwarmOpen, setOpwarmOpen] = useState(false);
+  const [aanpassen, setAanpassen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const snelRef = useRef<HTMLDivElement>(null);
   const actief = gekozen ?? (volgende >= 0 ? volgende : null);
+  // Het invulblok staat dicht, tenzij je "Aanpassen" kiest of op een set tikt.
+  const bewerk = gekozen !== null || aanpassen;
+  const snel = !bewerk && volgende >= 0 ? item.sets[volgende] : undefined;
 
   useEffect(() => {
-    if (focus) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (focus) {
+      // De snelle knop onderaan in beeld (binnen bereik van de duim); zonder snelle knop de kop bovenaan.
+      if (snelRef.current) snelRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      else ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     setGekozen(null);
+    setAanpassen(false);
   }, [focus]);
+
+  const openAanpassen = () => {
+    // Het invulblok toont dezelfde RIR als de snelle knop.
+    const set = volgende >= 0 ? item.sets[volgende] : undefined;
+    const rir = set ? snelleRir(set, item.doel, oefening) : undefined;
+    if (set && set.rir === undefined && rir !== undefined) update((x) => updateSet(x, pos, volgende, { rir }));
+    setAanpassen(true);
+  };
 
   const voortgang = itemVoortgang(item);
   const doel = doelTekst(item.doel, oefening);
@@ -126,6 +155,46 @@ export default function ExerciseCard(props: {
               {t.vorige}: {vorigeTekst}
             </p>
           )}
+          {snel && (
+            <div className="snel" ref={snelRef} data-testid="snel">
+              <div className="snel-kop">
+                <span className="grow small muted">
+                  {snel.opwarm ? t.opwarmset : groep.type === 'enkel' ? `${t.set} ${item.sets.slice(0, volgende + 1).filter((x) => !x.opwarm).length}` : `${t.ronde} ${snel.ronde ?? ''}`}
+                </span>
+                <button type="button" className="btn btn-small" onClick={openAanpassen}>
+                  {t.aanpassen}
+                </button>
+              </div>
+              {!snel.opwarm && (
+                <Segmented
+                  value={snel.kwaliteit}
+                  options={KWALITEIT_OPTIES}
+                  allowNone
+                  onChange={(kwaliteit) => update((x) => updateSet(x, pos, volgende, { kwaliteit }))}
+                  ariaLabel={t.kwaliteit}
+                />
+              )}
+              {!snel.opwarm && !zonderRir(oefening) && (
+                <Segmented
+                  value={snelleRir(snel, item.doel, oefening)}
+                  options={RIR_OPTIES}
+                  onChange={(rir) => update((x) => updateSet(x, pos, volgende, { rir }))}
+                  ariaLabel={t.rir}
+                />
+              )}
+              <button
+                type="button"
+                className="btn btn-primary btn-big btn-block snel-knop"
+                aria-label={t.snelKlaar(snelleTekst(snel, item.doel, oefening))}
+                onClick={() => {
+                  ontgrendelGeluid();
+                  update((x) => snelKlaar(x, pos, volgende, oefening));
+                }}
+              >
+                ✓ {snelleTekst(snel, item.doel, oefening) || t.setKlaar}
+              </button>
+            </div>
+          )}
           <ol className="set-list">
             {opwarmIngeklapt && (
               <li className="done">
@@ -139,14 +208,15 @@ export default function ExerciseCard(props: {
             {item.sets.map((s, i) => {
               const nr = s.opwarm ? `${t.opwarmKort} ${++opwarmNr}` : groep.type === 'enkel' ? `${++werkNr}` : `R${s.ronde ?? ++werkNr}`;
               if (s.opwarm && opwarmIngeklapt) return null;
-              const open = i === actief;
+              const open = bewerk && i === actief;
+              const nu = !bewerk && i === volgende;
               return (
                 <li key={i} className={`${s.klaar ? 'done' : ''} ${open ? 'open' : ''}`}>
                   {!open && (
-                    <button className="set-row" onClick={() => setGekozen(i)}>
+                    <button className={`set-row ${nu ? 'set-row-nu' : ''}`} onClick={() => (nu ? openAanpassen() : setGekozen(i))}>
                       <span className="set-nr">{nr}</span>
                       <span className="grow">{setTekst(s) || '—'}</span>
-                      <span>{s.klaar ? '✓' : ''}</span>
+                      <span>{s.klaar ? '✓' : nu ? '←' : ''}</span>
                     </button>
                   )}
                   {open && (
@@ -156,6 +226,16 @@ export default function ExerciseCard(props: {
                         <span className="grow">
                           {s.opwarm ? t.opwarmset : groep.type === 'enkel' ? `${t.set} ${werkNr}` : `${t.ronde} ${s.ronde ?? ''}`}
                         </span>
+                        <button
+                          type="button"
+                          className="btn btn-small"
+                          onClick={() => {
+                            setGekozen(null);
+                            setAanpassen(false);
+                          }}
+                        >
+                          {t.inklappen}
+                        </button>
                       </div>
                       <SetEditor
                         set={s}
@@ -163,11 +243,13 @@ export default function ExerciseCard(props: {
                         onChange={(patch) => update((x) => updateSet(x, pos, i, patch))}
                         onVerwijder={() => {
                           setGekozen(null);
+                          setAanpassen(false);
                           update((x) => verwijderSet(x, pos, i));
                         }}
                         onKlaar={() => {
                           ontgrendelGeluid();
                           setGekozen(null);
+                          setAanpassen(false);
                           if (s.klaar) return;
                           update((x) => setKlaar(x, pos, i));
                         }}

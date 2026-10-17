@@ -379,6 +379,33 @@ export function updateSet(s: ActiveSession, pos: Focus, setIndex: number, patch:
   }));
 }
 
+/** Power gaat nooit op RIR, alleen op kwaliteit (zie docs/trainingsfilosofie.md). */
+export function zonderRir(oefening: Oefening | undefined): boolean {
+  return oefening?.progressie?.profiel === 'power';
+}
+
+/** De RIR die de snelle knop voorstelt: de ingevulde RIR, anders de doel-RIR (sjabloon, dan oefening). Opwarmsets en power: geen. */
+export function snelleRir(set: LogSet, doel: ItemDoel, oefening: Oefening | undefined): number | undefined {
+  if (set.opwarm || zonderRir(oefening)) return undefined;
+  return set.rir ?? doel.doelRIR ?? oefening?.progressie?.doelRIR;
+}
+
+/** De set zoals de snelle knop hem afvinkt: een werkset zonder RIR krijgt de voorgestelde RIR. */
+export function snelleSet<T extends LogSet>(set: T, doel: ItemDoel, oefening: Oefening | undefined): T {
+  if (set.rir !== undefined || set.rirLinks !== undefined || set.rirRechts !== undefined) return set;
+  const rir = snelleRir(set, doel, oefening);
+  return rir === undefined ? set : { ...set, rir };
+}
+
+/** Eén tik op de snelle knop: de voorgevulde waarden (met de voorgestelde RIR) bewaren en "Set klaar". */
+export function snelKlaar(s: ActiveSession, pos: Focus, setIndex: number, oefening: Oefening | undefined, nu: number = Date.now()): ActiveSession {
+  const item = s.groepen[pos.groep]?.items[pos.item];
+  const set = item?.sets[setIndex];
+  if (!item || !set || set.klaar) return s;
+  const gevuld = snelleSet(set, item.doel, oefening);
+  return setKlaar(updateSet(s, pos, setIndex, gevuld), pos, setIndex, nu);
+}
+
 /** Voegt een opwarmset toe vóór de werksets, met de waarden van de eerste werkset. */
 export function voegOpwarmsetToe(s: ActiveSession, pos: Focus): ActiveSession {
   return updateItem(s, pos, (item) => {

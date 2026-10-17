@@ -103,3 +103,11 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** `scroll-padding-bottom` op de pagina (hoogte van de onderbalk + marge, en met de rustbalk erbij nog eens zoveel extra). De bestaande ruimte onder de inhoud blijft. Zo houdt de browser bij focus of automatisch scrollen altijd ruimte vrij.
 - **Veranderen:** bovenaan en bij "Training" in `src/index.css`.
 
+
+## Verbetering 1: een set afvinken in één tik
+- **Vraag:** hoe ziet de open oefening eruit in de training?
+- **Keuze:** bovenaan de open kaart staat voor de huidige set een blok met (van boven naar onder) het setnummer en een kleine knop **Aanpassen**, de kwaliteit (Makkelijk/Controle/Gevecht, optioneel), de RIR (0–5) en een grote volle knop met de samenvatting, bv. "✓ 80 kg × 8 · RIR 2". Eén tik = "Set klaar" met die waarden; de rusttimer en de superset-flow zijn ongewijzigd. Het volledige invulblok (trede, gewicht, reps …) staat standaard dicht.
+- **RIR:** voorgevuld met de doel-RIR van het sjabloon, anders van de oefening. Zonder doel-RIR is er geen keuze voorgeselecteerd en wordt er ook geen RIR bewaard. Een RIR per kant (uit een import) blijft onaangeroerd. Bij power en opwarmsets: geen RIR (opwarmsets ook geen kwaliteit).
+- **Duim:** bij het openen van een kaart scrollt de app zo dat de knop onderaan in beeld komt, met ruimte voor de onderbalk en voor de rustbalk die na de tik verschijnt. Staat de kaart helemaal bovenaan de pagina, dan kan de knop iets hoger staan.
+- **Aanpassen:** "Aanpassen" (of een tik op de huidige set in de lijst) opent het invulblok voor de huidige set, met dezelfde RIR als de knop. "Inklappen" sluit het weer. Een gedane set is een compacte regel; een tik erop opent het invulblok van die set.
+- **Veranderen:** `snelleRir`, `snelleSet` en `snelKlaar` in `src/logic/activeSession.ts`; de knop staat in `src/screens/training/ExerciseCard.tsx`.

@@ -102,6 +102,7 @@ test('8. unilateraal met tijd: links en rechts apart', async ({ page }, info) =>
   await accepteerDialogen(page);
   await importeer(page, voorbeeld('bibliotheek.json'));
   await legeSessieMet(page, /Copenhagen plank/);
+  await page.getByRole('button', { name: 'Aanpassen', exact: true }).click();
   await page.getByRole('textbox', { name: 'Tijd links' }).fill('30');
   await page.getByRole('textbox', { name: 'Tijd rechts' }).fill('25');
   await controleerScherm(page, 'fix8-per-kant', info.project.name);

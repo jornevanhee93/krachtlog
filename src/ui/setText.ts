@@ -1,6 +1,6 @@
 import { nl } from '../i18n/nl';
 import { formatGetal, tredeVoegtToe } from '../logic/format';
-import type { ItemDoel } from '../logic/activeSession';
+import { snelleSet, type ItemDoel } from '../logic/activeSession';
 import type { LogSet, Oefening } from '../schema';
 
 function perKant(links: number | undefined, rechts: number | undefined): string {
@@ -47,4 +47,9 @@ export function doelTekst(doel: ItemDoel, oefening: Oefening | undefined): strin
     doel.rol ? nl.sjabloon.rollen[doel.rol] : '',
   ];
   return delen.filter(Boolean).join(' · ');
+}
+
+/** Tekst op de snelle knop: de voorgevulde set met de voorgestelde RIR, zonder kwaliteit (die staat apart). Bv. "80 kg × 8 · RIR 2". */
+export function snelleTekst(s: LogSet, doel: ItemDoel, oefening: Oefening | undefined): string {
+  return setTekst({ ...snelleSet(s, doel, oefening), kwaliteit: undefined });
 }

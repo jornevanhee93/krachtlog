@@ -19,6 +19,8 @@ test('ad-hocsessie: oefening toevoegen, opwarmset, per kant, vervangen, verwijde
   // Toevoegen: Single-leg RDL (per kant).
   await page.getByRole('button', { name: '+ Oefening toevoegen' }).click();
   await page.getByRole('dialog').getByRole('button', { name: /Single-leg RDL/ }).click();
+  // Het invulblok staat dicht; "Aanpassen" opent het.
+  await page.getByRole('button', { name: 'Aanpassen', exact: true }).click();
   await expect(page.getByText('Links', { exact: false }).first()).toBeVisible();
   await expect(page.getByText('Rechts', { exact: false }).first()).toBeVisible();
 
@@ -30,6 +32,7 @@ test('ad-hocsessie: oefening toevoegen, opwarmset, per kant, vervangen, verwijde
   await expect(page.getByRole('button', { name: /1 opwarmset/ })).toBeVisible();
 
   // Werkset: links 10, rechts 9, RIR 2.
+  await page.getByRole('button', { name: 'Aanpassen', exact: true }).click();
   await page.getByRole('textbox', { name: 'Links' }).fill('10');
   await page.getByRole('textbox', { name: 'Rechts' }).fill('9');
   await page.getByRole('group', { name: 'RIR' }).getByRole('button', { name: '2' }).click();
