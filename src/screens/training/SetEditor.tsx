@@ -68,12 +68,24 @@ export default function SetEditor(props: {
           ) : (
             <Stepper label={nl.metingen.reps} step={1} integer value={set.reps} onChange={(reps) => onChange({ reps })} />
           ))}
-        {metingen.includes('tijd') && (
-          <Stepper label={nl.metingen.tijd} unit="s" step={5} value={set.duurSec} onChange={(duurSec) => onChange({ duurSec })} />
-        )}
-        {metingen.includes('afstand') && (
-          <Stepper label={nl.metingen.afstand} unit="m" step={5} value={set.afstandM} onChange={(afstandM) => onChange({ afstandM })} />
-        )}
+        {metingen.includes('tijd') &&
+          (oefening?.unilateraal ? (
+            <>
+              <Stepper label={t.tijdLinks} unit="s" step={5} value={set.duurSecLinks} onChange={(duurSecLinks) => onChange({ duurSecLinks })} />
+              <Stepper label={t.tijdRechts} unit="s" step={5} value={set.duurSecRechts} onChange={(duurSecRechts) => onChange({ duurSecRechts })} />
+            </>
+          ) : (
+            <Stepper label={nl.metingen.tijd} unit="s" step={5} value={set.duurSec} onChange={(duurSec) => onChange({ duurSec })} />
+          ))}
+        {metingen.includes('afstand') &&
+          (oefening?.unilateraal ? (
+            <>
+              <Stepper label={t.afstandLinks} unit="m" step={5} value={set.afstandMLinks} onChange={(afstandMLinks) => onChange({ afstandMLinks })} />
+              <Stepper label={t.afstandRechts} unit="m" step={5} value={set.afstandMRechts} onChange={(afstandMRechts) => onChange({ afstandMRechts })} />
+            </>
+          ) : (
+            <Stepper label={nl.metingen.afstand} unit="m" step={5} value={set.afstandM} onChange={(afstandM) => onChange({ afstandM })} />
+          ))}
       </div>
       {!set.opwarm && (
         <>

@@ -84,3 +84,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** zoals bij reps: na een klim of een stap lichter terug naar de onderkant van het duur- of afstandsbereik (van de nieuwe trede als die een eigen bereik heeft). Het voorstel, de uitleg ("terug naar 30 s") en de voorgevulde set gebruiken dezelfde waarde. Bij herhalen blijft de bovenkant het doel.
 - **Veranderen:** `onderaan` in `src/logic/progression.ts` en `pasVoorstelToe` in `src/logic/activeSession.ts`.
 
+- **Vraag:** hoe log je tijd en afstand bij een unilaterale oefening?
+- **Keuze:** per kant, zoals reps: **Tijd links / Tijd rechts** (en **Afstand links / rechts**). Schema v4 met `duurSecLinks`, `duurSecRechts`, `afstandMLinks`, `afstandMRechts`; de zwakke kant beslist in de progressie. Oudere sets met één `duurSec` of `afstandM` blijven geldig en tellen gewoon mee; in een nieuwe training worden ze als dezelfde waarde voor beide kanten voorgevuld. Databaseversie 3 verandert niets aan bestaande gegevens (geen nieuwe indexen). v1–v3-bestanden blijven importeerbaar.
+- **Veranderen:** `duurVan`/`afstandVan` in `src/logic/progression.ts`, `zetPerKant` in `src/logic/activeSession.ts`, `SetEditor`.
+

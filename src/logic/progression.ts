@@ -93,6 +93,20 @@ export function rirVan(s: LogSet): number | undefined {
   return kanten.length ? Math.min(...kanten) : undefined;
 }
 
+/** Duur van een set; per kant beslist de zwakke kant. */
+export function duurVan(s: LogSet): number | undefined {
+  if (s.duurSec !== undefined) return s.duurSec;
+  const kanten = [s.duurSecLinks, s.duurSecRechts].filter((x): x is number => x !== undefined);
+  return kanten.length ? Math.min(...kanten) : undefined;
+}
+
+/** Afstand van een set; per kant beslist de zwakke kant. */
+export function afstandVan(s: LogSet): number | undefined {
+  if (s.afstandM !== undefined) return s.afstandM;
+  const kanten = [s.afstandMLinks, s.afstandMRechts].filter((x): x is number => x !== undefined);
+  return kanten.length ? Math.min(...kanten) : undefined;
+}
+
 /** Welk lastveld de oefening gebruikt in modus "last": gewicht, anders extra last. */
 export function lastVeld(oef: Pick<Oefening, 'metingen'>): 'gewichtKg' | 'extraKg' {
   return !oef.metingen.includes('gewicht') && oef.metingen.includes('extraLast') ? 'extraKg' : 'gewichtKg';
@@ -253,16 +267,16 @@ export function evalueer(sets: LogSet[], oef: Oefening, regels: Regels, stand: S
     }
     case 'duur': {
       const b = duurBereik(p, stand);
-      score = werk.reduce((n, s) => n + (s.duurSec ?? 0), 0);
+      score = werk.reduce((n, s) => n + (duurVan(s) ?? 0), 0);
       if (!b) redenen.add('geenBereik');
-      else if (werk.some((s) => (s.duurSec ?? 0) < b.max)) redenen.add('duurOnder');
+      else if (werk.some((s) => (duurVan(s) ?? 0) < b.max)) redenen.add('duurOnder');
       break;
     }
     case 'afstand': {
       const b = afstandBereik(p, stand);
-      score = werk.reduce((n, s) => n + (s.afstandM ?? 0), 0);
+      score = werk.reduce((n, s) => n + (afstandVan(s) ?? 0), 0);
       if (!b) redenen.add('geenBereik');
-      else if (werk.some((s) => (s.afstandM ?? 0) < b.max)) redenen.add('afstandOnder');
+      else if (werk.some((s) => (afstandVan(s) ?? 0) < b.max)) redenen.add('afstandOnder');
       break;
     }
   }
@@ -379,8 +393,9 @@ function waaromNiet(ev: Evaluatie, oef: Oefening, p: Progressie, stand: Stand): 
     const doel = Math.min(b.max, (ev.minReps ?? b.min) + 1);
     return `Nog niet ${b.max} reps in alle sets${oef.unilateraal ? ' (de zwakke kant telt)' : ''}: zelfde last, mik op ${doel}.`;
   }
-  if (r.includes('duurOnder')) return `Houd langer vast: mik op ${duurBereik(p, stand)!.max} s in elke set.`;
-  if (r.includes('afstandOnder')) return `Houding is goed: verleng de afstand naar ${afstandBereik(p, stand)!.max} m.`;
+  const kant = oef.unilateraal ? ' (de zwakke kant telt)' : '';
+  if (r.includes('duurOnder')) return `Houd langer vast: mik op ${duurBereik(p, stand)!.max} s in elke set${kant}.`;
+  if (r.includes('afstandOnder')) return `Houding is goed: verleng de afstand naar ${afstandBereik(p, stand)!.max} m${kant}.`;
   if (r.includes('kwaliteit')) return 'Nog niet alles Makkelijk: zelfde trede, focus op snel en strak.';
   if (r.includes('geenBereik')) return 'Geen bereik ingesteld: herhaal, of stel een bereik in bij de oefening.';
   return 'Herhaal.';

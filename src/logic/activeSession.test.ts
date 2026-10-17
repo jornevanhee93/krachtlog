@@ -320,3 +320,32 @@ describe('voorstel invullen: duur en afstand', () => {
     expect(pasVoorstelToe({ opwarm: false, gewichtKg: 24, afstandM: 40 }, v, fc)).toMatchObject({ gewichtKg: 28, afstandM: 20 });
   });
 });
+
+describe('unilateraal met tijd: per kant', () => {
+  const plank = oefening.parse({
+    id: 'cp',
+    naam: 'Copenhagen plank',
+    metingen: ['tijd'],
+    unilateraal: true,
+    progressie: { modus: 'ladder', profiel: 'isometrisch', duurBereikSec: { min: 20, max: 30 }, treden: [{ label: 'Kort' }, { label: 'Lang' }] },
+  });
+  it('een nieuwe set krijgt links en rechts', () => {
+    const s = voegOefeningToe(startSessie(undefined, [plank], {}), plank, undefined);
+    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ duurSecLinks: 0, duurSecRechts: 0 });
+    expect(s.groepen[0].items[0].sets[0].duurSec).toBeUndefined();
+  });
+  it('het voorstel vult beide kanten in', () => {
+    const v: Voorstel = { type: 'klim', trede: 'Lang', last: {}, duurSec: 20, uitleg: '', alternatieven: [] };
+    expect(pasVoorstelToe({ opwarm: false, duurSecLinks: 30, duurSecRechts: 30 }, v, plank)).toMatchObject({ duurSecLinks: 20, duurSecRechts: 20 });
+  });
+  it('een oude set met één duur wordt voor beide kanten overgenomen', () => {
+    const s = voegOefeningToe(startSessie(undefined, [plank], {}), plank, [{ opwarm: false, duurSec: 25 }]);
+    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ duurSecLinks: 25, duurSecRechts: 25 });
+    expect(s.groepen[0].items[0].sets[0].duurSec).toBeUndefined();
+  });
+  it('de waarden van vorige keer worden per kant overgenomen', () => {
+    const s = voegOefeningToe(startSessie(undefined, [plank], {}), plank, [{ opwarm: false, duurSecLinks: 25, duurSecRechts: 20, rir: 3 }]);
+    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ duurSecLinks: 25, duurSecRechts: 20 });
+  });
+});
+

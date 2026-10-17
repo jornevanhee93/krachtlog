@@ -43,7 +43,7 @@ export function exporteerLogs(snap: Pick<Snapshot, 'sessies' | 'entries' | 'oefe
 
 const KWALITEIT = { makkelijk: 'M', controle: 'C', gevecht: 'G' } as const;
 
-/** Eén set heel kort, bv. "80×8@2", "+5×7@2 C", "24×L10/R9@2", "30s", "40m". */
+/** Eén set heel kort, bv. "80×8@2", "+5×7@2 C", "24×L10/R9@2", "30s", "L30/R25s", "40m". */
 export function compacteSet(s: LogSet): string {
   let last = '';
   if (s.gewichtKg !== undefined && s.gewichtKg > 0) last = formatGetal(s.gewichtKg);
@@ -53,7 +53,9 @@ export function compacteSet(s: LogSet): string {
   else if (s.repsLinks !== undefined || s.repsRechts !== undefined) reps = `L${s.repsLinks ?? '–'}/R${s.repsRechts ?? '–'}`;
   let uit = last && reps ? `${last}×${reps}` : last || reps;
   if (s.duurSec) uit += `${uit ? ' ' : ''}${formatGetal(s.duurSec)}s`;
+  else if (s.duurSecLinks || s.duurSecRechts) uit += `${uit ? ' ' : ''}L${formatGetal(s.duurSecLinks ?? 0)}/R${formatGetal(s.duurSecRechts ?? 0)}s`;
   if (s.afstandM) uit += `${uit ? ' ' : ''}${formatGetal(s.afstandM)}m`;
+  else if (s.afstandMLinks || s.afstandMRechts) uit += `${uit ? ' ' : ''}L${formatGetal(s.afstandMLinks ?? 0)}/R${formatGetal(s.afstandMRechts ?? 0)}m`;
   if (s.tempo) uit += ` (${s.tempo})`;
   if (s.rir !== undefined) uit += `@${formatGetal(s.rir)}`;
   else if (s.rirLinks !== undefined || s.rirRechts !== undefined) uit += `@L${s.rirLinks ?? '–'}/R${s.rirRechts ?? '–'}`;

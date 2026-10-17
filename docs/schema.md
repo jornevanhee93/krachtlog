@@ -1,4 +1,4 @@
-# JSON-schema v3
+# JSON-schema v4
 
 Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-schema's in `src/schema/` zijn de bron; dit document legt ze uit. Voorbeelden (met verzonnen data) staan in `docs/voorbeelden/`:
 
@@ -9,7 +9,7 @@ Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-sc
 
 ## Algemene regels
 
-- Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `3`; bestanden met versie `1` of `2` worden nog altijd aanvaard en automatisch omgezet) en **`soort`**: `"backup"`, `"bibliotheek"`, `"logs"` of `"programma"`.
+- Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `4`; bestanden met versie `1`, `2` of `3` worden nog altijd aanvaard en automatisch omgezet) en **`soort`**: `"backup"`, `"bibliotheek"`, `"logs"` of `"programma"`.
 - Optioneel: `gemaaktOp` (datum+tijd, bv. `"2026-10-16T20:00:00Z"`) en `bron` (vrije tekst, bv. `"export notitie-app 16 okt"`).
 - **Veldnamen zijn exact.** Een onbekend veld (bv. een tikfout als `repbereik`) geeft een fout en wordt dus niet stil genegeerd.
 - Velden die hier "optioneel" heten mag je weglaten. Velden met een standaardwaarde krijgen die als je ze weglaat.
@@ -205,7 +205,8 @@ Een **set** (alle velden optioneel; vul in wat je weet):
 | `variant`, `tempo` | tekst |
 | `reps` | aantal reps (bilateraal) |
 | `repsLinks`, `repsRechts` | reps per kant (unilateraal) |
-| `duurSec`, `afstandM` | duur / afstand |
+| `duurSec`, `afstandM` | duur / afstand (bilateraal) |
+| `duurSecLinks`, `duurSecRechts`, `afstandMLinks`, `afstandMRechts` | duur / afstand per kant (unilateraal, sinds v4); de zwakke kant beslist in de progressie |
 | `rir` | RIR 0–10 (of `rirLinks` / `rirRechts` per kant) |
 | `kwaliteit` | `"makkelijk"` · `"controle"` · `"gevecht"` |
 | `ronde` | bij AMRAP/EMOM/circuit: in welke ronde of minuut (1, 2, 3 …) |
@@ -302,5 +303,6 @@ Tellen begint bij 0: `oefeningen[1]` is de tweede oefening.
 | 1 | eerste versie: backup, bibliotheek, logs |
 | 2 | oefeningen: optioneel veld `icoon`. Een v1-bestand is ongewijzigd geldig. |
 | 3 | nieuwe soort `programma`; in een back-up `programmas` en `planning` (standaard leeg); sessies: optioneel `planningId`. Een v2-bestand is ongewijzigd geldig. |
+| 4 | sets: optioneel `duurSecLinks`, `duurSecRechts`, `afstandMLinks`, `afstandMRechts` (tijd en afstand per kant bij unilaterale oefeningen). Een v3-bestand is ongewijzigd geldig. |
 
 Wijzigt het schema, dan gaat `schemaVersie` omhoog en zet de app oudere bestanden automatisch om (`src/schema/migrate.ts`). Een bestand met een hogere versie dan de app kent, wordt geweigerd.

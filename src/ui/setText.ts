@@ -3,6 +3,10 @@ import { formatGetal } from '../logic/format';
 import type { ItemDoel } from '../logic/activeSession';
 import type { LogSet, Oefening } from '../schema';
 
+function perKant(links: number | undefined, rechts: number | undefined): string {
+  return `L${links !== undefined ? formatGetal(links) : '–'}/R${rechts !== undefined ? formatGetal(rechts) : '–'}`;
+}
+
 /** Korte tekst voor een set, bv. "Vest 5 · +5 kg × 7 · RIR 2 · Controle". */
 export function setTekst(s: LogSet): string {
   const delen: string[] = [];
@@ -17,7 +21,9 @@ export function setTekst(s: LogSet): string {
     hoofd += `${hoofd ? ' × ' : ''}L${s.repsLinks ?? '–'}/R${s.repsRechts ?? '–'}`;
   }
   if (s.duurSec !== undefined && s.duurSec > 0) hoofd += `${hoofd ? ' · ' : ''}${formatGetal(s.duurSec)} s`;
+  else if (s.duurSecLinks || s.duurSecRechts) hoofd += `${hoofd ? ' · ' : ''}${perKant(s.duurSecLinks, s.duurSecRechts)} s`;
   if (s.afstandM !== undefined && s.afstandM > 0) hoofd += `${hoofd ? ' · ' : ''}${formatGetal(s.afstandM)} m`;
+  else if (s.afstandMLinks || s.afstandMRechts) hoofd += `${hoofd ? ' · ' : ''}${perKant(s.afstandMLinks, s.afstandMRechts)} m`;
   if (hoofd) delen.push(hoofd);
   if (s.tempo) delen.push(s.tempo);
   if (s.rir !== undefined) delen.push(`RIR ${formatGetal(s.rir)}`);

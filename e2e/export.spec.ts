@@ -18,7 +18,7 @@ test('logs exporteren als tekst en als JSON', async ({ page, context }, info) =>
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'JSON downloaden' }).click()]);
   expect(download.suggestedFilename()).toMatch(/^emerge-logs-\d{4}-\d{2}-\d{2}\.json$/);
   const inhoud = JSON.parse(readFileSync(await download.path(), 'utf8'));
-  expect(inhoud).toMatchObject({ soort: 'logs', schemaVersie: 3 });
+  expect(inhoud).toMatchObject({ soort: 'logs', schemaVersie: 4 });
   expect(inhoud.sessies).toHaveLength(2);
 });
 

@@ -14,8 +14,13 @@ export const set = z.strictObject({
   reps: count.optional(),
   repsLinks: count.optional(),
   repsRechts: count.optional(),
+  /** Duur en afstand (bij unilateraal: per kant, sinds schemaVersie 4). */
   duurSec: seconds.optional(),
+  duurSecLinks: seconds.optional(),
+  duurSecRechts: seconds.optional(),
   afstandM: meters.optional(),
+  afstandMLinks: meters.optional(),
+  afstandMRechts: meters.optional(),
   rir: rir.optional(),
   rirLinks: rir.optional(),
   rirRechts: rir.optional(),

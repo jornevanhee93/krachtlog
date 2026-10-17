@@ -38,4 +38,38 @@ describe('database-upgrade', () => {
     expect(await nieuw.entries.where('[oefeningId+start]').between(['o1', ''], ['o1', '￿']).count()).toBe(1);
     nieuw.close();
   });
+
+  it('van versie 2 naar de huidige (schema v4: tijd en afstand per kant): bestaande gegevens blijven staan', async () => {
+    const naam = 'upgrade-test-v2';
+    const oud = new Dexie(naam);
+    oud.version(1).stores({
+      materiaal: '&id, naam',
+      oefeningen: '&id, naam, *patronen',
+      sjablonen: '&id, naam',
+      sessies: '&id, start, soort, sjabloonId',
+      entries: '&id, sessieId, oefeningId, [oefeningId+start]',
+      instellingen: '&key',
+      actief: '&key',
+    });
+    oud.version(2).stores({ programmas: '&id, naam', planning: '&id, programmaId, datum' });
+    await oud.open();
+    await oud.table('sessies').put({ id: 's1', soort: 'kracht', start: '2026-09-01T18:00' });
+    await oud.table('entries').put({ id: 's1#0', sessieId: 's1', oefeningId: 'cp', start: '2026-09-01T18:00', volgorde: 0, sets: [{ opwarm: false, duurSec: 30 }] });
+    await oud.table('programmas').put({ id: 'p1', naam: 'Programma', startDatum: '2026-10-26', blokken: [] });
+    await oud.table('planning').put({ id: 'p1:1:0', programmaId: 'p1', datum: '2026-10-26', status: 'gedaan' });
+    oud.close();
+
+    const nieuw = new KrachtlogDb(naam);
+    await nieuw.open();
+    expect(nieuw.verno).toBeGreaterThanOrEqual(3);
+    const snap = await leesSnapshot(nieuw);
+    expect(snap.entries[0].sets[0].duurSec).toBe(30);
+    expect(snap.programmas.map((p) => p.id)).toEqual(['p1']);
+    expect(snap.planning.map((p) => p.status)).toEqual(['gedaan']);
+    // Een set per kant kan bewaard en gelezen worden.
+    await nieuw.entries.put({ ...snap.entries[0], id: 's1#1', sets: [{ opwarm: false, duurSecLinks: 30, duurSecRechts: 25 }] });
+    expect((await nieuw.entries.get('s1#1'))?.sets[0].duurSecRechts).toBe(25);
+    nieuw.close();
+  });
 });
+

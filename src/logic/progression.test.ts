@@ -548,3 +548,19 @@ describe('na een klim: terug naar de onderkant van duur en afstand', () => {
     expect(v).toMatchObject({ type: 'herhaal', duurSec: 30 });
   });
 });
+
+describe('unilateraal met tijd of afstand: de zwakke kant beslist', () => {
+  const zij = (l: number, r: number) => set({ trede: 'Korte hefboom', duurSecLinks: l, duurSecRechts: r, rirLinks: 3, rirRechts: 3 });
+  it('één kant onder de bovenkant: herhaal', () => {
+    expect(voorstel(plank, [keer([zij(30, 30), zij(30, 25)])]).type).toBe('herhaal');
+  });
+  it('beide kanten aan de bovenkant: klim', () => {
+    expect(voorstel(plank, [keer([zij(30, 30), zij(30, 30)])])).toMatchObject({ type: 'klim', trede: 'Lange hefboom' });
+  });
+  it('carry per kant', () => {
+    const uni = oef({ ...carry, unilateraal: true });
+    const k = keer([1, 2, 3].map(() => set({ gewichtKg: 24, afstandMLinks: 40, afstandMRechts: 30, kwaliteit: 'controle' })));
+    expect(voorstel(uni, [k]).type).toBe('herhaal');
+  });
+});
+

@@ -97,3 +97,18 @@ test('3. bewaar als sjabloon: volledige structuur en geen dubbele naam', async (
   await expect(rijen.nth(1)).toContainText('Voorbeeld sessie A (aangepast)');
   await expect(rijen.nth(1)).toContainText('4 groepen · 6 oefeningen');
 });
+
+test('8. unilateraal met tijd: links en rechts apart', async ({ page }, info) => {
+  await accepteerDialogen(page);
+  await importeer(page, voorbeeld('bibliotheek.json'));
+  await legeSessieMet(page, /Copenhagen plank/);
+  await page.getByRole('textbox', { name: 'Tijd links' }).fill('30');
+  await page.getByRole('textbox', { name: 'Tijd rechts' }).fill('25');
+  await controleerScherm(page, 'fix8-per-kant', info.project.name);
+  await page.getByRole('button', { name: 'Set klaar' }).click();
+  await page.getByRole('button', { name: 'Overslaan' }).click();
+  await page.getByRole('button', { name: 'Sessie afsluiten' }).click();
+  await page.getByRole('button', { name: 'Sessie bewaren' }).click();
+  await expect(page).toHaveURL(/#\/historiek\//);
+  await expect(page.getByText(/L30\/R25 s/)).toBeVisible();
+});

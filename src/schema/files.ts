@@ -7,7 +7,7 @@ import { sessie } from './session';
 import { instellingen } from './settings';
 import { sjabloon } from './template';
 
-export const SCHEMA_VERSIE = 3;
+export const SCHEMA_VERSIE = 4;
 
 const kop = {
   schemaVersie: z.literal(SCHEMA_VERSIE, { error: `schemaVersie moet ${SCHEMA_VERSIE} zijn` }),

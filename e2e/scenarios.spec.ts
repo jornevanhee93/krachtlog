@@ -87,7 +87,7 @@ test('back-up maken, alles wissen en herstellen', async ({ page }) => {
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Back-up downloaden' }).click()]);
   const pad = await download.path();
   const backup = JSON.parse(readFileSync(pad, 'utf8'));
-  expect(backup).toMatchObject({ soort: 'backup', schemaVersie: 3 });
+  expect(backup).toMatchObject({ soort: 'backup', schemaVersie: 4 });
   expect(backup.programmas).toHaveLength(1);
   await expect(page.getByText(/Laatste back-up/)).toBeVisible();
 

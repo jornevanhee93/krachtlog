@@ -51,6 +51,11 @@ export class KrachtlogDb extends Dexie {
       programmas: '&id, naam',
       planning: '&id, programmaId, datum',
     });
+    // Versie 3 (schema v4): sets kunnen duur en afstand per kant hebben. Geen nieuwe indexen;
+    // bestaande sets blijven ongewijzigd geldig, dus de upgrade verandert niets aan de gegevens.
+    this.version(3)
+      .stores({})
+      .upgrade(() => {});
   }
 }
 

@@ -106,9 +106,29 @@ export function pasVoorstelToe(set: LogSet, v: Voorstel | undefined, oefening: O
     }
   }
   // Duur en afstand zoals in het voorstel (na een klim of een stap lichter: de onderkant van het bereik).
-  if (v.duurSec !== undefined && oefening?.metingen.includes('tijd')) uit.duurSec = v.duurSec;
-  if (v.afstandM !== undefined && oefening?.metingen.includes('afstand')) uit.afstandM = v.afstandM;
+  if (v.duurSec !== undefined && oefening?.metingen.includes('tijd')) zetPerKant(uit, 'duurSec', v.duurSec, oefening);
+  if (v.afstandM !== undefined && oefening?.metingen.includes('afstand')) zetPerKant(uit, 'afstandM', v.afstandM, oefening);
   return schoon(uit);
+}
+
+/** Zet duur of afstand: bij een unilaterale oefening links en rechts, anders het gewone veld. */
+function zetPerKant(set: LogSet, veld: 'duurSec' | 'afstandM', waarde: number, oefening: Oefening | undefined) {
+  if (oefening?.unilateraal) {
+    set[`${veld}Links`] = waarde;
+    set[`${veld}Rechts`] = waarde;
+    delete set[veld];
+  } else {
+    set[veld] = waarde;
+  }
+}
+
+/** Een oude set met één duur of afstand bij een unilaterale oefening: dezelfde waarde voor beide kanten. */
+function perKantVoor(set: LogSet, oefening: Oefening | undefined): LogSet {
+  if (!oefening?.unilateraal) return set;
+  const uit = { ...set };
+  if (uit.duurSec !== undefined && uit.duurSecLinks === undefined && uit.duurSecRechts === undefined) zetPerKant(uit, 'duurSec', uit.duurSec, oefening);
+  if (uit.afstandM !== undefined && uit.afstandMLinks === undefined && uit.afstandMRechts === undefined) zetPerKant(uit, 'afstandM', uit.afstandM, oefening);
+  return uit;
 }
 
 const WAARDE_VELDEN = [
@@ -121,7 +141,11 @@ const WAARDE_VELDEN = [
   'repsLinks',
   'repsRechts',
   'duurSec',
+  'duurSecLinks',
+  'duurSecRechts',
   'afstandM',
+  'afstandMLinks',
+  'afstandMRechts',
 ] as const;
 
 /** Neemt alleen de waarden over (geen RIR, kwaliteit of notitie: die vul je elke keer opnieuw in). */
@@ -150,8 +174,8 @@ function startSet(doel: ItemDoel, oefening: Oefening | undefined): LogSet {
   if (last.extraKg !== undefined) set.extraKg = last.extraKg;
   if (last.variant) set.variant = last.variant;
   if (last.tempo) set.tempo = last.tempo;
-  if (last.duurSec !== undefined) set.duurSec = last.duurSec;
-  if (last.afstandM !== undefined) set.afstandM = last.afstandM;
+  if (last.duurSec !== undefined) zetPerKant(set, 'duurSec', last.duurSec, oefening);
+  if (last.afstandM !== undefined) zetPerKant(set, 'afstandM', last.afstandM, oefening);
   const metingen = oefening?.metingen ?? ['gewicht', 'reps'];
   const reps = doel.repBereik?.min ?? oefening?.progressie?.repBereik?.min;
   if (metingen.includes('reps')) {
@@ -163,8 +187,8 @@ function startSet(doel: ItemDoel, oefening: Oefening | undefined): LogSet {
     }
   }
   if (metingen.includes('gewicht') && set.gewichtKg === undefined) set.gewichtKg = 0;
-  if (metingen.includes('tijd') && set.duurSec === undefined) set.duurSec = 0;
-  if (metingen.includes('afstand') && set.afstandM === undefined) set.afstandM = 0;
+  if (metingen.includes('tijd') && set.duurSec === undefined && set.duurSecLinks === undefined) zetPerKant(set, 'duurSec', 0, oefening);
+  if (metingen.includes('afstand') && set.afstandM === undefined && set.afstandMLinks === undefined) zetPerKant(set, 'afstandM', 0, oefening);
   return set;
 }
 
@@ -196,7 +220,7 @@ export function planSets(
   const n = aantalSets(groep, doel, vorige);
   const metRonde = groep.type !== 'enkel';
   return Array.from({ length: n }, (_, i) => {
-    const bron = werk.length ? kopieerWaarden(werk[Math.min(i, werk.length - 1)]) : startSet(doel, oefening);
+    const bron = werk.length ? perKantVoor(kopieerWaarden(werk[Math.min(i, werk.length - 1)]), oefening) : startSet(doel, oefening);
     const set: DraftSet = { ...pasVoorstelToe(bron, voorstel, oefening), opwarm: false, klaar: false };
     if (metRonde) set.ronde = i + 1;
     return set;

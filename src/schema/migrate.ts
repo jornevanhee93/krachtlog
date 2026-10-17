@@ -11,6 +11,9 @@ const migraties: Record<number, (bestand: Record<string, unknown>) => Record<str
   // 2 → 3: programma's (nieuwe soort "programma"; in een back-up "programmas" en "planning", standaard leeg)
   // en een optioneel "planningId" bij sessies. Een v2-bestand is dus al geldig in v3.
   2: (b) => b,
+  // 3 → 4: sets kregen optioneel duur en afstand per kant (duurSecLinks/-Rechts, afstandMLinks/-Rechts).
+  // Een v3-bestand is dus al geldig in v4.
+  3: (b) => b,
 };
 
 export type MigratieResultaat =

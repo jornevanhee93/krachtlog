@@ -21,6 +21,37 @@ describe('migratie van oudere bestanden', () => {
     });
   }
 
+  for (const versie of [1, 2, 3]) {
+    it(`een v${versie}-bestand met tijd en afstand blijft importeerbaar (sinds v4 ook per kant)`, () => {
+      const oud = {
+        schemaVersie: versie,
+        soort: 'logs',
+        oefeningen: [{ id: 'cp', naam: 'Copenhagen plank', unilateraal: true }],
+        sessies: [{ id: 's', start: '2026-09-01', oefeningen: [{ oefeningId: 'cp', volgorde: 0, sets: [{ duurSec: 30 }] }] }],
+      };
+      const res = parseObject(oud);
+      expect(res.ok).toBe(true);
+      if (res.ok && res.soort === 'logs') expect(res.bestand.sessies[0].oefeningen[0].sets[0].duurSec).toBe(30);
+    });
+  }
+
+  it('v4: tijd en afstand per kant', () => {
+    const res = parseObject({
+      schemaVersie: SCHEMA_VERSIE,
+      soort: 'logs',
+      oefeningen: [{ id: 'cp', naam: 'Copenhagen plank', unilateraal: true }],
+      sessies: [
+        {
+          id: 's',
+          start: '2026-09-01',
+          oefeningen: [{ oefeningId: 'cp', volgorde: 0, sets: [{ duurSecLinks: 30, duurSecRechts: 25, afstandMLinks: 20, afstandMRechts: 20 }] }],
+        },
+      ],
+    });
+    expect(res.ok).toBe(true);
+    expect(SCHEMA_VERSIE).toBe(4);
+  });
+
   it('zet de versie op de huidige', () => {
     const r = migreer({ schemaVersie: 1, soort: 'logs' });
     expect(r.ok && r.bestand.schemaVersie).toBe(SCHEMA_VERSIE);
