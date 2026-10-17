@@ -614,7 +614,7 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
   };
 }
 
-/** Korte tekst voor het voorstel, bv. "Vest 10 · +10 kg × 5–8 · RIR 2". */
+/** Korte tekst voor het voorstel, bv. "+10 kg × 5–8 · RIR 2" of "Lange hefboom · 30 s". */
 export function voorstelTekst(v: Voorstel): string {
   if (v.type === 'geen') return '';
   const delen: string[] = [];

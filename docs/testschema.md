@@ -195,6 +195,7 @@ Doe dit na een back-up. Wacht tot de app de nieuwe versie toont (melding "Nieuwe
 
 1. ☐ **Vervanger met eigen voorschrift.** Start een training met een superset waarin een oefening met een eigen last staat (bv. box jump met +10 kg × 3). Tik de snelle knop één keer. Open de box jump opnieuw, tik **Vervangen** en kies een oefening met een ladder (bv. chin-up, BW → Vest 5 → Vest 10, 6–8 reps). De knop van de nieuwe oefening toont haar eigen waarden, bv. **"✓ BW · 6 · RIR 2"**, niet "+10 kg × 3". De sets in de lijst tonen hetzelfde. Tik de knop en sluit af: in de historiek staat de chin-up met BW × 6.
 2. ☐ **Sjabloon na vervangen.** Doe hetzelfde, maar kies bij het afsluiten **Bewaar als sjabloon**. Open het nieuwe sjabloon bij **Oefeningen → Sjablonen**: bij de vervanger staat geen last of repbereik van de oude oefening (wel de rust).
+3. ☐ **Label of last, niet allebei.** Bij een oefening met een trede als "32 kg + vest 10" (bv. suitcase hold) toont de snelle knop **"✓ 32 kg +10 kg · 30 s"**, niet "32 kg + vest 10 · 32 kg +10 kg · 30 s". Ook in de setregels en het voorstel staat de last maar één keer. Een trede met extra info, zoals "Vest 10 + 3s excentrisch" of "Lange hefboom", blijft wel zichtbaar.
 
 ---
 

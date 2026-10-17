@@ -89,3 +89,53 @@ test('1. de vervanger krijgt zijn eigen voorschrift, niet de last en reps van de
   await expect(page.locator('main')).toContainText('Chin-up');
   await expect(page.locator('main')).toContainText('BW · 6 · RIR 2');
 });
+
+test('2. tredelabel of last, niet allebei, als het label de last al volledig beschrijft', async ({ page }, info) => {
+  const bib = {
+    schemaVersie: 5,
+    soort: 'bibliotheek',
+    oefeningen: [
+      {
+        id: 'sh',
+        naam: 'Suitcase hold',
+        metingen: ['gewicht', 'extraLast', 'tijd'],
+        progressie: {
+          modus: 'ladder',
+          duurBereikSec: { min: 30, max: 45 },
+          treden: [
+            { label: '32 kg', last: { gewichtKg: 32 } },
+            { label: '32 kg + vest 10', last: { gewichtKg: 32, extraKg: 10, duurSec: 30 } },
+          ],
+          huidigeTrede: '32 kg + vest 10',
+        },
+      },
+      {
+        id: 'pu',
+        naam: 'Pull-up',
+        metingen: ['extraLast', 'reps'],
+        progressie: {
+          modus: 'ladder',
+          repBereik: { min: 4, max: 6 },
+          doelRIR: 2,
+          treden: [{ label: 'Vest 10 + 3s excentrisch', last: { extraKg: 10, tempo: '3s excentrisch' } }],
+        },
+      },
+    ],
+  };
+  await importeer(page, JSON.stringify(bib));
+  await page.goto('#/');
+  await sluitMeldingen(page);
+  await page.getByRole('button', { name: /Lege sessie/ }).click();
+  await page.getByRole('button', { name: '+ Oefening toevoegen' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Suitcase hold/ }).click();
+
+  const open = page.locator('.exercise-card.open');
+  await expect(snelleKnop(page)).toHaveText('✓ 32 kg +10 kg · 30 s');
+  await expect(open.locator('.set-list')).not.toContainText('vest 10');
+  await controleerScherm(page, 'avond2-suitcase', info.project.name);
+
+  // Een label met extra informatie (tempo) blijft staan.
+  await page.getByRole('button', { name: '+ Oefening toevoegen' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Pull-up/ }).click();
+  await expect(snelleKnop(page)).toContainText('Vest 10 + 3s excentrisch · +10 kg × 4');
+});

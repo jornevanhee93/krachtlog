@@ -237,7 +237,7 @@ describe('voorstel: pull-up-ladder (BW → vest 5 → vest 10 → vest 10 + 3s �
     const v = voorstel(pullUp, [pu('BW', 0, [8, 8, 8])]);
     expect(v).toMatchObject({ type: 'klim', trede: 'Vest 5', last: { extraKg: 5 }, doelReps: 5 });
     expect(v.uitleg).toMatch(/klim naar Vest 5/);
-    expect(voorstelTekst(v)).toBe('Vest 5 · +5 kg × 5 · RIR 2');
+    expect(voorstelTekst(v)).toBe('+5 kg × 5 · RIR 2');
   });
   it('Vest 10 gehaald → de excentrische trede met haar eigen bereik (4–6)', () => {
     const v = voorstel(pullUp, [pu('Vest 10', 10, [8, 8, 8])]);
@@ -571,6 +571,9 @@ describe('voorstelTekst zonder dubbele last', () => {
     expect(voorstelTekst(v)).toBe('90 kg × 5 · RIR 2');
   });
   it('een label met extra informatie blijft', () => {
-    expect(voorstelTekst(voorstel(pullUp, [pu('BW', 0, [8, 8, 8])]))).toMatch(/^Vest 5 · \+5 kg × 5/);
+    expect(voorstelTekst(voorstel(pullUp, [pu('Vest 10', 10, [8, 8, 8])]))).toMatch(/^Vest 10 \+ 3s excentrisch · \+10 kg × 4/);
+  });
+  it('een label dat gewicht en vest al volledig beschrijft, valt weg', () => {
+    expect(voorstelTekst(voorstel(pullUp, [pu('BW', 0, [8, 8, 8])]))).toMatch(/^\+5 kg × 5/);
   });
 });

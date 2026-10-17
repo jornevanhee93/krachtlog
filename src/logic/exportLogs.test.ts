@@ -90,7 +90,7 @@ describe('tekstsamenvatting', () => {
     expect(t).toContain('- A (superset) Pull-up: [BW] (o)3, 8@2 C, 8@2');
     expect(t).toContain('- SL RDL: 24×L10/R9@2');
     expect(t).toContain('Notitie: Goede dag');
-    expect(t).toMatch(/- Pull-up \[1×\]: anker, ladder \*BW\* → Vest 5, 5–8 reps, RIR 2, 2 sets · voorstel: Vest 5/);
+    expect(t).toMatch(/- Pull-up \[1×\]: anker, ladder \*BW\* → Vest 5, 5–8 reps, RIR 2, 2 sets · voorstel: \+5 kg × 5 · RIR 2 — .*klim naar Vest 5/);
     expect(t).toContain('- SL RDL (per kant) [2×]: geen progressieregel');
     expect(t).not.toContain('Ongebruikt');
   });

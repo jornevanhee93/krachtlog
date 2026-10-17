@@ -42,11 +42,18 @@ export function minutenTussen(startIso: string, eindeIso: string): number {
 }
 
 /**
- * Voegt een tredelabel iets toe aan de lasttekst? "28 kg" naast "28 kg" niet, "Vest 5" naast "+5 kg" wel.
- * Spaties, "kg", "+" en komma/punt tellen niet mee.
+ * Voegt een tredelabel iets toe aan de lasttekst? "28 kg" naast "28 kg" niet, en ook "32 kg + vest 10" naast
+ * "32 kg +10 kg" of "Vest 5" naast "+5 kg" niet: gewicht en vest/extra last komen overeen. Een label met meer
+ * informatie (variant, tempo, hefboom: "Vest 10 + 3s excentrisch", "Lange hefboom") blijft.
+ * Spaties, "kg", "+", komma/punt en de woorden "vest" en "BW" tellen niet mee. Een label dat alleen "BW" of
+ * "Vest" is, blijft wel (dan is er geen last om het te vervangen).
  */
 export function tredeVoegtToe(label: string, lastTekst: string): boolean {
   const kern = (x: string) => x.toLowerCase().replace(/,/g, '.').replace(/kg|\+|\s/g, '');
   const l = kern(label);
-  return l !== '' && l !== kern(lastTekst);
+  if (l === '') return false;
+  const last = kern(lastTekst);
+  if (l === last) return false;
+  const zonderWoorden = kern(label.toLowerCase().replace(/\b(vest|bw)(?![a-z])/g, ''));
+  return zonderWoorden === '' || zonderWoorden !== last;
 }

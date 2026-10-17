@@ -7,7 +7,7 @@ function perKant(links: number | undefined, rechts: number | undefined): string 
   return `L${links !== undefined ? formatGetal(links) : '–'}/R${rechts !== undefined ? formatGetal(rechts) : '–'}`;
 }
 
-/** Korte tekst voor een set, bv. "Vest 5 · +5 kg × 7 · RIR 2 · Controle". */
+/** Korte tekst voor een set, bv. "Vest 10 + 3s excentrisch · +10 kg × 4 · RIR 2 · Controle". */
 export function setTekst(s: LogSet): string {
   const delen: string[] = [];
   const last: string[] = [];

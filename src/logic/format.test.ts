@@ -27,9 +27,20 @@ describe('tredeVoegtToe', () => {
     expect(tredeVoegtToe('+5 kg', '+5 kg')).toBe(false);
     expect(tredeVoegtToe('2,5 kg', '2,5 kg')).toBe(false);
   });
+  it('"vest" en "BW" tellen niet mee als gewicht en extra last overeenkomen', () => {
+    expect(tredeVoegtToe('32 kg + vest 10', '32 kg +10 kg')).toBe(false);
+    expect(tredeVoegtToe('Vest 5', '+5 kg')).toBe(false);
+    expect(tredeVoegtToe('Vest10', '+10 kg')).toBe(false);
+    expect(tredeVoegtToe('BW + vest 10', '+10 kg')).toBe(false);
+    expect(tredeVoegtToe('32 kg + vest 10', '32 kg +5 kg')).toBe(true);
+    expect(tredeVoegtToe('32 kg + vest 10', '32 kg')).toBe(true);
+  });
   it('een label met meer informatie blijft', () => {
-    expect(tredeVoegtToe('Vest 5', '+5 kg')).toBe(true);
+    expect(tredeVoegtToe('Vest 10 + 3s excentrisch', '+10 kg')).toBe(true);
+    expect(tredeVoegtToe('Lange hefboom', '')).toBe(true);
     expect(tredeVoegtToe('KB 24', '24 kg')).toBe(true);
     expect(tredeVoegtToe('BW', '')).toBe(true);
+    expect(tredeVoegtToe('Vest', '')).toBe(true);
+    expect(tredeVoegtToe('BW 15', '')).toBe(true);
   });
 });

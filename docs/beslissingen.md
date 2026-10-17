@@ -93,7 +93,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Veranderen:** `vulTrede` in `src/logic/activeSession.ts`.
 
 - **Vraag:** wanneer toont de app het tredelabel naast de last?
-- **Keuze:** alleen als het iets toevoegt: "24 kg" naast "24 kg × 6" valt weg, "Vest 5" naast "+5 kg × 7" blijft. Spaties, "kg", "+" en komma/punt tellen niet mee bij het vergelijken. De tekst voor een review (Logs exporteren) houdt het label wel, als kop tussen haken.
+- **Keuze:** alleen als het iets toevoegt: "24 kg" naast "24 kg × 6" valt weg. (Bijgesteld in "Fixronde 17 okt avond": ook "Vest 5" naast "+5 kg" valt nu weg.) Spaties, "kg", "+" en komma/punt tellen niet mee bij het vergelijken. De tekst voor een review (Logs exporteren) houdt het label wel, als kop tussen haken.
 - **Veranderen:** `tredeVoegtToe` in `src/logic/format.ts`.
 
 - **Vraag:** hoe filter je compact op patroon bij Oefeningen?
@@ -124,3 +124,8 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Vraag:** wat neemt een vervanger over van de oefening die hij vervangt?
 - **Keuze:** alleen de structuur: de plaats in de groep, het aantal (resterende) sets of rondes, de rust en de rol. Last, trede, variant, repbereik, doel-RIR en notitie horen bij de oude oefening. De vervanger krijgt zijn eigen voorschrift: het voorstel van de progressie, anders zijn vorige keer, anders zijn huidige trede en de onderkant van zijn eigen repbereik (en zijn eigen doel-RIR). Zo logt één tik op de snelle knop nooit de last of de reps van een andere oefening. Hetzelfde bij "Bewaar als sjabloon": het sjabloonitem van de vervanger heeft geen last of repbereik van de oude oefening.
 - **Veranderen:** `structuurVan` en `vervangOefening` in `src/logic/activeSession.ts`.
+
+- **Vraag:** wanneer beschrijft een tredelabel de last al volledig?
+- **Keuze:** als gewicht en vest/extra last overeenkomen. Bij het vergelijken tellen spaties, "kg", "+", komma/punt en de woorden "vest" en "BW" niet mee. Dan toont de app alleen de last: "32 kg + vest 10 · 32 kg +10 kg · 30 s" wordt "32 kg +10 kg · 30 s", "Vest 5 · +5 kg × 7" wordt "+5 kg × 7". Een label met extra informatie blijft staan: "Vest 10 + 3s excentrisch · +10 kg × 4", "Lange hefboom · 30 s", "KB 24 · 24 kg". Een label zonder last ernaast ("BW", "BW 15") blijft ook. Dit geldt voor voorstellen, de snelle knop, de setregels en het voorstel in de review-tekst; de sets in de review-tekst houden het label als kop.
+- **Veranderen:** `tredeVoegtToe` in `src/logic/format.ts`.
+- **Gezien, niet aangepast:** zonder vorige keer start een tijdsoefening op 0 s als de trede of het sjabloon geen duur noemt (het duurbereik van de ladder wordt dan niet gebruikt, de reps wel). Valt buiten deze ronde; eens bekijken in `startSet` (`src/logic/activeSession.ts`).
