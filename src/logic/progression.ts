@@ -531,6 +531,27 @@ export function maakVoorstel(ctx: Context, historiek: Gedaan[]): Voorstel {
           alternatieven: [],
         };
       }
+      // Laagste trede met een last: ~x% lichter als het materiaal een lichtere haalbare last heeft.
+      if (stand.trede && stand.tredeIndex === 0) {
+        const l = stand.trede.last;
+        const veld = (l.gewichtKg ?? 0) > 0 ? 'gewichtKg' : (l.extraKg ?? 0) > 0 ? 'extraKg' : undefined;
+        if (veld) {
+          const ids = [...oef.materiaalIds, ...(l.materiaalId ? [l.materiaalId] : [])];
+          const lasten = lastenVoor(ids, ctx.materiaal);
+          const huidig = l[veld]!;
+          const kg = lichter(huidig, st.percentage, lasten, p.kleinsteStapKg);
+          if (kg < huidig && (lasten.length > 0 || p.kleinsteStapKg)) {
+            return {
+              type: 'lichter',
+              ...v,
+              last: { ...l, [veld]: kg },
+              doelReps: v.reps?.min,
+              uitleg: `${kop} op de laagste trede → ${formatGetal(st.percentage)}% lichter (${veld === 'extraKg' ? '+' : ''}${kgTekst(kg)}) en opnieuw opbouwen.`,
+              alternatieven: [],
+            };
+          }
+        }
+      }
     }
     if (st.actie === 'wisselen') {
       return {

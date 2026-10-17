@@ -486,3 +486,43 @@ describe('alternatieven volgen het profiel', () => {
     expect(v.alternatieven.map((a) => a.tekst).join(' ')).not.toMatch(/boven het bereik/);
   });
 });
+
+describe('stilstand op de laagste trede van een anker', () => {
+  const kbLadder = oef({
+    id: 'kbs',
+    naam: 'Goblet squat (ladder)',
+    materiaalIds: ['kb'],
+    progressie: {
+      modus: 'ladder',
+      profiel: 'anker',
+      repBereik: { min: 6, max: 8 },
+      doelRIR: 2,
+      sets: 3,
+      treden: [
+        { label: 'KB 24', last: { gewichtKg: 24 } },
+        { label: 'KB 28', last: { gewichtKg: 28 } },
+      ],
+    },
+  });
+  const vast = (trede: string, kg: number) => keer([6, 6, 6].map((r) => set({ trede, gewichtKg: kg, reps: r, rir: 2 })));
+
+  it('het materiaal heeft een lichtere last: ~10% lichter (kleinste haalbare stap)', () => {
+    const v = voorstel(kbLadder, [vast('KB 24', 24), vast('KB 24', 24), vast('KB 24', 24)]);
+    expect(v).toMatchObject({ type: 'lichter', trede: 'KB 24', last: { gewichtKg: 16 } });
+    expect(v.uitleg).toMatch(/lichter/);
+  });
+
+  it('vest op de laagste trede: een stap van het vest lichter', () => {
+    const o = oef({
+      ...pullUp,
+      progressie: { ...pullUp.progressie!, treden: [{ label: 'Vest 5', last: { extraKg: 5 } }, { label: 'Vest 10', last: { extraKg: 10 } }], huidigeTrede: 'Vest 5' },
+    });
+    const v = voorstel(o, [pu('Vest 5', 5, [6, 6, 5]), pu('Vest 5', 5, [6, 5, 5]), pu('Vest 5', 5, [6, 6, 5])]);
+    expect(v).toMatchObject({ type: 'lichter', last: { extraKg: 2.5 } });
+  });
+
+  it('geen lichtere last mogelijk (lichaamsgewicht): een alternatief', () => {
+    const v = voorstel(pullUp, [pu('BW', 0, [6, 6, 5]), pu('BW', 0, [6, 5, 5]), pu('BW', 0, [6, 6, 5])]);
+    expect(v.type).toBe('alternatief');
+  });
+});

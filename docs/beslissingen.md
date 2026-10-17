@@ -76,3 +76,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** volgens het profiel. Power: complexiteit, volgende variant, zwaarder, pauze (nooit meer reps, trager tempo of een extra set). Carry: houding, afstand, last. Isometrisch: duur, hefboom, last. Anker/opbouw/geen profiel: de volgorde van de oefening plus reps, set, tempo, pauze, variant. "Meer reps boven het bereik" alleen als de bovenkant van het bereik al gehaald werd (niet bij stilstand onderaan, bv. vast op 6 bij 6–8). "Zwaarder" valt weg als het materiaal geen zwaardere stap heeft. Een eigen volgorde bij de oefening gaat voor de profielvolgorde.
 - **Veranderen:** `PROFIEL_STAPPEN` en `alternatieven` in `src/logic/progression.ts`.
 
+- **Vraag:** wat doet een anker in stilstand op de laagste trede van zijn ladder (er is geen trede terug)?
+- **Keuze:** heeft die trede een last (gewicht of extra last) en laat het materiaal een lichtere last toe, dan stelt de app die voor met de lastcalculator: de zwaarste haalbare last op of onder −10% (het percentage uit Instellingen), anders de eerstvolgende lichtere. De trede blijft dezelfde, alleen de last zakt. Is er geen lichtere last (bv. lichaamsgewicht, of al de lichtste kettlebell), dan blijft het een alternatief. Let op: met vaste gewichten kan de stap groter zijn dan 10% (bv. 24 → 16 kg als er niets tussen ligt).
+- **Veranderen:** het stilstandsblok in `maakVoorstel` (`src/logic/progression.ts`).
+
