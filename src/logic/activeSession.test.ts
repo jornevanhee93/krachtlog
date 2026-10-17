@@ -349,3 +349,35 @@ describe('unilateraal met tijd: per kant', () => {
   });
 });
 
+
+describe('trede invullen als de vorige sets er geen hadden', () => {
+  const bj = oefening.parse({
+    id: 'bj',
+    naam: 'Box jump',
+    metingen: ['variant', 'reps'],
+    progressie: {
+      modus: 'ladder',
+      profiel: 'power',
+      treden: [{ label: 'Box 40', last: { variant: '40 cm' } }, { label: 'Box 50', last: { variant: '50 cm' } }],
+      huidigeTrede: 'Box 50',
+    },
+  });
+  const vorige = [{ opwarm: false, reps: 3 }];
+
+  it('neemt de trede van het voorstel (ook bij herhalen)', () => {
+    const v: Voorstel = { type: 'herhaal', trede: 'Box 40', last: { variant: '40 cm' }, uitleg: '', alternatieven: [] };
+    const s = voegOefeningToe(startSessie(undefined, [bj], {}), bj, vorige, v);
+    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ trede: 'Box 40', variant: '40 cm', reps: 3 });
+  });
+
+  it('zonder voorstel: de huidige trede van de oefening', () => {
+    const s = voegOefeningToe(startSessie(undefined, [bj], {}), bj, vorige);
+    expect(s.groepen[0].items[0].sets[0]).toMatchObject({ trede: 'Box 50' });
+  });
+
+  it('een gelogde trede blijft staan', () => {
+    const v: Voorstel = { type: 'herhaal', trede: 'Box 40', uitleg: '', alternatieven: [] };
+    const s = voegOefeningToe(startSessie(undefined, [bj], {}), bj, [{ opwarm: false, trede: 'Box 50', reps: 3 }], v);
+    expect(s.groepen[0].items[0].sets[0].trede).toBe('Box 50');
+  });
+});

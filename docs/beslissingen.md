@@ -88,3 +88,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** per kant, zoals reps: **Tijd links / Tijd rechts** (en **Afstand links / rechts**). Schema v4 met `duurSecLinks`, `duurSecRechts`, `afstandMLinks`, `afstandMRechts`; de zwakke kant beslist in de progressie. Oudere sets met één `duurSec` of `afstandM` blijven geldig en tellen gewoon mee; in een nieuwe training worden ze als dezelfde waarde voor beide kanten voorgevuld. Databaseversie 3 verandert niets aan bestaande gegevens (geen nieuwe indexen). v1–v3-bestanden blijven importeerbaar.
 - **Veranderen:** `duurVan`/`afstandVan` in `src/logic/progression.ts`, `zetPerKant` in `src/logic/activeSession.ts`, `SetEditor`.
 
+- **Vraag:** wat staat er in het veld "Trede" als de vorige sets geen trede hadden?
+- **Keuze:** de trede van het voorstel, anders de huidige trede van de oefening. Alleen het label (en de variant/het tempo als die nog leeg waren) wordt ingevuld; gewicht en reps van de vorige keer blijven staan.
+- **Veranderen:** `vulTrede` in `src/logic/activeSession.ts`.
+

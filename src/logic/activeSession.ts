@@ -192,6 +192,22 @@ function startSet(doel: ItemDoel, oefening: Oefening | undefined): LogSet {
   return set;
 }
 
+/**
+ * Een set zonder trede bij een ladder (bv. geïmporteerd) krijgt de trede van het voorstel, anders de huidige trede,
+ * zodat het veld "Trede" niet leeg staat terwijl het voorstel een trede noemt. De gelogde last blijft staan.
+ */
+function vulTrede(set: LogSet, v: Voorstel | undefined, oefening: Oefening | undefined): LogSet {
+  const p = oefening?.progressie;
+  if (set.trede || !p || p.modus !== 'ladder' || p.treden.length === 0) return set;
+  const label = v?.trede ?? huidigeTredeLast(oefening).trede;
+  const trede = p.treden.find((t) => t.label === label);
+  if (!trede) return set;
+  const uit: LogSet = { ...set, trede: trede.label };
+  if (uit.variant === undefined && trede.last.variant) uit.variant = trede.last.variant;
+  if (uit.tempo === undefined && trede.last.tempo) uit.tempo = trede.last.tempo;
+  return uit;
+}
+
 function aantalSets(groep: Pick<ActiveGroup, 'type' | 'rondes' | 'duurSec' | 'intervalSec'>, doel: ItemDoel, vorige?: LogSet[]) {
   switch (groep.type) {
     case 'superset':
@@ -221,7 +237,7 @@ export function planSets(
   const metRonde = groep.type !== 'enkel';
   return Array.from({ length: n }, (_, i) => {
     const bron = werk.length ? perKantVoor(kopieerWaarden(werk[Math.min(i, werk.length - 1)]), oefening) : startSet(doel, oefening);
-    const set: DraftSet = { ...pasVoorstelToe(bron, voorstel, oefening), opwarm: false, klaar: false };
+    const set: DraftSet = { ...vulTrede(pasVoorstelToe(bron, voorstel, oefening), voorstel, oefening), opwarm: false, klaar: false };
     if (metRonde) set.ronde = i + 1;
     return set;
   });

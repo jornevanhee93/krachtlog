@@ -159,6 +159,7 @@ Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze
 7. ☐ **Isometrisch klimmen.** Bij een isometrische oefening die de bovenkant van de duur haalde, zegt het voorstel "klim naar … , terug naar 20 s" (de onderkant). Start de training: het veld **Tijd (s)** staat op dezelfde waarde.
 8. ☐ **Tijd per kant.** Voeg in een training een unilaterale oefening met tijd toe (bv. Copenhagen plank): je ziet **Tijd links** en **Tijd rechts**. Vul 30 en 25 in, **Set klaar**, sluit af: in de historiek staat "L30/R25 s". Je bestaande data blijft staan (kijk even in Historiek).
 9. ☐ **Power zonder RIR.** Open in een training een power-oefening (bv. Box jump): er zijn geen RIR-knoppen, wel **Makkelijk / Controle / Gevecht**.
+10. ☐ **Trede ingevuld.** Start een training met een ladderoefening waarvan de vorige sets geen trede hadden (bv. box jump uit een import). Het veld **Trede** staat op de trede van het voorstel (of de huidige trede), niet op "—".
 
 ---
 
