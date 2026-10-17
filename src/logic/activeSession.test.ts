@@ -183,7 +183,7 @@ describe('afsluiten', () => {
     expect(sjabloon.safeParse(nieuw).success).toBe(true);
   });
 
-  it('een vervangen oefening komt niet in het sjabloon; haar vervanger wel, met het oorspronkelijke voorschrift', () => {
+  it('een vervangen oefening komt niet in het sjabloon; haar vervanger wel, met de structuur (sets, rust)', () => {
     let s = startSessie(sjab, oefeningen, {});
     s = setKlaar(s, { groep: 1, item: 0 }, 0, T0);
     s = vervangOefening(s, { groep: 1, item: 0 }, oefeningen[0], undefined);
@@ -230,6 +230,84 @@ describe('afsluiten', () => {
     const na = vervangOefening(s, { groep: 1, item: 0 }, oefeningen[0], undefined);
     expect(na.groepen[1].items.map((i) => i.oefeningId)).toEqual(['pu']);
     expect(na.groepen[1].items[0].sets).toHaveLength(2);
+  });
+
+  describe('de vervanger krijgt zijn eigen voorschrift', () => {
+    const boxJump = oef({ id: 'bj', naam: 'Box jump', metingen: ['extraLast', 'reps'], progressie: { modus: 'ladder', profiel: 'power', treden: [{ label: '24 inch' }] } });
+    const chinUp = oef({
+      id: 'chin',
+      naam: 'Chin-up',
+      metingen: ['extraLast', 'reps'],
+      progressie: {
+        modus: 'ladder',
+        repBereik: { min: 6, max: 8 },
+        doelRIR: 2,
+        treden: [{ label: 'BW' }, { label: 'Vest 5', last: { extraKg: 5 } }, { label: 'Vest 10', last: { extraKg: 10 } }],
+        huidigeTrede: 'BW',
+      },
+    });
+    const kb = oef({ id: 'kb', naam: 'KB swing' });
+    const alle = [boxJump, chinUp, kb];
+    const power = sjabloon.parse({
+      id: 'P',
+      naam: 'Power',
+      groepen: [
+        {
+          label: 'A',
+          type: 'superset',
+          rondes: 3,
+          rustTussenRondesSec: 90,
+          items: [
+            { oefeningId: 'bj', repBereik: { min: 3, max: 3 }, rustSec: 45, last: { variant: '24 inch', extraKg: 10 } },
+            { oefeningId: 'kb' },
+          ],
+        },
+      ],
+    });
+
+    it('na een gedane set: last, trede en reps van de nieuwe oefening, niet van de oude', () => {
+      let s = startSessie(power, alle, {}, new Date(T0));
+      s = setKlaar(s, { groep: 0, item: 0 }, 0, T0);
+      const na = vervangOefening(s, { groep: 0, item: 0 }, chinUp, undefined);
+      const nieuw = na.groepen[0].items[1];
+      expect(nieuw.oefeningId).toBe('chin');
+      expect(nieuw.sets).toEqual([
+        { opwarm: false, klaar: false, trede: 'BW', reps: 6, ronde: 2 },
+        { opwarm: false, klaar: false, trede: 'BW', reps: 6, ronde: 3 },
+      ]);
+      // Structuur blijft (rust), het voorschrift niet.
+      expect(nieuw.doel).toEqual({ rustSec: 45 });
+      expect(snelleRir(nieuw.sets[0], nieuw.doel, chinUp)).toBe(2);
+    });
+
+    it('zonder gedane sets: ook geen last of reps van de oude oefening', () => {
+      const s = startSessie(power, alle, {}, new Date(T0));
+      const na = vervangOefening(s, { groep: 0, item: 0 }, chinUp, undefined);
+      const item = na.groepen[0].items[0];
+      expect(item.doel).toEqual({ rustSec: 45 });
+      expect(item.sets.map((x) => [x.extraKg, x.variant, x.reps, x.ronde])).toEqual([
+        [undefined, undefined, 6, 1],
+        [undefined, undefined, 6, 2],
+        [undefined, undefined, 6, 3],
+      ]);
+    });
+
+    it('met een vorige keer en een voorstel: die van de nieuwe oefening', () => {
+      let s = startSessie(power, alle, {}, new Date(T0));
+      s = setKlaar(s, { groep: 0, item: 0 }, 0, T0);
+      const voorstel: Voorstel = { type: 'klim', trede: 'Vest 10', last: { extraKg: 10 }, doelReps: 6, uitleg: '', alternatieven: [] };
+      const vorige = [{ opwarm: false, trede: 'Vest 5', extraKg: 5, reps: 8, rir: 2 }];
+      const na = vervangOefening(s, { groep: 0, item: 0 }, chinUp, vorige, voorstel);
+      expect(na.groepen[0].items[1].sets[0]).toMatchObject({ trede: 'Vest 10', extraKg: 10, reps: 6 });
+    });
+
+    it('bewaar als sjabloon: de vervanger krijgt geen last of reps van de vervangen oefening', () => {
+      let s = startSessie(power, alle, {}, new Date(T0));
+      s = setKlaar(s, { groep: 0, item: 0 }, 0, T0);
+      s = vervangOefening(s, { groep: 0, item: 0 }, chinUp, undefined);
+      const item = naarSjabloon(s, 'X').groepen[0].items[0];
+      expect(item).toEqual({ oefeningId: 'chin', rustSec: 45 });
+    });
   });
 
   it('verwijdert een oefening en een lege groep', () => {

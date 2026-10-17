@@ -313,9 +313,19 @@ export function voegOefeningToe(
 }
 
 /**
+ * Wat een vervanger van de oude oefening overneemt: alleen de structuur (sets, rust, rol).
+ * Last, repbereik, RIR en notitie horen bij de oude oefening; de vervanger gebruikt zijn eigen voorstel,
+ * zijn vorige keer of zijn eigen ladder en bereik.
+ */
+function structuurVan(doel: ItemDoel): ItemDoel {
+  return schoon({ sets: doel.sets, rustSec: doel.rustSec, rol: doel.rol });
+}
+
+/**
  * Vervangt een oefening. Gedane sets gaan nooit verloren: is er al een set afgevinkt, dan blijft de oude
  * oefening staan met alleen haar gedane sets, en komt de nieuwe er meteen achter met de resterende werksets.
- * Zonder gedane sets wordt de oefening gewoon vervangen.
+ * Zonder gedane sets wordt de oefening gewoon vervangen. De nieuwe oefening krijgt haar eigen voorschrift
+ * (zie structuurVan); de plaats in de groep, het aantal sets of rondes en de rust blijven.
  */
 export function vervangOefening(
   s: ActiveSession,
@@ -327,12 +337,14 @@ export function vervangOefening(
   const groep = s.groepen[pos.groep];
   const item = groep?.items[pos.item];
   if (!item) return s;
-  const gepland = planSets(groep, item.doel, oefening, vorige, voorstel);
+  const doel = structuurVan(item.doel);
+  const gepland = planSets(groep, doel, oefening, vorige, voorstel);
   const gedaan = item.sets.filter((x) => x.klaar);
   if (gedaan.length === 0) {
     return updateItem(s, pos, () => ({
       ...item,
       oefeningId: oefening.id,
+      doel,
       sets: gepland.map((set, i) => (item.sets[i]?.ronde !== undefined ? { ...set, ronde: item.sets[i].ronde } : set)),
     }));
   }
@@ -344,7 +356,7 @@ export function vervangOefening(
     return set;
   });
   const oud: ActiveItem = { ...item, sets: gedaan, vervangen: true };
-  const nieuw: ActiveItem = { key: nieuwId('itm'), oefeningId: oefening.id, doel: item.doel, sets };
+  const nieuw: ActiveItem = { key: nieuwId('itm'), oefeningId: oefening.id, doel, sets };
   const groepen = s.groepen.map((g, gi) =>
     gi === pos.groep ? { ...g, items: g.items.flatMap((it, ii) => (ii === pos.item ? [oud, nieuw] : [it])) } : g,
   );
@@ -596,7 +608,7 @@ export function naarSessie(s: ActiveSession, a: Afsluiting): Sessie {
 /**
  * Maakt een sjabloon van de sessie zoals ze er bij het afsluiten uitziet: alle groepen en oefeningen,
  * ook die zonder gedane sets, met hun voorschrift. Een vervangen oefening valt weg; haar vervanger
- * neemt het voorschrift over.
+ * neemt alleen de structuur over (sets, rust, rol), niet de last of de reps.
  */
 export function naarSjabloon(s: ActiveSession, naam: string): Sjabloon {
   const groepen: SjabloonGroep[] = [];
