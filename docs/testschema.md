@@ -188,6 +188,14 @@ Doe dit na een back-up (Data → Back-up downloaden). Wacht eerst tot de app de 
 14. ☐ **Data → Instellingen**: er is een veld **Back-upherinnering na … sessies** (standaard 3). Zet het op 1 en bewaar. Log een sessie en tik **Later**: op **Vandaag** staat "Sinds je laatste back-up kwamen er 1 sessies bij." met **Back-up delen**. Zet het daarna terug op 3.
 15. ☐ Staat er op Vandaag **"! Je gegevens zijn nog niet veilig opgeslagen"**: installeer de app op je startscherm (⋮ → Toevoegen aan startscherm), open hem een paar keer en tik **Opnieuw aanvragen**. Zodra Chrome blijvende opslag geeft, verdwijnt de melding. (Zie je de melding niet, dan is je opslag al blijvend: check bij Data → Opslag.)
 
+
+## Fixronde 17 okt avond
+
+Doe dit na een back-up. Wacht tot de app de nieuwe versie toont (melding "Nieuwe versie" → tik erop, of sluit de app en open hem opnieuw).
+
+1. ☐ **Vervanger met eigen voorschrift.** Start een training met een superset waarin een oefening met een eigen last staat (bv. box jump met +10 kg × 3). Tik de snelle knop één keer. Open de box jump opnieuw, tik **Vervangen** en kies een oefening met een ladder (bv. chin-up, BW → Vest 5 → Vest 10, 6–8 reps). De knop van de nieuwe oefening toont haar eigen waarden, bv. **"✓ BW · 6 · RIR 2"**, niet "+10 kg × 3". De sets in de lijst tonen hetzelfde. Tik de knop en sluit af: in de historiek staat de chin-up met BW × 6.
+2. ☐ **Sjabloon na vervangen.** Doe hetzelfde, maar kies bij het afsluiten **Bewaar als sjabloon**. Open het nieuwe sjabloon bij **Oefeningen → Sjablonen**: bij de vervanger staat geen last of repbereik van de oude oefening (wel de rust).
+
 ---
 
 ## Bekende beperkingen

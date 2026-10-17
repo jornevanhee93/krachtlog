@@ -65,7 +65,7 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Let op:** "Copenhagen plank" staat op je telefoon misschien nog als alias bij "Copenhagen dips". Haal die alias weg via Oefeningen → Copenhagen dips → Bewerken als ze er niet hoort.
 
 - **Vraag:** wat bewaart "Bewaar als sjabloon" bij het afsluiten, en onder welke naam?
-- **Keuze:** de volledige structuur van de sessie zoals ze er bij het afsluiten uitziet: alle groepen (type, rondes, rust, duur) en alle oefeningen, ook die zonder gedane sets, met hun voorschrift (sets, repbereik, RIR, rust, rol, last, notitie). Een oefening die vervangen werd valt weg; de vervanger krijgt haar voorschrift. Bestaat de naam al, dan stelt de app een vrije naam voor ("Sessie A (aangepast)", daarna "(aangepast 2)" …). Typ je zelf een bestaande naam, dan kies je: als nieuw sjabloon (vrije naam, standaard) of het bestaande vervangen.
+- **Keuze:** de volledige structuur van de sessie zoals ze er bij het afsluiten uitziet: alle groepen (type, rondes, rust, duur) en alle oefeningen, ook die zonder gedane sets, met hun voorschrift (sets, repbereik, RIR, rust, rol, last, notitie). Een oefening die vervangen werd valt weg; de vervanger neemt alleen de structuur over (sets, rust, rol), niet de last of de reps (zie "Fixronde 17 okt avond"). Bestaat de naam al, dan stelt de app een vrije naam voor ("Sessie A (aangepast)", daarna "(aangepast 2)" …). Typ je zelf een bestaande naam, dan kies je: als nieuw sjabloon (vrije naam, standaard) of het bestaande vervangen.
 - **Veranderen:** `naarSjabloon` en `vrijeSjabloonNaam` in `src/logic/activeSession.ts`; de keuze staat in `src/screens/training/FinishSheet.tsx`.
 
 - **Vraag:** op welke trede staat een set zonder `trede` (bv. geïmporteerd)?
@@ -119,3 +119,8 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Schema:** de nieuwe instelling `backupHerinneringSessies` maakt van het schema versie 5 (migratie 4 → 5 verandert niets; het veld krijgt de standaard 3). Op de telefoon blijft alle data staan: de database zelf verandert niet, een ontbrekend veld valt terug op 3.
 - **Opslag:** zolang Chrome geen blijvende opslag geeft (`navigator.storage.persisted()` is false), staat op Vandaag een melding met uitleg en **Opnieuw aanvragen**. Ze verdwijnt zodra de opslag blijvend is. Kent de browser het niet, dan is er geen melding (Data → Opslag toont het wel).
 - **Veranderen:** `backupHerinnering` in `src/logic/backupReminder.ts`, `deelBackup` in `src/ui/backupActie.ts`, de kaarten in `src/components/BackupVraag.tsx` en `src/components/OpslagMelding.tsx`.
+
+## Fixronde 17 okt avond
+- **Vraag:** wat neemt een vervanger over van de oefening die hij vervangt?
+- **Keuze:** alleen de structuur: de plaats in de groep, het aantal (resterende) sets of rondes, de rust en de rol. Last, trede, variant, repbereik, doel-RIR en notitie horen bij de oude oefening. De vervanger krijgt zijn eigen voorschrift: het voorstel van de progressie, anders zijn vorige keer, anders zijn huidige trede en de onderkant van zijn eigen repbereik (en zijn eigen doel-RIR). Zo logt één tik op de snelle knop nooit de last of de reps van een andere oefening. Hetzelfde bij "Bewaar als sjabloon": het sjabloonitem van de vervanger heeft geen last of repbereik van de oude oefening.
+- **Veranderen:** `structuurVan` en `vervangOefening` in `src/logic/activeSession.ts`.
