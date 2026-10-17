@@ -24,15 +24,22 @@ export function kanDelen(): boolean {
   }
 }
 
-/** Deelt het bestand via het deelmenu van Android (bv. naar Google Drive). Geeft false als je annuleert. */
-export async function deelJson(bestandsnaam: string, data: unknown): Promise<boolean> {
+export type DeelResultaat = 'gedeeld' | 'geannuleerd' | 'mislukt';
+
+/** Deelt het bestand via het deelmenu van het toestel (bv. naar Google Drive). "geannuleerd" als je het menu sluit. */
+export async function deelBestand(bestandsnaam: string, data: unknown): Promise<DeelResultaat> {
   const file = new File([jsonBlob(data)], bestandsnaam, { type: 'application/json' });
   try {
     await navigator.share({ files: [file], title: bestandsnaam });
-    return true;
-  } catch {
-    return false;
+    return 'gedeeld';
+  } catch (e) {
+    return (e as Error)?.name === 'AbortError' ? 'geannuleerd' : 'mislukt';
   }
+}
+
+/** Deelt het bestand via het deelmenu. Geeft false als je annuleert of het delen mislukt. */
+export async function deelJson(bestandsnaam: string, data: unknown): Promise<boolean> {
+  return (await deelBestand(bestandsnaam, data)) === 'gedeeld';
 }
 
 export function leesTekst(file: File): Promise<string> {

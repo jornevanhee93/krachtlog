@@ -52,6 +52,8 @@ export const filosofie = z.strictObject({
     .strictObject({
       minUrenTussenKracht: z.number().min(0).default(48),
       backupHerinneringDagen: positiveCount.default(7),
+      /** Sinds schemaVersie 5: herinnering na zoveel nieuwe sessies sinds de laatste back-up. */
+      backupHerinneringSessies: positiveCount.default(3),
     })
     .prefault({}),
 });

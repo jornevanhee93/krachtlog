@@ -1,10 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useState } from 'react';
 import { Link } from 'react-router';
+import OpslagMelding from '../components/OpslagMelding';
 import { db } from '../db/db';
 import { leesActief, leesGepland, leesInstellingen, zetPlanStatus } from '../db/repo';
 import { useStartTraining } from '../hooks/useStartTraining';
 import { nl } from '../i18n/nl';
-import { dagenGeleden, formatDatum, formatDatumTijd } from '../logic/format';
+import { backupHerinnering } from '../logic/backupReminder';
+import { formatDatum, formatDatumTijd } from '../logic/format';
+import { deelBackup } from '../ui/backupActie';
 import { lokaleDatum, overslaan, overzicht, termijnen, type GeplandeSessie } from '../logic/planning';
 
 const t = nl.today;
@@ -15,6 +19,8 @@ export default function TodayScreen() {
   const instellingen = useLiveQuery(() => leesInstellingen(), []);
   const gepland = useLiveQuery(() => leesGepland(), []);
   const oefeningen = useLiveQuery(() => db.oefeningen.toArray(), []);
+  const sessies = useLiveQuery(() => db.sessies.toArray(), []);
+  const [backupBezig, setBackupBezig] = useState(false);
   const { start, startGepland, bezig } = useStartTraining();
   const vandaag = lokaleDatum(new Date());
   const plan = gepland ? overzicht(gepland, vandaag) : undefined;
@@ -27,10 +33,23 @@ export default function TodayScreen() {
     await zetPlanStatus(overslaan(g, await db.planning.get(g.key)));
   };
 
-  const laatste = instellingen?.laatsteBackup;
-  const herinnerNa = instellingen?.filosofie.planning.backupHerinneringDagen ?? 7;
-  const oud = laatste ? dagenGeleden(laatste) : null;
-  const toonHerinnering = instellingen && (oud === null || oud >= herinnerNa);
+  const herinnering =
+    instellingen && sessies
+      ? backupHerinnering({
+          laatsteBackup: instellingen.laatsteBackup,
+          sessies,
+          naDagen: instellingen.filosofie.planning.backupHerinneringDagen,
+          naSessies: instellingen.filosofie.planning.backupHerinneringSessies,
+        })
+      : null;
+  const deel = async () => {
+    setBackupBezig(true);
+    try {
+      await deelBackup();
+    } finally {
+      setBackupBezig(false);
+    }
+  };
   const heeftPlan = Boolean(gepland && gepland.length > 0);
 
   return (
@@ -128,14 +147,29 @@ export default function TodayScreen() {
         </p>
       ))}
 
-      {toonHerinnering && (
-        <div className="card warn-card">
-          <p>{oud === null ? t.backupNooit : t.backupOud(oud)}</p>
-          <Link to="/data" className="btn">
-            {t.backupKnop}
-          </Link>
+      {herinnering && (
+        <div className="card attention-card" data-testid="backup-herinnering">
+          <p>
+            <strong>
+              {herinnering.reden === 'nooit'
+                ? t.backupNooit
+                : herinnering.reden === 'sessies'
+                  ? t.backupSessies(herinnering.sessies)
+                  : t.backupOud(herinnering.dagen)}
+            </strong>
+          </p>
+          <div className="row">
+            <Link to="/data" className="btn grow">
+              {t.backupKnop}
+            </Link>
+            <button className="btn btn-primary grow" disabled={backupBezig} onClick={() => void deel()}>
+              {nl.backup.delen}
+            </button>
+          </div>
         </div>
       )}
+
+      <OpslagMelding />
 
       <Link to="/programmas" className="btn btn-block">
         {t.programmas}

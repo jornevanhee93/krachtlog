@@ -165,6 +165,29 @@ Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze
 13. ☐ **Compacte patroonfilter.** **Oefeningen**: onder het zoekveld staat één keuzelijst **Patroon** (standaard "Alle patronen") in plaats van rijen knoppen. Kies een patroon: alleen die oefeningen blijven staan.
 14. ☐ **Onderbalk bedekt niets.** **Data → Instellingen** openklappen, een veld aanpassen: de knop **Bewaren** komt volledig boven de onderbalk in beeld (ook als het scherm vanzelf scrollt).
 
+## Verbeteringen 1 en 2
+
+Doe dit na een back-up (Data → Back-up downloaden). Wacht eerst tot de app de nieuwe versie toont (melding "Nieuwe versie" → tik erop, of sluit de app en open hem opnieuw).
+
+**1. Een set afvinken in één tik**
+1. ☐ Start een training vanuit een sjabloon. De open oefening toont bovenaan een grote zwarte knop, bv. **"✓ 80 kg × 8 · RIR 2"**. Het blok met gewicht, reps en trede is dicht.
+2. ☐ Tik op de knop: de set staat als ✓ in de lijst, de rusttimer start, en in een superset gaat de volgende oefening open.
+3. ☐ De knop zit onderaan je scherm, binnen bereik van je duim, en de rustbalk of onderbalk bedekt hem nooit.
+4. ☐ Tik in de rij **0–5** op een andere RIR (bv. 3): de knop toont meteen "RIR 3". Tik de knop: in de lijst staat "RIR 3".
+5. ☐ Tik eventueel **Makkelijk / Controle / Gevecht** vóór je de knop tikt: het staat daarna bij de set.
+6. ☐ Unilateraal: de knop toont bv. "✓ 24 kg × L8/R8 · RIR 2". Tijd: bv. "✓ 32 kg · 45 s".
+7. ☐ Power (bv. Box jump): geen RIR-rij, wel Makkelijk/Controle/Gevecht.
+8. ☐ Tik **Aanpassen**: het volledige invulblok opent (trede, gewicht, reps …). **Inklappen** sluit het weer.
+9. ☐ Tik op een gedane set in de lijst: het invulblok van die set opent; pas iets aan en tik **✓**.
+10. ☐ **+ Opwarmset**: de knop toont "Opwarmset" zonder RIR; na een tik start er geen rusttimer.
+
+**2. Databescherming**
+11. ☐ Sluit een training af en bewaar: bovenaan de sessie staat **"Back-up maken?"**. Tik **Back-up delen** → het deelmenu opent → kies Google Drive of OneDrive en bewaar. De kaart verdwijnt.
+12. ☐ **Data → Back-up**: "Laatste back-up: … (vandaag)".
+13. ☐ Doe het nog eens, maar sluit het deelmenu zonder iets te kiezen: de kaart blijft staan met "Geen back-up gemaakt." en de datum bij Data verandert niet. Tik **Later**: de kaart verdwijnt.
+14. ☐ **Data → Instellingen**: er is een veld **Back-upherinnering na … sessies** (standaard 3). Zet het op 1 en bewaar. Log een sessie en tik **Later**: op **Vandaag** staat "Sinds je laatste back-up kwamen er 1 sessies bij." met **Back-up delen**. Zet het daarna terug op 3.
+15. ☐ Staat er op Vandaag **"! Je gegevens zijn nog niet veilig opgeslagen"**: installeer de app op je startscherm (⋮ → Toevoegen aan startscherm), open hem een paar keer en tik **Opnieuw aanvragen**. Zodra Chrome blijvende opslag geeft, verdwijnt de melding. (Zie je de melding niet, dan is je opslag al blijvend: check bij Data → Opslag.)
+
 ---
 
 ## Bekende beperkingen

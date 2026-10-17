@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
+import BackupVraag from '../components/BackupVraag';
 import { db } from '../db/db';
 import { verwijderSessie } from '../db/repo';
 import { nl } from '../i18n/nl';
@@ -12,6 +13,9 @@ const t = nl.history;
 export default function SessionDetail() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Net bewaard vanuit de training: vraag om een back-up (één keer; "Later" of delen haalt de vraag weg).
+  const backupVraag = Boolean((location.state as { backupVraag?: boolean } | null)?.backupVraag);
   const sessie = useLiveQuery(() => db.sessies.get(id), [id]);
   const entries = useLiveQuery(() => db.entries.where('sessieId').equals(id).sortBy('volgorde'), [id]);
   const oefeningen = useLiveQuery(() => db.oefeningen.toArray(), []);
@@ -29,6 +33,7 @@ export default function SessionDetail() {
   return (
     <section className="screen">
       <h1>{formatDatumTijd(sessie.start)}</h1>
+      {backupVraag && <BackupVraag onKlaar={() => navigate(location.pathname, { replace: true, state: null })} />}
       <p>
         {[sessie.duurMin !== undefined ? t.minuten(sessie.duurMin) : '', sessie.rpe !== undefined ? t.rpe(sessie.rpe) : '']
           .filter(Boolean)

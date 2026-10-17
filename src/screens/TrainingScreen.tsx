@@ -104,7 +104,7 @@ export default function TrainingScreen() {
       await db.sjablonen.put(g.vervangSjabloonId ? { ...nieuw, id: g.vervangSjabloonId } : nieuw);
     }
     await wisActief();
-    navigate(`/historiek/${encodeURIComponent(gelogd.id)}`, { replace: true });
+    navigate(`/historiek/${encodeURIComponent(gelogd.id)}`, { replace: true, state: { backupVraag: true } });
   };
 
   const verwerp = async () => {

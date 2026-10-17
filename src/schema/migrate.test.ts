@@ -49,7 +49,15 @@ describe('migratie van oudere bestanden', () => {
       ],
     });
     expect(res.ok).toBe(true);
-    expect(SCHEMA_VERSIE).toBe(4);
+  });
+
+  it('v5: back-upherinnering na N sessies, standaard 3; een v4-back-up krijgt de standaard', () => {
+    expect(SCHEMA_VERSIE).toBe(5);
+    const v4 = parseObject({ schemaVersie: 4, soort: 'backup', instellingen: { filosofie: { planning: { backupHerinneringDagen: 10 } } } });
+    expect(v4.ok).toBe(true);
+    if (v4.ok && v4.soort === 'backup') expect(v4.bestand.instellingen.filosofie.planning).toMatchObject({ backupHerinneringDagen: 10, backupHerinneringSessies: 3 });
+    const v5 = parseObject({ schemaVersie: 5, soort: 'backup', instellingen: { filosofie: { planning: { backupHerinneringSessies: 5 } } } });
+    expect(v5.ok && v5.soort === 'backup' && v5.bestand.instellingen.filosofie.planning.backupHerinneringSessies).toBe(5);
   });
 
   it('zet de versie op de huidige', () => {

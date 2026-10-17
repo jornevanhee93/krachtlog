@@ -2,14 +2,16 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db } from '../db/db';
 import { metTijdslimiet } from '../db/tijdslimiet';
-import { bewaarInstellingen, leesInstellingen, leesSnapshot, pasImportToe, vervangAlles, wisAlles, zetLaatsteBackup } from '../db/repo';
+import { bewaarInstellingen, leesInstellingen, leesSnapshot, pasImportToe, vervangAlles, wisAlles } from '../db/repo';
 import { nl } from '../i18n/nl';
-import { backupBestandsnaam, backupNaarSnapshot, maakBackup } from '../logic/backup';
+import { backupNaarSnapshot } from '../logic/backup';
 import { dagenGeleden, formatDatum, formatDatumTijd } from '../logic/format';
 import { NIEUW, maakImportPlan, type ImportBestand, twijfelgevallen, voerImportUit, type ImportPlan, type Keuzes } from '../logic/importPlan';
 import { parseBestand, type Fout } from '../logic/parseFile';
-import { formatMb, requestPersistence, type PersistStatus } from '../logic/storage';
-import { persistenceStatus } from '../persistence';
+import { formatMb, type PersistStatus } from '../logic/storage';
+import { persistenceStatus, vraagOpnieuw } from '../persistence';
+import { STANDAARD_HERINNERING_SESSIES } from '../logic/backupReminder';
+import { deelBackup } from '../ui/backupActie';
 import { instellingen as instellingenSchema, type Instellingen } from '../schema';
 import { NumberField, RangeField, Segmented } from '../components/form';
 import { exporteerLogs, logsBestandsnaam, tekstSamenvatting, type Periode } from '../logic/exportLogs';
@@ -48,15 +50,7 @@ function BackupCard() {
 
   const maak = async (delen: boolean) => {
     setMelding('');
-    const nu = new Date();
-    const backup = maakBackup(await leesSnapshot(), nu);
-    const naam = backupBestandsnaam(nu);
-    if (delen) {
-      if (!(await deelJson(naam, backup))) return;
-    } else {
-      downloadJson(naam, backup);
-    }
-    await zetLaatsteBackup(nu);
+    if ((await deelBackup(delen)) === 'geannuleerd') return;
     setMelding(t.backupGemaakt);
   };
 
@@ -239,6 +233,12 @@ function SettingsCard() {
           integer
           value={f.planning.backupHerinneringDagen}
           onChange={(v) => zet((x) => ((x.filosofie.planning.backupHerinneringDagen = v ?? 7), x))}
+        />
+        <NumberField
+          label={t.inst.backupSessies}
+          integer
+          value={f.planning.backupHerinneringSessies ?? STANDAARD_HERINNERING_SESSIES}
+          onChange={(v) => zet((x) => ((x.filosofie.planning.backupHerinneringSessies = v ?? STANDAARD_HERINNERING_SESSIES), x))}
         />
       </div>
       <RangeField
@@ -514,7 +514,7 @@ function StorageCard() {
     });
   }, []);
 
-  const retry = async () => setStatus(await requestPersistence(navigator.storage));
+  const retry = async () => setStatus(await vraagOpnieuw());
 
   return (
     <div className="card">

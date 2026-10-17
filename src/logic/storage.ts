@@ -20,6 +20,16 @@ export async function requestPersistence(storage: StorageLike | undefined): Prom
   }
 }
 
+/** Leest de huidige status, zonder iets aan te vragen. */
+export async function leesPersistStatus(storage: StorageLike | undefined): Promise<PersistStatus> {
+  if (!storage?.persisted) return 'unsupported';
+  try {
+    return (await storage.persisted()) ? 'persisted' : 'notPersisted';
+  } catch {
+    return 'notPersisted';
+  }
+}
+
 /** Zet bytes om naar megabytes met één decimaal, in Nederlandse notatie. */
 export function formatMb(bytes: number): string {
   return (bytes / (1024 * 1024)).toLocaleString('nl-BE', {

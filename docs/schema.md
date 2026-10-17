@@ -9,7 +9,7 @@ Dit is het bestandsformaat voor back-up, herstel en import van Emerge. De Zod-sc
 
 ## Algemene regels
 
-- Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `4`; bestanden met versie `1`, `2` of `3` worden nog altijd aanvaard en automatisch omgezet) en **`soort`**: `"backup"`, `"bibliotheek"`, `"logs"` of `"programma"`.
+- Elk bestand is één JSON-object met bovenaan **`schemaVersie`** (nu `5`; bestanden met versie `1`, `2`, `3` of `4` worden nog altijd aanvaard en automatisch omgezet) en **`soort`**: `"backup"`, `"bibliotheek"`, `"logs"` of `"programma"`.
 - Optioneel: `gemaaktOp` (datum+tijd, bv. `"2026-10-16T20:00:00Z"`) en `bron` (vrije tekst, bv. `"export notitie-app 16 okt"`).
 - **Veldnamen zijn exact.** Een onbekend veld (bv. een tikfout als `repbereik`) geeft een fout en wordt dus niet stil genegeerd.
 - Velden die hier "optioneel" heten mag je weglaten. Velden met een standaardwaarde krijgen die als je ze weglaat.
@@ -272,7 +272,7 @@ De toestand van geplande sessies waar iets mee gebeurd is:
 | `laatsteBackup` | datum+tijd, optioneel |
 | `filosofie` | de bewerkbare standaardwaarden uit `docs/trainingsfilosofie.md`; ontbrekende velden krijgen de standaard |
 
-`filosofie` bevat: `termijnen` (`ankerWeken`, `rotatieWeken`, `microblokWeken`, `rotatiePercentage` als bereiken), `rirVloeren` (`onderlichaam`, `bovenlichaam`, `bovenlichaamIntensivering`, `klein`), `stagnatie` (`sessies`, `lichterPercentage`, `irritatieSessies`), `profielen` (per profiel `criterium`, `sessiesOpRij`, optioneel `stagnatieSessies` en `stagnatiePercentage`) en `planning` (`minUrenTussenKracht`, `backupHerinneringDagen`). Zie `src/schema/settings.ts` voor de standaardwaarden.
+`filosofie` bevat: `termijnen` (`ankerWeken`, `rotatieWeken`, `microblokWeken`, `rotatiePercentage` als bereiken), `rirVloeren` (`onderlichaam`, `bovenlichaam`, `bovenlichaamIntensivering`, `klein`), `stagnatie` (`sessies`, `lichterPercentage`, `irritatieSessies`), `profielen` (per profiel `criterium`, `sessiesOpRij`, optioneel `stagnatieSessies` en `stagnatiePercentage`) en `planning` (`minUrenTussenKracht`, `backupHerinneringDagen`, `backupHerinneringSessies` (sinds v5, standaard 3)). Zie `src/schema/settings.ts` voor de standaardwaarden.
 
 ## Koppelen bij import
 
@@ -304,5 +304,6 @@ Tellen begint bij 0: `oefeningen[1]` is de tweede oefening.
 | 2 | oefeningen: optioneel veld `icoon`. Een v1-bestand is ongewijzigd geldig. |
 | 3 | nieuwe soort `programma`; in een back-up `programmas` en `planning` (standaard leeg); sessies: optioneel `planningId`. Een v2-bestand is ongewijzigd geldig. |
 | 4 | sets: optioneel `duurSecLinks`, `duurSecRechts`, `afstandMLinks`, `afstandMRechts` (tijd en afstand per kant bij unilaterale oefeningen). Een v3-bestand is ongewijzigd geldig. |
+| 5 | instellingen: `filosofie.planning.backupHerinneringSessies` (herinnering na zoveel nieuwe sessies sinds de laatste back-up, standaard 3). Een v4-bestand is ongewijzigd geldig. |
 
 Wijzigt het schema, dan gaat `schemaVersie` omhoog en zet de app oudere bestanden automatisch om (`src/schema/migrate.ts`). Een bestand met een hogere versie dan de app kent, wordt geweigerd.

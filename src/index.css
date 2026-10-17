@@ -110,6 +110,7 @@ code { font-size: 0.85em; border: var(--border); padding: 0 4px; border-radius: 
 .card-link { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: var(--fg); }
 .highlight { border: var(--border-strong); }
 .warn-card { border: var(--border-strong); font-weight: 700; }
+.attention-card { border: var(--border-strong); }
 .sticky-actions {
   position: sticky;
   bottom: calc(var(--nav-height) + env(safe-area-inset-bottom));

@@ -114,3 +114,72 @@ test('1. opwarmset met de snelle knop: zonder RIR en zonder rust', async ({ page
   await expect(page.locator('.rest-bar')).toHaveCount(0);
   await expect(open.locator('.snel')).toContainText('Ronde 1');
 });
+
+/** Bootst het deelmenu en de opslag na: delen lukt altijd, de opslag is (nog) niet blijvend. */
+async function nepToestel(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { gedeeld: string[]; blijvend: boolean };
+    w.gedeeld = [];
+    w.blijvend = false;
+    Object.defineProperty(navigator, 'canShare', { value: () => true, configurable: true });
+    Object.defineProperty(navigator, 'share', {
+      value: async (data: ShareData) => {
+        w.gedeeld.push(...(data.files ?? []).map((f) => f.name));
+      },
+      configurable: true,
+    });
+    Object.defineProperty(navigator, 'storage', {
+      value: { persisted: async () => w.blijvend, persist: async () => w.blijvend, estimate: async () => ({ usage: 1, quota: 100 }) },
+      configurable: true,
+    });
+  });
+}
+
+test('2. na het bewaren: "Back-up maken?" en delen zet de laatste back-up', async ({ page }, info) => {
+  await nepToestel(page);
+  await startSessieA(page);
+  await snelleKnop(page).click();
+  await page.getByRole('button', { name: 'Overslaan' }).click();
+  await page.getByRole('button', { name: 'Sessie afsluiten' }).click();
+  await page.getByRole('button', { name: 'Sessie bewaren' }).click();
+  await expect(page).toHaveURL(/#\/historiek\//);
+  const vraag = page.getByTestId('backup-vraag');
+  await expect(vraag).toContainText('Back-up maken?');
+  await controleerScherm(page, 'backup-vraag', info.project.name);
+  await vraag.getByRole('button', { name: 'Back-up delen' }).click();
+  await expect(vraag).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as { gedeeld: string[] }).gedeeld)).toEqual([expect.stringMatching(/^emerge-backup-.*\.json$/)]);
+
+  await page.goto('#/');
+  await expect(page.getByText(/Lege sessie/)).toBeVisible();
+  await expect(page.getByTestId('backup-herinnering')).toHaveCount(0);
+  await page.goto('#/data');
+  await expect(page.getByText(/Laatste back-up: .*\(vandaag\)/)).toBeVisible();
+});
+
+test('2. "Later" maakt geen back-up; Vandaag herinnert en meldt niet-blijvende opslag', async ({ page }, info) => {
+  await nepToestel(page);
+  await startSessieA(page);
+  await snelleKnop(page).click();
+  await page.getByRole('button', { name: 'Overslaan' }).click();
+  await page.getByRole('button', { name: 'Sessie afsluiten' }).click();
+  await page.getByRole('button', { name: 'Sessie bewaren' }).click();
+  await page.getByTestId('backup-vraag').getByRole('button', { name: 'Later' }).click();
+  await expect(page.getByTestId('backup-vraag')).toHaveCount(0);
+
+  await page.goto('#/');
+  await expect(page.getByTestId('backup-herinnering')).toContainText('Je hebt nog geen back-up gemaakt.');
+  const melding = page.getByTestId('opslag-melding');
+  await expect(melding).toContainText('startscherm');
+  await melding.scrollIntoViewIfNeeded();
+  await controleerScherm(page, 'vandaag-herinnering', info.project.name);
+
+  // Chrome geeft blijvende opslag: na "Opnieuw aanvragen" verdwijnt de melding.
+  await page.evaluate(() => ((window as unknown as { blijvend: boolean }).blijvend = true));
+  await melding.getByRole('button', { name: 'Opnieuw aanvragen' }).click();
+  await expect(melding).toHaveCount(0);
+
+  // Back-up delen vanaf Vandaag haalt de herinnering weg.
+  await page.getByTestId('backup-herinnering').getByRole('button', { name: 'Back-up delen' }).click();
+  await expect(page.getByTestId('backup-herinnering')).toHaveCount(0);
+});

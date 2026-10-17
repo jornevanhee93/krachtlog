@@ -14,6 +14,9 @@ const migraties: Record<number, (bestand: Record<string, unknown>) => Record<str
   // 3 → 4: sets kregen optioneel duur en afstand per kant (duurSecLinks/-Rechts, afstandMLinks/-Rechts).
   // Een v3-bestand is dus al geldig in v4.
   3: (b) => b,
+  // 4 → 5: instellingen kregen filosofie.planning.backupHerinneringSessies (standaard 3).
+  // Ontbreekt het veld, dan vult het schema de standaard in. Een v4-bestand is dus al geldig in v5.
+  4: (b) => b,
 };
 
 export type MigratieResultaat =
