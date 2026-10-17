@@ -275,10 +275,10 @@ De toestand van geplande sessies waar iets mee gebeurd is:
 
 ## Koppelen bij import
 
-Bij een import van `bibliotheek` of `logs` worden de oefeningen uit het bestand gekoppeld aan de oefeningen die al in de app staan:
+Bij een import van `bibliotheek`, `logs` of `programma` worden de oefeningen uit het bestand gekoppeld aan de oefeningen die al in de app staan:
 
-1. **Exacte match** op genormaliseerde naam of alias (kleine letters, zonder accenten, leestekens en dubbele spaties; `"SL-RDL"` = `"sl rdl"`) → automatisch gekoppeld.
-2. **Gelijkaardige naam** (maar geen exacte match) → de app vraagt: *koppelen* of *nieuw*.
+1. **Exacte match** (genormaliseerd: kleine letters, zonder accenten, leestekens en dubbele spaties; `"SL-RDL"` = `"sl rdl"`) → automatisch gekoppeld. Exact betekent: de **naam** uit het bestand is de naam of een alias van de bestaande oefening, of de **naam** van de bestaande oefening staat bij de aliassen in het bestand. En dat met precies één bestaande oefening.
+2. **Gelijkaardig** → de app vraagt altijd: *koppelen* of *nieuw* (er is geen voorkeuze; importeren kan pas als je overal gekozen hebt). Dat geldt voor een gelijkaardige naam, voor twee oefeningen die alleen een alias delen (bv. `"Copenhagen"` bij zowel "Copenhagen plank" als "Copenhagen dips"), en als de naam exact past bij meer dan één bestaande oefening.
 3. **Geen match** → nieuwe oefening.
 
 De ids in het bestand zijn alleen geldig binnen het bestand; de app vertaalt ze bij het koppelen. Materiaal en sjablonen worden op dezelfde manier gekoppeld op naam.

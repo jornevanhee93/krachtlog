@@ -341,12 +341,9 @@ function ImportCard() {
     if (!res.ok) return setToestand({ stap: 'fouten', fouten: res.fouten });
     if (res.soort === 'backup') return setToestand({ stap: 'fouten', fouten: [{ pad: 'soort', bericht: t.importIsBackup }] });
     const bestaand = await huidig();
+    // Geen voorkeuze bij een gelijkaardige naam: de gebruiker kiest zelf koppelen of nieuw.
     const plan = maakImportPlan(res.bestand, bestaand);
-    const keuzes: Keuzes = {};
-    for (const o of twijfelgevallen(plan)) {
-      if (o.match.type === 'twijfel') keuzes[o.bron.id] = o.match.kandidaten[0].id;
-    }
-    setToestand({ stap: 'plan', bestand: res.bestand, plan, keuzes });
+    setToestand({ stap: 'plan', bestand: res.bestand, plan, keuzes: {} });
   };
 
   const kiesBestand = async (file: File | undefined) => {
@@ -434,6 +431,7 @@ function ImportPlanView(props: {
 }) {
   const [samenvatting, setSamenvatting] = useState<string[] | null>(null);
   const twijfel = twijfelgevallen(props.plan);
+  const openVragen = twijfel.filter(({ bron }) => props.keuzes[bron.id] === undefined).length;
 
   useEffect(() => {
     let actief = true;
@@ -492,11 +490,12 @@ function ImportPlanView(props: {
           ))}
         </ul>
       )}
+      {openVragen > 0 && <p className="warn">{t.twijfelOpen(openVragen)}</p>}
       <div className="row">
         <button className="btn" onClick={props.onAnnuleer}>
           {nl.algemeen.annuleren}
         </button>
-        <button className="btn btn-primary grow" disabled={!samenvatting?.length} onClick={props.onImport}>
+        <button className="btn btn-primary grow" disabled={!samenvatting?.length || openVragen > 0} onClick={props.onImport}>
           {t.importStart}
         </button>
       </div>

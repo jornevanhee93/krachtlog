@@ -38,3 +38,33 @@ test('1. vervangen na een gedane set: de gedane set blijft bewaard', async ({ pa
   await expect(page).toHaveURL(/#\/historiek\//);
   await expect(page.getByText('Kettlebell swing')).toBeVisible();
 });
+
+test('2. programma-import: een gelijkaardige naam wordt gevraagd, niet stil gekoppeld', async ({ page }, info) => {
+  await importeer(
+    page,
+    JSON.stringify({ schemaVersie: 3, soort: 'bibliotheek', oefeningen: [{ id: 'cd', naam: 'Copenhagen dips', aliassen: ['Copenhagen'] }] }),
+  );
+  const programma = {
+    schemaVersie: 3,
+    soort: 'programma',
+    oefeningen: [{ id: 'cp', naam: 'Copenhagen plank', aliassen: ['Copenhagen'] }],
+    programma: {
+      id: 'p',
+      naam: 'Testprogramma',
+      startDatum: '2026-10-26',
+      blokken: [{ naam: 'Blok', weken: [{ sessies: [{ naam: 'A', weekdag: 'ma', groepen: [{ items: [{ oefeningId: 'cp' }] }] }] }] }],
+    },
+  };
+  await page.goto('#/data');
+  await page.getByRole('textbox').first().fill(JSON.stringify(programma));
+  await page.getByRole('button', { name: 'Controleren' }).click();
+  await expect(page.getByText('Is dit dezelfde oefening?')).toBeVisible();
+  await expect(page.getByText('Koppelen aan "Copenhagen dips"')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Importeren', exact: true })).toBeDisabled();
+  await controleerScherm(page, 'fix2-twijfel', info.project.name);
+  await page.getByText('Nieuwe oefening').click();
+  await page.getByRole('button', { name: 'Importeren', exact: true }).click();
+  await expect(page.getByText('Import klaar.')).toBeVisible();
+  await page.goto('#/oefeningen');
+  await expect(page.locator('.list-item')).toHaveCount(2);
+});

@@ -1,6 +1,7 @@
 import type { z } from 'zod';
 import { describe, expect, it } from 'vitest';
 import { SCHEMA_VERSIE, bibliotheekBestand, logsBestand, oefening } from '../schema';
+import { parseBestand } from './parseFile';
 import { maakImportPlan, twijfelgevallen, voerImportUit, type Bestaand } from './importPlan';
 
 const oef = (o: z.input<typeof oefening>) => oefening.parse(o);
@@ -122,13 +123,58 @@ describe('import van een programma', () => {
       programmas: [],
     };
     const plan = maakImportPlan(res.bestand, bestaand);
-    const uit = voerImportUit(plan, {}, bestaand);
+    // Alleen de alias "SL RDL" is gelijk: de app vraagt het, en hier kiest de gebruiker "koppelen".
+    expect(twijfelgevallen(plan).map((o) => o.bron.id)).toEqual(['oef-sl-rdl']);
+    const uit = voerImportUit(plan, { 'oef-sl-rdl': 'mijn-rdl' }, bestaand);
     const items = uit.programmas[0].blokken[0].weken[0].sessies[0].groepen[0].items.map((i) => i.oefeningId);
     expect(items).toEqual(['mijn-pu', 'mijn-rdl']);
     expect(uit.samenvatting).toMatchObject({ programmasNieuw: 1, programmasVervangen: 0, oefeningenGekoppeld: 2, oefeningenNieuw: 4 });
     // Opnieuw importeren met dezelfde naam vervangt het programma (zelfde id, zodat de status blijft).
-    const opnieuw = voerImportUit(maakImportPlan(res.bestand, { ...bestaand, programmas: uit.programmas }), {}, { ...bestaand, programmas: uit.programmas });
+    const opnieuw = voerImportUit(maakImportPlan(res.bestand, { ...bestaand, programmas: uit.programmas }), { 'oef-sl-rdl': 'mijn-rdl' }, { ...bestaand, programmas: uit.programmas });
     expect(opnieuw.programmas[0].id).toBe(uit.programmas[0].id);
     expect(opnieuw.samenvatting.programmasVervangen).toBe(1);
   });
 });
+
+describe('gelijkaardige naam: altijd vragen, voor elke soort import', () => {
+  const metCopenhagen: Bestaand = {
+    ...bestaand,
+    oefeningen: [...bestaand.oefeningen, oef({ id: 'cd', naam: 'Copenhagen dips', aliassen: ['Copenhagen'] })],
+  };
+  const cp = { id: 'cp', naam: 'Copenhagen plank', aliassen: ['Copenhagen'] };
+  const groepen = [{ items: [{ oefeningId: 'cp' }] }];
+  const bestanden = {
+    bibliotheek: { schemaVersie: SCHEMA_VERSIE, soort: 'bibliotheek', oefeningen: [cp] },
+    logs: {
+      schemaVersie: SCHEMA_VERSIE,
+      soort: 'logs',
+      oefeningen: [cp],
+      sessies: [{ id: 'ses-x', start: '2026-09-01', oefeningen: [{ oefeningId: 'cp', volgorde: 0, sets: [{ duurSec: 20 }] }] }],
+    },
+    programma: {
+      schemaVersie: SCHEMA_VERSIE,
+      soort: 'programma',
+      oefeningen: [cp],
+      programma: {
+        id: 'p',
+        naam: 'P',
+        startDatum: '2026-10-26',
+        blokken: [{ naam: 'B', weken: [{ sessies: [{ naam: 'A', weekdag: 'ma', groepen }] }] }],
+      },
+    },
+  };
+
+  for (const [soort, ruw] of Object.entries(bestanden)) {
+    it(`${soort}: "Copenhagen plank" wordt niet stil gekoppeld aan "Copenhagen dips"`, () => {
+      const res = parseBestand(JSON.stringify(ruw));
+      if (!res.ok || res.soort === 'backup') throw new Error(JSON.stringify(res));
+      const plan = maakImportPlan(res.bestand, metCopenhagen);
+      expect(twijfelgevallen(plan).map((o) => o.bron.id)).toEqual(['cp']);
+      // Zonder keuze: een nieuwe oefening, en de bestaande krijgt er geen alias bij.
+      const uit = voerImportUit(plan, {}, metCopenhagen);
+      expect(uit.samenvatting.oefeningenNieuw).toBe(1);
+      expect(uit.oefeningen.find((o) => o.id === 'cd')).toBeUndefined();
+    });
+  }
+});
+

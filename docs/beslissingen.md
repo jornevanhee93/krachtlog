@@ -58,3 +58,9 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** gedane sets gaan nooit verloren. Is er al een set afgevinkt, dan blijft de oude oefening staan (dicht, met het label "vervangen" en alleen haar gedane sets) en komt de nieuwe oefening er meteen achter met de resterende sets (in een superset: de resterende rondes). Zonder gedane sets wordt de oefening gewoon vervangen. Er komt geen extra vraag: dit is de veiligste en eenvoudigste optie.
 - **Veranderen:** `vervangOefening` in `src/logic/activeSession.ts`.
 
+- **Vraag:** waarom werd "Copenhagen plank" bij een programma-import stil gekoppeld aan "Copenhagen dips"?
+- **Oorzaak:** een gedeelde alias telde als exacte match. Beide oefeningen hadden de alias "Copenhagen"; de app koppelde dan zonder te vragen en zette "Copenhagen plank" bij de aliassen.
+- **Keuze:** automatisch koppelen alleen als de *naam* uit het bestand de naam of een alias van precies één bestaande oefening is (of omgekeerd: de bestaande naam staat bij de aliassen in het bestand). Een gedeelde alias, een gelijkaardige naam of meerdere exacte matches → altijd vragen, voor bibliotheek, logs en programma. Er is geen voorkeuze meer ("koppelen" stond vooraf aangevinkt); importeren kan pas na een keuze bij elke vraag.
+- **Veranderen:** `zoekMatch` in `src/logic/matching.ts`; de vraag staat in `ImportPlanView` in `src/screens/DataScreen.tsx`.
+- **Let op:** "Copenhagen plank" staat op je telefoon misschien nog als alias bij "Copenhagen dips". Haal die alias weg via Oefeningen → Copenhagen dips → Bewerken als ze er niet hoort.
+

@@ -133,6 +133,8 @@ test('import: v1-bestand, koppelen op een gelijkaardige naam, en foutmeldingen',
   await page.getByRole('textbox').first().fill(JSON.stringify(v1));
   await page.getByRole('button', { name: 'Controleren' }).click();
   await expect(page.getByText('Is dit dezelfde oefening?')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Importeren', exact: true })).toBeDisabled();
+  await page.getByText('Koppelen aan "Pull-up"').click();
   await expect(page.getByText(/Oefeningen: 0 nieuw, 2 gekoppeld/)).toBeVisible();
   await page.getByRole('button', { name: 'Importeren', exact: true }).click();
   await expect(page.getByText('Import klaar.')).toBeVisible();

@@ -56,19 +56,33 @@ function namen(x: Benoemd): string[] {
   return [x.naam, ...(x.aliassen ?? [])].map(normaliseer).filter(Boolean);
 }
 
-/** Zoekt een bestaande tegenhanger: exact op naam/alias, anders gelijkaardige kandidaten. */
+/**
+ * Exact = de naam uit het bestand is de naam of een alias van de bestaande oefening, of de naam van de
+ * bestaande oefening staat bij de aliassen in het bestand. Twee gelijke aliassen alleen (bv. de korte
+ * bijnaam "Copenhagen" bij zowel "Copenhagen plank" als "Copenhagen dips") tellen niet als exact.
+ */
+function isExact(nieuw: Benoemd, b: Benoemd): boolean {
+  const naamNieuw = normaliseer(nieuw.naam);
+  const naamBestaand = normaliseer(b.naam);
+  return namen(b).includes(naamNieuw) || namen(nieuw).includes(naamBestaand);
+}
+
+/**
+ * Zoekt een bestaande tegenhanger. Alleen een exacte match met precies één oefening koppelt vanzelf;
+ * al het andere dat lijkt (gelijkaardige naam, gedeelde alias, meerdere exacte matches) wordt gevraagd.
+ */
 export function zoekMatch(nieuw: Benoemd, bestaand: Benoemd[]): Match {
   const mijn = namen(nieuw);
-  const exact = bestaand.find((b) => namen(b).some((n) => mijn.includes(n)));
-  if (exact) return { type: 'exact', id: exact.id };
+  const exact = bestaand.filter((b) => isExact(nieuw, b));
+  if (exact.length === 1) return { type: 'exact', id: exact[0].id };
   const kandidaten = bestaand
     .map((b) => ({
       id: b.id,
       naam: b.naam,
-      score: Math.max(...mijn.flatMap((m) => namen(b).map((n) => gelijkenis(m, n)))),
+      score: exact.includes(b) ? 1 : Math.max(...mijn.flatMap((m) => namen(b).map((n) => gelijkenis(m, n)))),
     }))
     .filter((k) => k.score >= TWIJFEL_DREMPEL)
     .sort((x, y) => y.score - x.score)
-    .slice(0, 3);
+    .slice(0, Math.max(3, exact.length));
   return kandidaten.length ? { type: 'twijfel', kandidaten } : { type: 'nieuw' };
 }

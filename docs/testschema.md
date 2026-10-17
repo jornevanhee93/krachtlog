@@ -151,6 +151,7 @@ Er is nog geen eigen programmabestand. Gebruik het voorbeeld en zet daarna je ba
 Korte controles van de fouten die bij de handmatige test gevonden werden. Doe ze na een back-up.
 
 1. ☐ **Vervangen houdt gedane sets.** Start een training, vink één set af van een oefening, tik **Vervangen** en kies een andere oefening. De eerste oefening blijft staan met "vervangen" en 1/1; de nieuwe staat eronder met de resterende sets. Sluit af: in de historiek staat de gedane set.
+2. ☐ **Gelijkaardige naam wordt gevraagd.** Importeer een bestand met een oefening die maar lijkt op een bestaande (of alleen een alias deelt). De app toont **"Is dit dezelfde oefening?"**; **Importeren** is grijs tot je *Koppelen* of *Nieuwe oefening* kiest. (Check ook bij Copenhagen dips → Bewerken of "Copenhagen plank" nog als alias staat; haal die weg als ze er niet hoort.)
 
 ---
 

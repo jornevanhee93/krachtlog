@@ -392,6 +392,7 @@ export const nl = {
     koppelAan: (naam: string) => `Koppelen aan "${naam}"`,
     nieuweOefening: 'Nieuwe oefening',
     uitBestand: 'Uit het bestand',
+    twijfelOpen: (n: number) => (n === 1 ? '! Kies eerst bij 1 oefening: koppelen of nieuw.' : `! Kies eerst bij ${n} oefeningen: koppelen of nieuw.`),
     samenvatting: 'Wat er gebeurt',
     samenvattingRegels: (s: {
       materiaalNieuw: number;

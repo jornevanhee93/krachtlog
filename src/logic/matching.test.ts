@@ -22,7 +22,31 @@ describe('zoekMatch', () => {
 
   it('koppelt exact op alias (in beide richtingen)', () => {
     expect(zoekMatch({ id: 'x', naam: 'SL-RDL' }, bestaand)).toEqual({ type: 'exact', id: 'rdl' });
-    expect(zoekMatch({ id: 'x', naam: 'Iets anders', aliassen: ['optrekken'] }, bestaand)).toEqual({ type: 'exact', id: 'pu' });
+    expect(zoekMatch({ id: 'x', naam: 'Optrekken met vest', aliassen: ['pull up'] }, bestaand)).toEqual({ type: 'exact', id: 'pu' });
+  });
+
+  it('twijfelt als alleen een alias gelijk is aan een alias (bv. een korte bijnaam)', () => {
+    // De fout uit de handmatige test: "Copenhagen plank" en "Copenhagen dips" deelden de alias "Copenhagen".
+    const lijst = [{ id: 'cd', naam: 'Copenhagen dips', aliassen: ['Copenhagen'] }];
+    const m = zoekMatch({ id: 'x', naam: 'Copenhagen plank', aliassen: ['Copenhagen'] }, lijst);
+    expect(m.type).toBe('twijfel');
+    if (m.type === 'twijfel') expect(m.kandidaten[0].id).toBe('cd');
+    expect(zoekMatch({ id: 'x', naam: 'Iets anders', aliassen: ['optrekken'] }, bestaand).type).toBe('twijfel');
+  });
+
+  it('twijfelt bij een gelijkaardige naam die een alias bevat', () => {
+    const lijst = [{ id: 'cd', naam: 'Copenhagen dips', aliassen: ['Copenhagen'] }];
+    expect(zoekMatch({ id: 'x', naam: 'Copenhagen plank' }, lijst).type).toBe('twijfel');
+  });
+
+  it('twijfelt als de naam exact past bij meer dan één bestaande oefening', () => {
+    const lijst = [
+      { id: 'a', naam: 'Plank', aliassen: [] },
+      { id: 'b', naam: 'Voorarmsteun', aliassen: ['plank'] },
+    ];
+    const m = zoekMatch({ id: 'x', naam: 'Plank' }, lijst);
+    expect(m.type).toBe('twijfel');
+    if (m.type === 'twijfel') expect(m.kandidaten.map((k) => k.id).sort()).toEqual(['a', 'b']);
   });
 
   it('twijfelt bij een gelijkaardige naam', () => {
