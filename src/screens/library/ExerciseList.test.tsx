@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { importeerVoorbeeld, renderApp, zetTestOmgevingOp } from '../../test/app';
 
@@ -19,4 +19,18 @@ describe('oefeningenlijst', () => {
     const pullup = (await screen.findByText('Pull-up')).closest('button')!;
     expect(within(pullup).getByText(/ladder/)).toBeTruthy();
   });
+
+  it('filtert op patroon met één compacte keuzelijst (geen rijen knoppen)', async () => {
+    await importeerVoorbeeld('bibliotheek.json');
+    renderApp('/oefeningen');
+    const keuze = (await screen.findByLabelText('Patroon')) as HTMLSelectElement;
+    expect(keuze.tagName).toBe('SELECT');
+    expect(document.querySelectorAll('.chip')).toHaveLength(0);
+    fireEvent.change(keuze, { target: { value: 'carry' } });
+    await waitFor(() => expect(screen.queryByText('Pull-up')).toBeNull());
+    expect(screen.getByText('Farmer carry')).toBeTruthy();
+    fireEvent.change(keuze, { target: { value: '' } });
+    await screen.findByText('Pull-up');
+  });
 });
+

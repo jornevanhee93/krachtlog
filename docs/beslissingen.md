@@ -96,3 +96,6 @@ Keuzes die eigenlijk bij de gebruiker liggen, maar tijdens de nachtbouw gemaakt 
 - **Keuze:** alleen als het iets toevoegt: "24 kg" naast "24 kg × 6" valt weg, "Vest 5" naast "+5 kg × 7" blijft. Spaties, "kg", "+" en komma/punt tellen niet mee bij het vergelijken. De tekst voor een review (Logs exporteren) houdt het label wel, als kop tussen haken.
 - **Veranderen:** `tredeVoegtToe` in `src/logic/format.ts`.
 
+- **Vraag:** hoe filter je compact op patroon bij Oefeningen?
+- **Keuze:** één keuzelijst "Patroon" (standaard "Alle patronen") in plaats van een rij knoppen per patroon. Eén rij hoog, nooit breder dan het scherm, en de keuzelijst van Android is groot genoeg om met één hand te tikken.
+

@@ -39,11 +39,13 @@ export default function ExerciseList() {
   };
 
   const patronen = [...new Set((oefeningen ?? []).flatMap((o) => o.patronen))].sort((a, b) => a.localeCompare(b));
+  // Een bewaard patroon dat niet meer bestaat, filtert niet.
+  const patroon = patronen.includes(filter.patroon) ? filter.patroon : '';
   const q = normaliseer(filter.zoek);
   const lijst = (oefeningen ?? []).filter(
     (o) =>
       (archief || !o.gearchiveerd) &&
-      (!filter.patroon || o.patronen.includes(filter.patroon)) &&
+      (!patroon || o.patronen.includes(patroon)) &&
       (!q || [o.naam, ...o.aliassen].some((n) => normaliseer(n).includes(q))),
   );
 
@@ -59,23 +61,17 @@ export default function ExerciseList() {
         onChange={(e) => setFilter({ ...filter, zoek: e.target.value })}
       />
       {patronen.length > 0 && (
-        <div className="chips">
-          <button
-            className={!filter.patroon ? 'chip active' : 'chip'}
-            onClick={() => setFilter({ ...filter, patroon: '' })}
-          >
-            {t.alle}
-          </button>
-          {patronen.map((p) => (
-            <button
-              key={p}
-              className={filter.patroon === p ? 'chip active' : 'chip'}
-              onClick={() => setFilter({ ...filter, patroon: filter.patroon === p ? '' : p })}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
+        <label className="field">
+          <span>{t.patroon}</span>
+          <select value={patroon} onChange={(e) => setFilter({ ...filter, patroon: e.target.value })}>
+            <option value="">{t.allePatronen}</option>
+            {patronen.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
       <Link to="/oefeningen/nieuw" className="btn btn-primary btn-block">
         + {t.nieuweOefening}

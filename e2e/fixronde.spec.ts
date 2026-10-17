@@ -112,3 +112,13 @@ test('8. unilateraal met tijd: links en rechts apart', async ({ page }, info) =>
   await expect(page).toHaveURL(/#\/historiek\//);
   await expect(page.getByText(/L30\/R25 s/)).toBeVisible();
 });
+
+test('13. oefeningen: patroonfilter is één compacte keuzelijst', async ({ page }, info) => {
+  await importeer(page, voorbeeld('bibliotheek.json'));
+  await page.goto('#/oefeningen');
+  await expect(page.getByLabel('Patroon')).toBeVisible();
+  await expect(page.locator('.chip')).toHaveCount(0);
+  await page.getByLabel('Patroon').selectOption('carry');
+  await expect(page.locator('.list-item')).toHaveCount(1);
+  await controleerScherm(page, 'fix13-patroon', info.project.name);
+});

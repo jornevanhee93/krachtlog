@@ -72,7 +72,8 @@ export const nl = {
   },
   bibliotheek: {
     tabs: { oefeningen: 'Oefeningen', sjablonen: 'Sjablonen', materiaal: 'Materiaal' },
-    alle: 'Alle',
+    patroon: 'Patroon',
+    allePatronen: 'Alle patronen',
     nieuweOefening: 'Nieuwe oefening',
     nieuwSjabloon: 'Nieuw sjabloon',
     nieuwMateriaal: 'Nieuw materiaal',
