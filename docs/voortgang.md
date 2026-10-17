@@ -19,5 +19,6 @@ Afgevinkt = klaar en getest (met commit).
 - 2026-10-16 21:00 UTC (run-a1): lock gezet, privacy-opruiming, design gecontroleerd, Playwright werkt hier (Chromium in /opt/pw-browsers), e2e-tests in `e2e/`.
 - 2026-10-16 21:55 UTC (run-a1): items 2–7 gebouwd en getest (zie commits). Nu: item 8, eindtest + testschema.
 - 2026-10-16 22:05 UTC (run-a1): eindtest groen, docs/testschema.md geschreven, ALLES KLAAR gezet en lock weggehaald.
+- 2026-10-17 (fixronde): 4 fouten en 10 kleinere punten uit de handmatige test opgelost, elk met een test en een eigen commit (ff2d302 … 0b55359). Schema v4 (tijd/afstand per kant), databaseversie 3. 231 unittests/RTL-tests en 56 e2e-tests groen. Zie docs/beslissingen.md (Fixronde 17 okt) en docs/testschema.md (Fixronde 17 okt).
 
 Playwright werkt in de cloudomgeving (Chromium in /opt/pw-browsers): `npm run build && npm run e2e`.
